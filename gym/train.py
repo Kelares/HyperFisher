@@ -34,14 +34,12 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.SSM
+    model=ModelArch.TRANSFORMER
 )
 
 print(CURRENT_CONFIG.dataset_id)
 
 # --- LEARNING CONFIGURATION ---
-LEARNING_RATE = 8e-4
-EPOCHS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -56,12 +54,93 @@ dataset, loader = gym.loadDataset(CURRENT_CONFIG)
 
 model = importlib.import_module(CURRENT_CONFIG.model.value)
 print(model)
+match CURRENT_CONFIG.model.value:
+    case "ssm":
+        LEARNING_RATE = 8e-4
+    case "transformer":
+        LEARNING_RATE = 1e-3
 
 actor = model.create_actor(DEVICE)
 optimizer = torch.optim.AdamW(actor.parameters(), lr=LEARNING_RATE)
 
 
-# --- Progress save and indexing ---
+
+# --- 4. TRAINING LOOP --- 
+
+best_save_path = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_best.pt"
+try:
+    print(f"Starting training on {DEVICE}...")
+    actor.train()
+
+    best_loss = float('inf')
+    patience_counter = 0
+    PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
+    EPOCHS = 100
+
+    for epoch in range(EPOCHS):
+        total_loss = 0
+        for i, batch in enumerate(loader):
+            s = batch['states'].to(DEVICE)
+            a = batch['actions'].to(DEVICE)
+            r = batch['rtg'].to(DEVICE)
+            m = batch['mask'].to(DEVICE)
+            # Predict action
+            pred_action = actor(s, a, r)
+
+            # Loss: (Predicted Action - Real Action)^2
+            loss = F.mse_loss(pred_action, a, reduction='none')
+            # Apply mask (ignore padding)
+            loss = (loss.mean(dim=-1) * m).mean()
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+
+        avg_loss = total_loss / len(loader)
+        print(f"Epoch {epoch+1} | Loss: {total_loss:.5f}")
+
+        # Check for improvement
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            patience_counter = 0
+            torch.save(actor.state_dict(), best_save_path)
+            print(f"   ✅ New Best Model Saved (Loss: {best_loss:.5f})")
+        else:
+            patience_counter += 1
+            print(f"   No improvement. Patience: {patience_counter}/{PATIENCE_LIMIT}")
+            
+        if patience_counter >= PATIENCE_LIMIT:
+            print("🛑 Early Stopping triggered. Model has converged.")
+            break
+
+except KeyboardInterrupt:
+    save_path =  f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{total_loss/len(loader):.5f}.pt"
+    torch.save(actor.state_dict(), save_path)
+    print(f"Done. Model saved as {save_path}")
+except:
+    print("Training stopped")
+finally:
+    print("Finished")
+
+    save_path =  f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{total_loss/len(loader):.5f}.pt"
+    torch.save(actor.state_dict(), save_path)
+    print(f"Done. Model saved as {save_path}")
+
+
+
+
+
+
+    # PREFIX = F"{CURRENT_CONFIG.gym}_{CURRENT_CONFIG.model}_"CURRENT_CONFIG
+    # filename, suffix = find_biggest_suffix('saves', PREFIX)
+    # print
+    # if filename:
+    #     index = suffix
+    # else:
+    #     index = 0
+'''# --- Progress save and indexing ---
 import re
 from pathlib import Path
 
@@ -90,46 +169,4 @@ def find_biggest_suffix(directory_path, prefix):
 
     return max_file, max_num
 
-
-# --- 4. TRAINING LOOP ---
-try:
-    print(f"Starting training on {DEVICE}...")
-    actor.train()
-
-    for epoch in range(EPOCHS):
-        total_loss = 0
-        for i, batch in enumerate(loader):
-            s = batch['states'].to(DEVICE)
-            a = batch['actions'].to(DEVICE)
-            r = batch['rtg'].to(DEVICE)
-            m = batch['mask'].to(DEVICE)
-            # Predict action
-            pred_action = actor(s, a, r)
-
-            # Loss: (Predicted Action - Real Action)^2
-            loss = F.mse_loss(pred_action, a, reduction='none')
-            # Apply mask (ignore padding)
-            loss = (loss.mean(dim=-1) * m).mean()
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            total_loss += loss.item()
-        
-        print(f"Epoch {epoch+1}/{EPOCHS} | Loss: {total_loss/len(loader):.5f}")
-except:
-    print("Training stopped")
-finally:
-    
-    # PREFIX = F"{CURRENT_CONFIG.gym}_{CURRENT_CONFIG.model}_"CURRENT_CONFIG
-    # filename, suffix = find_biggest_suffix('saves', PREFIX)
-    # print
-    # if filename:
-    #     index = suffix
-    # else:
-    #     index = 0
-    save_path =  f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{total_loss/len(loader):.5f}.pt"
-    torch.save(actor.state_dict(), save_path)
-    print(f"Done. Model saved as {save_path}")
-
+'''

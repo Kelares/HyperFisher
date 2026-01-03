@@ -26,7 +26,6 @@ class DecisionMamba(nn.Module):
         
         # 1. Embeddings
         # We project everything to size 128 (hidden_size)
-        self.embed_t = nn.Embedding(max_length, hidden_size)
         self.embed_s = nn.Linear(state_dim, hidden_size)
         self.embed_a = nn.Linear(act_dim, hidden_size)
         self.embed_R = nn.Linear(1, hidden_size)
@@ -58,15 +57,6 @@ class DecisionMamba(nn.Module):
         a_emb = self.embed_a(actions)
         r_emb = self.embed_R(returns)
         
-        # Add Time Embeddings (0, 1, ... T-1)
-        # We treat the window (0-20) as absolute positions for the embedding
-        time_steps = torch.arange(T, device=states.device).view(1, T).repeat(B, 1)
-        t_emb = self.embed_t(time_steps)
-        
-        s_emb = s_emb + t_emb
-        a_emb = a_emb + t_emb
-        r_emb = r_emb + t_emb
-
         # --- B. Stack Sequence ---
         # We want: [R1, s1, a1, R2, s2, a2 ...]
         # Stack dim=1 makes it (B, 3, T, H). 

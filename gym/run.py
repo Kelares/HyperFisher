@@ -25,6 +25,7 @@ class ExperimentConfig:
     gym: Gyms
     level: AgentLevel
     model: ModelArch
+    record: bool
 
     @property
     def dataset_id(self) -> str:
@@ -34,9 +35,13 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.SSM
+    model=ModelArch.TRANSFORMER,
+    record=True
 )
-PATH_OF_SAVE = "hopper/runs/ssm_medium_Loss_0.01507.pt"
+# LOSS_ACHIEVED = "0.01577"
+# LOSS_ACHIEVED = "0.00576" #ssm
+LOSS_ACHIEVED = "0.00046"
+PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
@@ -48,7 +53,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, "0.04602")
+env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -99,6 +104,11 @@ print(f"Targeting Return: {TARGET_RETURN}")
 obs, _ = env.reset()
 done = False
 total_reward = 0
+OCCLUSION_LENGTH = 15 #20 # Add blind frames
+step_counter = 0
+GLITCH_START = 500 
+GLITCH_END = GLITCH_START + OCCLUSION_LENGTH
+
 
 # Buffers to hold history (Start empty)
 # Dimensions: [Batch=1, Time, Dim]
@@ -109,8 +119,21 @@ history_actions = torch.zeros((1, 1, action_dim), device=DEVICE) # Dummy action 
 history_rtg = torch.tensor([[[TARGET_RETURN / RTG_SCALE]]], device=DEVICE).float()
 
 while not done:
+    # --- PRE A. APPLY OCCLUSION ---
+    # If we are in the glitch window, the model sees ZERO (or last frame)
+    if GLITCH_START <= step_counter < GLITCH_END:
+        # OPTION 1: Total Blackout (Zeros) - Hardest test
+        # We replace the *input* to the neural net with zeros
+        # (But we keep the real history buffer intact for when sensors come back)
+        current_state_input = torch.zeros_like(history_states)
+        # OPTION 2: Frozen Frame (Last known value) - More realistic
+        # current_state_input = history_states.clone()
+        # current_state_input[:, -1, :] = history_states[:, GLITCH_START-1, :]
+    else:
+        current_state_input = history_states
+
     # A. Ask Model for Action
-    action = get_action(history_states, history_actions, history_rtg, TARGET_RETURN)
+    action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
     action_np = action.cpu().numpy()
 
     # B. Step Environment
@@ -123,6 +146,8 @@ while not done:
 
     done = terminated or truncated
     total_reward += reward
+    step_counter += 1
+
     # C. Update History Buffers
     # 1. Normalize and Append New State
     next_obs_t = torch.tensor(next_obs, device=DEVICE).float().view(1, 1, state_dim)
