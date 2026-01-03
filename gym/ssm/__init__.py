@@ -38,7 +38,7 @@ class DecisionMamba(nn.Module):
             
         self.backbone = Mamba(
             d_model=hidden_size, # Model dimension
-            d_state=16,          # SSM state dimension (N)
+            d_state=64,          # SSM state dimension (N)
             d_conv=4,            # Local convolution width
             expand=2,            # Block expansion factor
         )

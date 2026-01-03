@@ -101,13 +101,13 @@ def loadDataset(CurrentConfig):
     return dataset, loader
 
 # --- LIVE ENVIRONMENT ---
-def liveEnv(CurrentConfig, DEVICE):
+def liveEnv(CurrentConfig, DEVICE, loss):
     env = gym.make("Hopper-v5", render_mode="rgb_array", max_episode_steps=5000) # "human" to see it, "rgb_array" for headless
     env = RecordVideo(
         env, 
         video_folder='video',
         episode_trigger=lambda episode_id: True,
-        name_prefix=f"hopper_{CurrentConfig.model.value}_{CurrentConfig.level.value}"
+        name_prefix=f"hopper_{CurrentConfig.model.value}_{CurrentConfig.level.value}_{loss}"
     )
 
     state_dim = env.observation_space.shape[0]

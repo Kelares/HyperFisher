@@ -36,7 +36,7 @@ CURRENT_CONFIG = ExperimentConfig(
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM
 )
-PATH_OF_SAVE = "hopper/runs/ssm_medium_Loss_0.05609.pt"
+PATH_OF_SAVE = "hopper/runs/ssm_medium_Loss_0.01507.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
@@ -48,7 +48,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE)
+env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, "0.04602")
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -115,6 +115,12 @@ while not done:
 
     # B. Step Environment
     next_obs, reward, terminated, truncated, _ = env.step(action_np)
+
+    if terminated or truncated:
+        print(f"\n🛑 Episode Ended!")
+        print(f"   Steps taken: {len(history_actions[0])}")
+        print(f"   Reason: {'💀 DIED (Terminated)' if terminated else '⏰ TIMEOUT (Truncated)'}")
+
     done = terminated or truncated
     total_reward += reward
     # C. Update History Buffers

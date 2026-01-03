@@ -40,7 +40,7 @@ CURRENT_CONFIG = ExperimentConfig(
 print(CURRENT_CONFIG.dataset_id)
 
 # --- LEARNING CONFIGURATION ---
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 8e-4
 EPOCHS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
