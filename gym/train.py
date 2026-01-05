@@ -4,6 +4,7 @@ import importlib
 from dataclasses import dataclass
 import torch
 import torch.nn.functional as F
+from pathlib import Path
 
 from enum import Enum
 class ModelArch(Enum):
@@ -34,7 +35,7 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER
+    model=ModelArch.SSM
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -63,7 +64,10 @@ match CURRENT_CONFIG.model.value:
 actor = model.create_actor(DEVICE)
 optimizer = torch.optim.AdamW(actor.parameters(), lr=LEARNING_RATE)
 
-
+LOSS_ACHIEVED = "0.00036"
+RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
+PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
+actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
 
 # --- 4. TRAINING LOOP --- 
 
@@ -116,17 +120,32 @@ try:
             break
 
 except KeyboardInterrupt:
-    save_path =  f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{total_loss/len(loader):.5f}.pt"
-    torch.save(actor.state_dict(), save_path)
-    print(f"Done. Model saved as {save_path}")
-except:
-    print("Training stopped")
-finally:
-    print("Finished")
+    print("\nTraining interrupted by user. Saving current state...")
 
-    save_path =  f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{total_loss/len(loader):.5f}.pt"
+except Exception as e:
+    print(f"\nTraining stopped due to error: {e}")
+
+finally:
+    # 1. Calculate Average Loss (safely)
+    current_loss = total_loss / len(loader) if len(loader) > 0 else 0.0
+
+    # 2. Construct the Main Directory Path
+    # Structure: hopper/runs/ssm_medium_Loss_0.12345
+    folder_name = f"{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{current_loss:.5f}"
+    run_dir = Path(CURRENT_CONFIG.gym.value) / "runs" / folder_name
+
+    # 3. Create Directories
+    # parents=True creates 'hopper/runs' if they don't exist
+    # exist_ok=True prevents errors if the folder already exists
+    (run_dir / "benchmarks").mkdir(parents=True, exist_ok=True)
+    (run_dir / "videos").mkdir(parents=True, exist_ok=True)
+
+    # 4. Save the Agent File inside the main folder
+    save_path = run_dir / "agent.pt"
     torch.save(actor.state_dict(), save_path)
-    print(f"Done. Model saved as {save_path}")
+
+    print(f"✅ Run environment created at: {run_dir}")
+    print(f"💾 Model saved as: {save_path}")
 
 
 

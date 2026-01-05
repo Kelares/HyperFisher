@@ -4,7 +4,7 @@ from torchrl.modules import DTActor, DecisionTransformer
 from enum import Enum
 from dataclasses import dataclass
 import importlib
-
+import random
 
 class ModelArch(Enum):
     TRANSFORMER = "transformer"
@@ -35,13 +35,14 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER,
+    model=ModelArch.SSM,
     record=True
 )
 # LOSS_ACHIEVED = "0.01577"
 # LOSS_ACHIEVED = "0.00576" #ssm
-LOSS_ACHIEVED = "0.00046"
-PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
+LOSS_ACHIEVED = "0.00326"
+RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
+PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
@@ -53,7 +54,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
+env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -61,6 +62,7 @@ print(model)
 actor = model.create_actor(DEVICE)
 
 # Load Weights
+print(f"LOADING {PATH_OF_SAVE} WEIGHTS !!!!!!!!!!!!!!")
 actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
 actor.eval()
 
@@ -101,10 +103,15 @@ def get_action(states, actions, rewards, rtg_target):
 
 # --- 3. RUNNING THE LOOP ---
 print(f"Targeting Return: {TARGET_RETURN}")
-obs, _ = env.reset()
+random_seed = random.randint(0,1_000_000)
+env.set_wrapper_attr("name_prefix", random_seed)
+
+obs, _ = env.reset(seed=random_seed)
+print(env.unwrapped.np_random_seed)
+
 done = False
 total_reward = 0
-OCCLUSION_LENGTH = 15 #20 # Add blind frames
+OCCLUSION_LENGTH = 32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
 step_counter = 0
 GLITCH_START = 500 
 GLITCH_END = GLITCH_START + OCCLUSION_LENGTH

@@ -36,13 +36,14 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER,
+    model=ModelArch.SSM,
     record=False
 )
 # LOSS_ACHIEVED = "0.00576"
 # PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
-LOSS_ACHIEVED = "0.00046"
-PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
+LOSS_ACHIEVED = "0.00326"
+RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
+PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
@@ -101,23 +102,20 @@ def get_action(states, actions, rewards, rtg_target):
     return action_pred[0, -1] # Return the last action
 
 # --- 3. EVALUATION LOOP (Multiple Episodes) ---
-NUM_EPISODES = 20
+NUM_EPISODES = 40
 
 print(f"🚀 Starting Evaluation for {NUM_EPISODES} episodes...")
 print(f"Targeting Return: {TARGET_RETURN}")
 
 # Create a deterministic list of seeds so your thesis results are reproducible
-SEEDS = [42 + i for i in range(NUM_EPISODES)]
+# SEEDS = [62 + i for i in range(NUM_EPISODES)]
+SEEDS = [124923]
 seed_rewards = []
 succesful_runs = 0
 
 for seed in SEEDS:
-    # Reset env with a specific seed
     obs, _ = env.reset(seed=seed) 
     
-    # ... Run your inference loop ...
-    
-    obs, _ = env.reset()
     done = False
     episode_reward = 0
 
@@ -182,7 +180,7 @@ print("="*30)
 
 print(f"success rate: {(succesful_runs/len(SEEDS))*100}%")
 
-with open(f"{CURRENT_CONFIG.gym.value}/benchmarks/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.txt", "w+") as f:
+with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
     f.write("\n" + "="*30 +"\n")
     f.write(f"📊 FINAL RESULTS ({NUM_EPISODES} Episodes)\n")
     f.write(f"Mean: {mean_score:.2f} ± {std_score:.2f}\n")
