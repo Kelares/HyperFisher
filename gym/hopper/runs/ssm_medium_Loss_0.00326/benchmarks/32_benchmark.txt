@@ -1,0 +1,207 @@
+==============================
+📊 FINAL RESULTS (40 Episodes)
+Mean: 2348.06 ± 712.16
+Range: [1818.64, 3633.85]
+==============================
+success rate: 22.5%
+RECORDS:::
+Seed: 42
+, reward: 3633.8450815836463
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 43
+, reward: 3243.240274987509
+, steps_taken: 835
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 44
+, reward: 2775.897012806475
+, steps_taken: 744
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 45
+, reward: 2058.386215972864
+, steps_taken: 550
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 46
+, reward: 1921.3162296357962
+, steps_taken: 551
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 47
+, reward: 1818.63721304729
+, steps_taken: 516
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 48
+, reward: 1893.731404366832
+, steps_taken: 541
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 49
+, reward: 3580.5741556826906
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 50
+, reward: 1894.4021483091558
+, steps_taken: 543
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 51
+, reward: 1917.193999285329
+, steps_taken: 538
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 52
+, reward: 1882.2899389832476
+, steps_taken: 539
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 53
+, reward: 1882.2997139648835
+, steps_taken: 539
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 54
+, reward: 3566.6206099346186
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 55
+, reward: 1893.5201386361034
+, steps_taken: 543
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 56
+, reward: 1895.3099471933679
+, steps_taken: 542
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 57
+, reward: 1905.819716795658
+, steps_taken: 548
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 58
+, reward: 1903.1691848740875
+, steps_taken: 545
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 59
+, reward: 1898.43047763609
+, steps_taken: 546
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 60
+, reward: 3600.3258003389924
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 61
+, reward: 1872.573979355804
+, steps_taken: 524
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 62
+, reward: 1885.8440267578708
+, steps_taken: 543
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 63
+, reward: 3559.986949959108
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 64
+, reward: 3607.468915299774
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 65
+, reward: 1898.0733922951085
+, steps_taken: 546
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 66
+, reward: 1925.3526588223992
+, steps_taken: 542
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 67
+, reward: 1897.3848563938668
+, steps_taken: 542
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 68
+, reward: 1921.5082856222932
+, steps_taken: 549
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 69
+, reward: 1880.5989851936015
+, steps_taken: 538
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 70
+, reward: 3592.589506625205
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 71
+, reward: 1878.9007691215409
+, steps_taken: 538
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 72
+, reward: 1899.8103420227364
+, steps_taken: 527
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 73
+, reward: 2046.6246875457618
+, steps_taken: 583
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 74
+, reward: 3584.419625196012
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 75
+, reward: 1918.2338878717228
+, steps_taken: 538
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 76
+, reward: 1922.8333004096382
+, steps_taken: 540
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 77
+, reward: 2094.6995113287144
+, steps_taken: 584
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 78
+, reward: 2015.5938901617208
+, steps_taken: 573
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 79
+, reward: 1891.6477999037609
+, steps_taken: 539
+, reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 80
+, reward: 3562.288420067947
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 81
+, reward: 1900.9215653354256
+, steps_taken: 543
+, reason: Reason: 💀 DIED (Terminated)
+==============================

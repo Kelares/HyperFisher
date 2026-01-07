@@ -1,0 +1,207 @@
+==============================
+📊 FINAL RESULTS (40 Episodes)
+Mean: 3567.06 ± 14.45
+Range: [3533.02, 3588.85]
+==============================
+success rate: 100.0%
+RECORDS:::
+Seed: 42
+, reward: 3575.6792725630485
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 43
+, reward: 3583.3646552378914
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 44
+, reward: 3552.5714990707825
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 45
+, reward: 3568.9579423176947
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 46
+, reward: 3558.967646765944
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 47
+, reward: 3579.4667630312606
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 48
+, reward: 3584.3251985658503
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 49
+, reward: 3578.9771422937083
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 50
+, reward: 3575.6383870014306
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 51
+, reward: 3577.2709782272123
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 52
+, reward: 3533.05207974045
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 53
+, reward: 3574.049498008379
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 54
+, reward: 3569.000825972354
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 55
+, reward: 3574.6795189207332
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 56
+, reward: 3561.180283337235
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 57
+, reward: 3541.7951268602997
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 58
+, reward: 3569.204952775811
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 59
+, reward: 3581.4079668530385
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 60
+, reward: 3554.597779011321
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 61
+, reward: 3584.317972932426
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 62
+, reward: 3584.49807539351
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 63
+, reward: 3566.4304465051787
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 64
+, reward: 3567.0646723910113
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 65
+, reward: 3565.840967478305
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 66
+, reward: 3581.168985635656
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 67
+, reward: 3559.5346048496212
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 68
+, reward: 3566.158141547962
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 69
+, reward: 3533.017778079976
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 70
+, reward: 3557.104577128348
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 71
+, reward: 3557.080817319639
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 72
+, reward: 3566.5871678559315
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 73
+, reward: 3567.3760032305727
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 74
+, reward: 3579.1311596113715
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 75
+, reward: 3585.279586087135
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 76
+, reward: 3538.0516257383365
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 77
+, reward: 3551.1984633510547
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 78
+, reward: 3588.8505625730527
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 79
+, reward: 3549.3041341170265
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 80
+, reward: 3564.860507498033
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================
+Seed: 81
+, reward: 3575.3591675268067
+, steps_taken: 1000
+, reason: Reason: ⏰ TIMEOUT (Truncated)
+==============================

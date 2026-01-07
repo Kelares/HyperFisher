@@ -35,12 +35,14 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.SSM,
+    model=ModelArch.TRANSFORMER,
     record=True
 )
 # LOSS_ACHIEVED = "0.01577"
 # LOSS_ACHIEVED = "0.00576" #ssm
-LOSS_ACHIEVED = "0.00326"
+# LOSS_ACHIEVED = "0.00326" # PERFECT SSM
+LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
+
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
@@ -111,7 +113,7 @@ print(env.unwrapped.np_random_seed)
 
 done = False
 total_reward = 0
-OCCLUSION_LENGTH = 32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
+OCCLUSION_LENGTH = 25#32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
 step_counter = 0
 GLITCH_START = 500 
 GLITCH_END = GLITCH_START + OCCLUSION_LENGTH
