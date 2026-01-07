@@ -5,7 +5,7 @@ from torchrl.modules import DTActor, DecisionTransformer
 from enum import Enum
 from dataclasses import dataclass
 import importlib
-
+import json
 
 class ModelArch(Enum):
     TRANSFORMER = "transformer"
@@ -104,7 +104,7 @@ def get_action(states, actions, rewards, rtg_target):
     return action_pred[0, -1] # Return the last action
 
 # --- 3. EVALUATION LOOP (Multiple Episodes) ---
-NUM_EPISODES = 100#25
+NUM_EPISODES = 1#25
 
 print(f"🚀 Starting Evaluation for {NUM_EPISODES} episodes...")
 print(f"Targeting Return: {TARGET_RETURN}")
@@ -215,20 +215,23 @@ print("="*30)
 
 print(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
 
-with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
-    f.write("="*30 +"\n")
-    f.write(f"📊 FINAL RESULTS ({NUM_EPISODES} Episodes)\n")
-    f.write(f"Mean: {mean_score:.2f} ± {std_score:.2f}\n")
-    f.write(f"Range: [{min_score:.2f}, {max_score:.2f}]\n")
-    f.write("="*30 + "\n")
-    f.write(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
-    f.write("RECORDS:::\n")
-    for seed in record:
-        f.write(f"Seed: {seed}\n")
-        f.write("="*30 + "\n")
-        for gap in record[seed]:
-            f.write(f"Gap length: {gap}\n")
-            f.write(f"  reward: {record[seed][gap]['reward']}\n")
-            f.write(f"  steps_taken: {record[seed][gap]['steps']}\n")
-            f.write(f"  reason: {record[seed][gap]['reason']}\n")
-        f.write("="*30 + "\n")
+# with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
+#     f.write("="*30 +"\n")
+#     f.write(f"📊 FINAL RESULTS ({NUM_EPISODES} Episodes)\n")
+#     f.write(f"Mean: {mean_score:.2f} ± {std_score:.2f}\n")
+#     f.write(f"Range: [{min_score:.2f}, {max_score:.2f}]\n")
+#     f.write("="*30 + "\n")
+#     f.write(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
+#     f.write("RECORDS:::\n")
+#     for seed in record:
+#         f.write(f"Seed: {seed}\n")
+#         f.write("="*30 + "\n")
+#         for gap in record[seed]:
+#             f.write(f"Gap length: {gap}\n")
+#             f.write(f"  reward: {record[seed][gap]['reward']}\n")
+#             f.write(f"  steps_taken: {record[seed][gap]['steps']}\n")
+#             f.write(f"  reason: {record[seed][gap]['reason']}\n")
+#         f.write("="*30 + "\n")
+
+with open(f"{RUN_DIR}/benchmarks/benchmark.json", "w+") as f:
+    json.dump(record, f)
