@@ -1,0 +1,10 @@
+mujoco/hopper/medium-v0
+<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
+ssm
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+<module 'ssm' from '/home/u253954/SSM_benchmark/gym/ssm/__init__.py'>
+Starting training on cuda...
+Epoch 1 | Loss: 825.23044
+   ✅ New Best Model Saved (Loss: 0.05285)
+✅ Run environment created at: hopper/runs/ssm_medium_Loss_0.05285
+💾 Model saved as: hopper/runs/ssm_medium_Loss_0.05285/agent.pt

@@ -1,0 +1,10 @@
+mujoco/hopper/medium-v0
+<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
+transformer
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+<module 'transformer' from '/home/u253954/SSM_benchmark/gym/transformer/__init__.py'>
+Starting training on cuda...
+Epoch 1 | Loss: 926.80472
+   ✅ New Best Model Saved (Loss: 0.05935)
+✅ Run environment created at: hopper/runs/transformer_medium_Loss_0.05935
+💾 Model saved as: hopper/runs/transformer_medium_Loss_0.05935/agent.pt

@@ -35,7 +35,7 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.SSM
+    model=ModelArch.TRANSFORMER
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -64,10 +64,10 @@ match CURRENT_CONFIG.model.value:
 actor = model.create_actor(DEVICE)
 optimizer = torch.optim.AdamW(actor.parameters(), lr=LEARNING_RATE)
 
-LOSS_ACHIEVED = "0.00036"
-RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
-PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
-actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
+#LOSS_ACHIEVED = "0.00036"
+#RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
+#PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
+#actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
 
 # --- 4. TRAINING LOOP --- 
 
@@ -79,7 +79,7 @@ try:
     best_loss = float('inf')
     patience_counter = 0
     PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
-    EPOCHS = 100
+    EPOCHS = 1000
 
     for epoch in range(EPOCHS):
         total_loss = 0
