@@ -35,7 +35,7 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER
+    model=ModelArch.SSM
 )
 
 print(CURRENT_CONFIG.dataset_id)
