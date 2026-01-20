@@ -64,7 +64,7 @@ def loadDataset(CURRENT_CONFIG):
     BATCH_SIZE = 64
     print(CURRENT_CONFIG.model.value)
     if CURRENT_CONFIG.model.value == "ssm":
-        CONTEXT_LEN = 64
+        CONTEXT_LEN = 20
     elif CURRENT_CONFIG.model.value == "transformer":
         CONTEXT_LEN = 20      # The model looks at the last 20 steps
     RTG_SCALE = 1000.0    # Scale returns so 3000 becomes 3.0
@@ -121,7 +121,7 @@ def loadDataset(CURRENT_CONFIG):
 # --- LIVE ENVIRONMENT ---
 def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
     if CURRENT_CONFIG.model.value == "ssm":
-        CONTEXT_LEN = 64
+        CONTEXT_LEN = 20
     elif CURRENT_CONFIG.model.value == "transformer":
         CONTEXT_LEN = 20      # The model looks at the last 20 steps
    
@@ -140,8 +140,8 @@ def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
 
     # Load Normalization Stats
     stats = np.load(f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz")
-    state_mean = torch.from_numpy(stats['mean']).to(DEVICE).float()
-    state_std = torch.from_numpy(stats['std']).to(DEVICE).float()
+    state_mean = torch.from_numpy(stats['obs_mean']).to(DEVICE).float()
+    state_std = torch.from_numpy(stats['obs_std']).to(DEVICE).float()
 
     act_mean = torch.from_numpy(stats['act_mean']).to(DEVICE)
     act_std = torch.from_numpy(stats['act_std']).to(DEVICE)

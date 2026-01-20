@@ -57,7 +57,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
+env, state_dim, action_dim, state_mean, state_std, _, _ = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -104,7 +104,7 @@ def get_action(states, actions, rewards, rtg_target):
     return action_pred[0, -1] # Return the last action
 
 # --- 3. EVALUATION LOOP (Multiple Episodes) ---
-NUM_EPISODES = 1#25
+NUM_EPISODES = 25
 
 print(f"🚀 Starting Evaluation for {NUM_EPISODES} episodes...")
 print(f"Targeting Return: {TARGET_RETURN}")
@@ -120,10 +120,10 @@ reasons = []
 OCCLUSION_LENGTHS = [0, 15, 30, 45, 60]
 # OCCLUSION_LENGTH = 32 #32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
 GLITCH_START = 500 
-record = {}
+record = {"seeds": {}}
 
 for seed in SEEDS:
-    record[seed] = {}
+    record["seeds"][seed] = {}
     for gap in OCCLUSION_LENGTHS:
         GLITCH_END = GLITCH_START + gap
 
@@ -169,7 +169,7 @@ for seed in SEEDS:
                 print(f"   Reason: {'💀 DIED (Terminated)' if terminated else '⏰ TIMEOUT (Truncated)'}")
                 # steps_taken.append(len(history_actions[0]))
                 # reasons.append(f"Reason: {'💀 DIED (Terminated)' if terminated else '⏰ TIMEOUT (Truncated)'}")
-                record[seed][gap] = {
+                record["seeds"][seed][gap] = {
                     "reward": episode_reward,
                     "steps": len(history_actions[0]),
                     "reason": f"Reason: {'💀 DIED (Terminated)' if terminated else '⏰ TIMEOUT (Truncated)'}"
@@ -215,23 +215,29 @@ print("="*30)
 
 print(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
 
-# with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
-#     f.write("="*30 +"\n")
-#     f.write(f"📊 FINAL RESULTS ({NUM_EPISODES} Episodes)\n")
-#     f.write(f"Mean: {mean_score:.2f} ± {std_score:.2f}\n")
-#     f.write(f"Range: [{min_score:.2f}, {max_score:.2f}]\n")
-#     f.write("="*30 + "\n")
-#     f.write(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
-#     f.write("RECORDS:::\n")
-#     for seed in record:
-#         f.write(f"Seed: {seed}\n")
-#         f.write("="*30 + "\n")
-#         for gap in record[seed]:
-#             f.write(f"Gap length: {gap}\n")
-#             f.write(f"  reward: {record[seed][gap]['reward']}\n")
-#             f.write(f"  steps_taken: {record[seed][gap]['steps']}\n")
-#             f.write(f"  reason: {record[seed][gap]['reason']}\n")
-#         f.write("="*30 + "\n")
+with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
+    f.write("="*30 +"\n")
+    f.write(f"📊 FINAL RESULTS ({NUM_EPISODES} Episodes)\n")
+    f.write(f"Mean: {mean_score:.2f} ± {std_score:.2f}\n")
+    f.write(f"Range: [{min_score:.2f}, {max_score:.2f}]\n")
+    f.write("="*30 + "\n")
+    f.write(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
+    f.write("RECORDS:::\n")
+    for seed in record["seeds"]:
+        f.write(f"Seed: {seed}\n")
+        f.write("="*30 + "\n")
+        for gap in record["seeds"][seed]:
+            f.write(f"Gap length: {gap}\n")
+            f.write(f"  reward: {record['seeds'][seed][gap]['reward']}\n")
+            f.write(f"  steps_taken: {record['seeds'][seed][gap]['steps']}\n")
+            f.write(f"  reason: {record['seeds'][seed][gap]['reason']}\n")
+        f.write("="*30 + "\n")
 
+record["Result"] = {
+    "Number of episodes": NUM_EPISODES, 
+    "Mean": f"{mean_score:.2f} ± {std_score:.2f}", 
+    "Range": f"[{min_score:.2f}, {max_score:.2f}]",
+    "Success rate": f"{(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%"
+}
 with open(f"{RUN_DIR}/benchmarks/benchmark.json", "w+") as f:
     json.dump(record, f)
