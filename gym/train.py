@@ -91,11 +91,17 @@ try:
             # Predict action
             pred_action = actor(s, a, r)
 
-            # Loss: (Predicted Action - Real Action)^2
+            # 1. Squared Error (Batch, Context, ActionDim)
             loss = F.mse_loss(pred_action, a, reduction='none')
-            # Apply mask (ignore padding)
-            loss = (loss.mean(dim=-1) * m).mean()
 
+            # 2. Average over Action Dimensions -> (Batch, Context)
+            loss = loss.mean(dim=-1)
+
+            # 3. Mask out padding and divide ONLY by valid count
+            # This ensures gradients are not diluted by padding
+            loss = (loss * m).sum() / (m.sum() + 1e-6)
+
+            
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

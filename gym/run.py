@@ -35,7 +35,7 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER,
+    model=ModelArch.SSM,
     record=True
 )
 # LOSS_ACHIEVED = "0.01577"
@@ -56,7 +56,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR)
+env, state_dim, action_dim, state_mean, state_std, act_mean, act_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -113,7 +113,7 @@ print(env.unwrapped.np_random_seed)
 
 done = False
 total_reward = 0
-OCCLUSION_LENGTH = 25#32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
+OCCLUSION_LENGTH = 0#25#32 #20 # Add blind frames  #32 SEEMS TO BE A GOOD BREAKING POINT FOR A 62 CONTEXT WINDOW SSM MEMORY OBSTRUCTION
 step_counter = 0
 GLITCH_START = 500 
 GLITCH_END = GLITCH_START + OCCLUSION_LENGTH
@@ -143,7 +143,12 @@ while not done:
 
     # A. Ask Model for Action
     action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
-    action_np = action.cpu().numpy()
+    
+    # --- STEP 3 FIX: UN-NORMALIZE FOR ENVIRONMENT ---
+    # We must scale the action back to raw physics units using the loaded stats
+    action_raw = (action * act_std) + act_mean
+
+    action_np = action_raw.cpu().numpy()
 
     # B. Step Environment
     next_obs, reward, terminated, truncated, _ = env.step(action_np)
