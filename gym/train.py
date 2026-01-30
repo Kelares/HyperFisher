@@ -75,7 +75,7 @@ def train():
     try:
         actor.train()
         best_loss = float('inf')
-        EPOCHS = 2 # Increased slightly for Mamba convergence
+        EPOCHS = 30 # Increased slightly for Mamba convergence
 
         for epoch in range(EPOCHS):
             total_loss = 0.0
