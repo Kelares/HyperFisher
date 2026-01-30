@@ -95,23 +95,25 @@ def loadDataset(CURRENT_CONFIG):
     obs_mean = np.mean(all_obs, axis=0)
     obs_std = np.std(all_obs, axis=0) + 1e-6
 
-    # --- NEW: Action Normalization ---
-    all_acts = [t['actions'] for t in trajectories]
-    all_acts = np.concatenate(all_acts, axis=0)
-    act_mean = np.mean(all_acts, axis=0)
-    act_std = np.std(all_acts, axis=0) + 1e-6
-    # ---------------------------------
 
+    # --- ACTION SCALING FIX ---
+    # Hopper-v5 actions are physically limited to [-1, 1].
+    # Instead of Mean/Std normalization, we ensure the data strictly 
+    # maps to the Tanh range [-1, 1].
     for traj in trajectories:
+        # State normalization (Mean/Std is fine for states)
         traj["observations"] = (traj["observations"] - obs_mean) / obs_std
-        # Apply to actions
-        traj["actions"] = (traj["actions"] - act_mean) / act_std
+        
+        # Action Scaling: Ensure they are clamped to [-1, 1]
+        # (Minari data should already be here, but we enforce it for the model)
+        traj["actions"] = np.clip(traj["actions"], -1.0, 1.0)
 
-    # Save BOTH stats
+    # Save stats (We still need obs stats for inference)
     np.savez(
         f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz", 
         obs_mean=obs_mean, obs_std=obs_std,
-        act_mean=act_mean, act_std=act_std
+        act_mean=np.zeros(3), # No longer needed for scaling
+        act_std=np.ones(3)     # No longer needed for scaling
     )
 
     dataset = TrajectoryDataset(trajectories, CONTEXT_LEN)

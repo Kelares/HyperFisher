@@ -42,7 +42,9 @@ CURRENT_CONFIG = ExperimentConfig(
 # LOSS_ACHIEVED = "0.00576" #ssm
 # LOSS_ACHIEVED = "0.00326" # PERFECT SSM
 # LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
-LOSS_ACHIEVED = "0.01706"
+# LOSS_ACHIEVED = "0.01706"
+# LOSS_ACHIEVED = "0.20617"
+LOSS_ACHIEVED = "0.05907"
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
@@ -141,17 +143,16 @@ while not done:
     else:
         current_state_input = history_states
 
-    # A. Ask Model for Action
+    # Inside while not done:
     action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
-    
-    # --- STEP 3 FIX: UN-NORMALIZE FOR ENVIRONMENT ---
-    # We must scale the action back to raw physics units using the loaded stats
+
+    # 1. Un-normalize for the environment
     action_raw = (action * act_std) + act_mean
+    action_np = torch.clamp(action_raw, -1, 1).cpu().numpy() # Safety clamp
 
-    action_np = action_raw.cpu().numpy()
-
-    # B. Step Environment
+    # 2. Step environment
     next_obs, reward, terminated, truncated, _ = env.step(action_np)
+
 
     if terminated or truncated:
         print(f"\n🛑 Episode Ended!")
@@ -168,9 +169,12 @@ while not done:
     next_obs_t = (next_obs_t - state_mean) / state_std
     history_states = torch.cat([history_states, next_obs_t], dim=1)
 
-    # 2. Append Action Taken
-    action_t = action.view(1, 1, action_dim)
-    history_actions = torch.cat([history_actions, action_t], dim=1)
+    # 3. Update History - CRITICAL: Store the NORM_ACTION the model expects
+    # If the model outputs normalized actions, store 'action' directly.
+    # If the model outputs raw actions, you MUST normalize them here.
+    action_to_store = action.view(1, 1, action_dim) 
+    history_actions = torch.cat([history_actions, action_to_store], dim=1)
+
 
     # 3. Calculate and Append New Return-to-Go
     # RTG decreases as we collect reward (We need less future reward to hit target)

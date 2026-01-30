@@ -36,14 +36,14 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.TRANSFORMER,
+    model=ModelArch.SSM,
     record=False
 )
 # LOSS_ACHIEVED = "0.00576"
 # PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
 # LOSS_ACHIEVED = "0.00326" #PERFECT SSM
-LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
-
+# LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
+LOSS_ACHIEVED = "0.03888"
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
