@@ -43,7 +43,7 @@ CURRENT_CONFIG = ExperimentConfig(
 # PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
 # LOSS_ACHIEVED = "0.00326" #PERFECT SSM
 # LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
-LOSS_ACHIEVED = "0.03888"
+LOSS_ACHIEVED = "0.04017"
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
@@ -57,7 +57,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std, _, _ = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
+env, state_dim, action_dim, state_mean, state_std, act_mean, act_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -156,12 +156,16 @@ for seed in SEEDS:
             else:
                 current_state_input = history_states
             
-            # A. Ask Model for Action
+            # Inside while not done:
             action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
-            action_np = action.cpu().numpy()
 
-            # B. Step Environment
+            # 1. Un-normalize for the environment
+            action_raw = (action * act_std) + act_mean
+            action_np = torch.clamp(action_raw, -1, 1).cpu().numpy() # Safety clamp
+
+            # 2. Step environment
             next_obs, reward, terminated, truncated, _ = env.step(action_np)
+
 
             if terminated or truncated:
                 print(f"\n🛑 Episode Ended!")
@@ -185,8 +189,8 @@ for seed in SEEDS:
             history_states = torch.cat([history_states, next_obs_t], dim=1)
 
             # 2. Append Action Taken
-            action_t = action.view(1, 1, action_dim)
-            history_actions = torch.cat([history_actions, action_t], dim=1)
+            action_to_store = action.view(1, 1, action_dim) 
+            history_actions = torch.cat([history_actions, action_to_store], dim=1)
 
             # 3. Calculate and Append New Return-to-Go
             # RTG decreases as we collect reward (We need less future reward to hit target)

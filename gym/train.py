@@ -19,6 +19,9 @@ class AgentLevel(Enum):
 class Gyms(Enum):
     HOPPER = "hopper"
 
+class ContextLength(Enum):
+    long = 64
+    short = 20
 
 # --- EXPERIMENT SELECTION ---
 @dataclass
@@ -26,6 +29,7 @@ class ExperimentConfig:
     gym: Gyms
     level: AgentLevel
     model: ModelArch
+    context_length: ContextLength
 
     @property
     def dataset_id(self) -> str:
@@ -35,7 +39,8 @@ class ExperimentConfig:
 CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
-    model=ModelArch.SSM
+    model=ModelArch.SSM,
+    context_length=ContextLength.long
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -69,7 +74,8 @@ def train():
 
 
 
-    LOSS_ACHIEVED = "0.04225"
+    LOSS_ACHIEVED = "0.04017"
+
     RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
     PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
     actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
@@ -82,7 +88,7 @@ def train():
     try:
         actor.train()
         best_loss = float('inf')
-        EPOCHS = 1000 # Increased slightly for Mamba convergence
+        EPOCHS = 5 # Increased slightly for Mamba convergence
 
         for epoch in range(EPOCHS):
             total_loss = 0.0

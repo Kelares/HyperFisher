@@ -63,10 +63,10 @@ def loadDataset(CURRENT_CONFIG):
     # --- HOPPER CONFIGURATION ---
     BATCH_SIZE = 64
     print(CURRENT_CONFIG.model.value)
-    if CURRENT_CONFIG.model.value == "ssm":
-        CONTEXT_LEN = 20
-    elif CURRENT_CONFIG.model.value == "transformer":
-        CONTEXT_LEN = 20      # The model looks at the last 20 steps
+    
+    CONTEXT_LEN = CURRENT_CONFIG.context_length.value
+    print(f"CONTEXT LENGTH: {CONTEXT_LEN}")
+
     RTG_SCALE = 1000.0    # Scale returns so 3000 becomes 3.0
 
     print(f"Loading Minari Dataset: {CURRENT_CONFIG.dataset_id} (downloading if needed)...")
@@ -122,11 +122,9 @@ def loadDataset(CURRENT_CONFIG):
 
 # --- LIVE ENVIRONMENT ---
 def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
-    if CURRENT_CONFIG.model.value == "ssm":
-        CONTEXT_LEN = 20
-    elif CURRENT_CONFIG.model.value == "transformer":
-        CONTEXT_LEN = 20      # The model looks at the last 20 steps
-   
+    CONTEXT_LEN = CURRENT_CONFIG.context_length.value
+    print(f"CONTEXT LENGTH: {CONTEXT_LEN}")
+
     env = gym.make("Hopper-v5", render_mode="rgb_array", max_episode_steps=1000) # "human" to see it, "rgb_array" for headless
 
     if CURRENT_CONFIG.record:
@@ -144,7 +142,9 @@ def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
     stats = np.load(f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz")
     state_mean = torch.from_numpy(stats['obs_mean']).to(DEVICE).float()
     state_std = torch.from_numpy(stats['obs_std']).to(DEVICE).float()
-
-    act_mean = torch.from_numpy(stats['act_mean']).to(DEVICE)
-    act_std = torch.from_numpy(stats['act_std']).to(DEVICE)
+    
+    # FORCE ACTION STATS TO NEUTRAL
+    # This prevents run.py from distorting the Tanh output (-1 to 1)
+    act_mean = torch.zeros(action_dim, device=DEVICE)
+    act_std = torch.ones(action_dim, device=DEVICE)
     return env, state_dim, action_dim, state_mean, state_std, act_mean, act_std
