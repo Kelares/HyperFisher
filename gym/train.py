@@ -82,7 +82,7 @@ def train():
         best_loss = float('inf')
         patience_counter = 0
         PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
-        EPOCHS = 5 # Increased slightly for Mamba convergence
+        EPOCHS = 15 # Increased slightly for Mamba convergence
         total_loss = 0
         
         for epoch in range(EPOCHS):
