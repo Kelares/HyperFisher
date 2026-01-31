@@ -1,0 +1,45 @@
+mujoco/hopper/medium-v0
+<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+<module 'transformer' from '/home/u253954/SSM_benchmark/gym/transformer/__init__.py'>
+Epoch 01 | Loss: 0.045314
+   ✅ New Best Model Saved (Loss: 0.04531)
+Epoch 02 | Loss: 0.044949
+   ✅ New Best Model Saved (Loss: 0.04495)
+Epoch 03 | Loss: 0.044633
+   ✅ New Best Model Saved (Loss: 0.04463)
+Epoch 04 | Loss: 0.044385
+   ✅ New Best Model Saved (Loss: 0.04438)
+Epoch 05 | Loss: 0.044148
+   ✅ New Best Model Saved (Loss: 0.04415)
+Epoch 06 | Loss: 0.043960
+   ✅ New Best Model Saved (Loss: 0.04396)
+Epoch 07 | Loss: 0.043783
+   ✅ New Best Model Saved (Loss: 0.04378)
+Epoch 08 | Loss: 0.043620
+   ✅ New Best Model Saved (Loss: 0.04362)
+Epoch 09 | Loss: 0.043478
+   ✅ New Best Model Saved (Loss: 0.04348)
+Epoch 10 | Loss: 0.043352
+   ✅ New Best Model Saved (Loss: 0.04335)
+Epoch 11 | Loss: 0.043243
+   ✅ New Best Model Saved (Loss: 0.04324)
+Epoch 12 | Loss: 0.043123
+   ✅ New Best Model Saved (Loss: 0.04312)
+Epoch 13 | Loss: 0.043010
+   ✅ New Best Model Saved (Loss: 0.04301)
+Epoch 14 | Loss: 0.042903
+   ✅ New Best Model Saved (Loss: 0.04290)
+Epoch 15 | Loss: 0.042809
+   ✅ New Best Model Saved (Loss: 0.04281)
+Epoch 16 | Loss: 0.042724
+   ✅ New Best Model Saved (Loss: 0.04272)
+Epoch 17 | Loss: 0.042635
+   ✅ New Best Model Saved (Loss: 0.04264)
+Epoch 18 | Loss: 0.042544
+   ✅ New Best Model Saved (Loss: 0.04254)
+Epoch 19 | Loss: 0.042458
+   ✅ New Best Model Saved (Loss: 0.04246)
+Epoch 20 | Loss: 0.042378
+   ✅ New Best Model Saved (Loss: 0.04238)
+Final model saved to hopper/runs/transformer_medium_Loss_0.04238
