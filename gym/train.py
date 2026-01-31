@@ -19,9 +19,6 @@ class AgentLevel(Enum):
 class Gyms(Enum):
     HOPPER = "hopper"
 
-class ContextLength(Enum):
-    long = 64
-    short = 20
 
 # --- EXPERIMENT SELECTION ---
 @dataclass
@@ -29,8 +26,8 @@ class ExperimentConfig:
     gym: Gyms
     level: AgentLevel
     model: ModelArch
-    context_length: ContextLength
-
+    context_length: int
+    
     @property
     def dataset_id(self) -> str:
         return f"mujoco/{self.gym.value}/{self.level.value}-v0"
@@ -40,7 +37,7 @@ CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM,
-    context_length=ContextLength.long
+    context_length=20
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -60,25 +57,20 @@ dataset, loader = gym.loadDataset(CURRENT_CONFIG)
 
 model = importlib.import_module(CURRENT_CONFIG.model.value)
 print(model)
+actor = model.create_actor(DEVICE)
 
 def train():
     # --- 1. SETUP ---
-    gym_mod = importlib.import_module(CURRENT_CONFIG.gym.value)
-    dataset, loader = gym_mod.loadDataset(CURRENT_CONFIG)
-    
-    model_mod = importlib.import_module(CURRENT_CONFIG.model.value)
-    actor = model_mod.create_actor(DEVICE)
-    
     LEARNING_RATE = 8e-4 if CURRENT_CONFIG.model == ModelArch.SSM else 1e-3
     optimizer = torch.optim.AdamW(actor.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
 
 
 
-    LOSS_ACHIEVED = "0.04017"
+    # LOSS_ACHIEVED = "0.04017"
 
-    RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
-    PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
-    actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
+    # RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
+    # PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
+    # actor.load_state_dict(torch.load(PATH_OF_SAVE, map_location=DEVICE))
 
     best_save_path = Path(f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_best.pt")
     best_save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -88,8 +80,11 @@ def train():
     try:
         actor.train()
         best_loss = float('inf')
+        patience_counter = 0
+        PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
         EPOCHS = 5 # Increased slightly for Mamba convergence
-
+        total_loss = 0
+        
         for epoch in range(EPOCHS):
             total_loss = 0.0
             
@@ -105,27 +100,32 @@ def train():
                 # Loss: (B, T, A) -> (B, T)
                 # No reduction='mean' yet, we do it manually with the mask
                 loss = F.mse_loss(pred_action, a, reduction='none').mean(dim=-1)
-                
-                # Apply mask and normalize by valid tokens
                 masked_loss = (loss * m).sum() / (m.sum() + 1e-8)
 
                 optimizer.zero_grad()
                 masked_loss.backward()
                 
-                # --- GRADIENT CLIPPING ---
-                # Crucial for SSMs to prevent 'dying' gradients or explosions
-                torch.nn.utils.clip_grad_norm_(actor.parameters(), max_norm=1.0)
-                
+                torch.nn.utils.clip_grad_norm_(actor.parameters(), 1.0)
                 optimizer.step()
                 total_loss += masked_loss.item()
 
             avg_loss = total_loss / len(loader)
             print(f"Epoch {epoch+1:02d} | Loss: {avg_loss:.6f}")
 
+
+            # Check for improvement
             if avg_loss < best_loss:
                 best_loss = avg_loss
+                patience_counter = 0
                 torch.save(actor.state_dict(), best_save_path)
-                print(f"   ✅ Saved Best")
+                print(f"   ✅ New Best Model Saved (Loss: {best_loss:.5f})")
+            else:
+                patience_counter += 1
+                print(f"   No improvement. Patience: {patience_counter}/{PATIENCE_LIMIT}")
+                
+            if patience_counter >= PATIENCE_LIMIT:
+                print("🛑 Early Stopping triggered. Model has converged.")
+                break
 
     except Exception as e:
         print(f"Error during training: {e}")

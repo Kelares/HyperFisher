@@ -62,11 +62,7 @@ class TrajectoryDataset(Dataset):
 def loadDataset(CURRENT_CONFIG):
     # --- HOPPER CONFIGURATION ---
     BATCH_SIZE = 64
-    print(CURRENT_CONFIG.model.value)
-    
-    CONTEXT_LEN = CURRENT_CONFIG.context_length.value
-    print(f"CONTEXT LENGTH: {CONTEXT_LEN}")
-
+    CONTEXT_LEN = CURRENT_CONFIG.context_length
     RTG_SCALE = 1000.0    # Scale returns so 3000 becomes 3.0
 
     print(f"Loading Minari Dataset: {CURRENT_CONFIG.dataset_id} (downloading if needed)...")
@@ -90,31 +86,16 @@ def loadDataset(CURRENT_CONFIG):
         })
         all_obs.append(episode.observations[:-1])
 
-    # ... existing observation normalization ...
+    # Normalize States (CRITICAL for Transformers)
     all_obs = np.concatenate(all_obs, axis=0)
-    obs_mean = np.mean(all_obs, axis=0)
-    obs_std = np.std(all_obs, axis=0) + 1e-6
+    mean = np.mean(all_obs, axis=0)
+    std = np.std(all_obs, axis=0) + 1e-6
 
-
-    # --- ACTION SCALING FIX ---
-    # Hopper-v5 actions are physically limited to [-1, 1].
-    # Instead of Mean/Std normalization, we ensure the data strictly 
-    # maps to the Tanh range [-1, 1].
     for traj in trajectories:
-        # State normalization (Mean/Std is fine for states)
-        traj["observations"] = (traj["observations"] - obs_mean) / obs_std
-        
-        # Action Scaling: Ensure they are clamped to [-1, 1]
-        # (Minari data should already be here, but we enforce it for the model)
-        traj["actions"] = np.clip(traj["actions"], -1.0, 1.0)
+        traj["observations"] = (traj["observations"] - mean) / std
 
-    # Save stats (We still need obs stats for inference)
-    np.savez(
-        f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz", 
-        obs_mean=obs_mean, obs_std=obs_std,
-        act_mean=np.zeros(3), # No longer needed for scaling
-        act_std=np.ones(3)     # No longer needed for scaling
-    )
+    # Save stats for later inference
+    np.savez(f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz", mean=mean, std=std)
 
     dataset = TrajectoryDataset(trajectories, CONTEXT_LEN)
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -122,9 +103,8 @@ def loadDataset(CURRENT_CONFIG):
 
 # --- LIVE ENVIRONMENT ---
 def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
-    CONTEXT_LEN = CURRENT_CONFIG.context_length.value
-    print(f"CONTEXT LENGTH: {CONTEXT_LEN}")
-
+    CONTEXT_LEN = CURRENT_CONFIG.context_length
+   
     env = gym.make("Hopper-v5", render_mode="rgb_array", max_episode_steps=1000) # "human" to see it, "rgb_array" for headless
 
     if CURRENT_CONFIG.record:
@@ -140,11 +120,6 @@ def liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR):
 
     # Load Normalization Stats
     stats = np.load(f"{MODULE_DIR}/normalizations/{CURRENT_CONFIG.level.value}_{CONTEXT_LEN}.npz")
-    state_mean = torch.from_numpy(stats['obs_mean']).to(DEVICE).float()
-    state_std = torch.from_numpy(stats['obs_std']).to(DEVICE).float()
-    
-    # FORCE ACTION STATS TO NEUTRAL
-    # This prevents run.py from distorting the Tanh output (-1 to 1)
-    act_mean = torch.zeros(action_dim, device=DEVICE)
-    act_std = torch.ones(action_dim, device=DEVICE)
-    return env, state_dim, action_dim, state_mean, state_std, act_mean, act_std
+    state_mean = torch.from_numpy(stats['mean']).to(DEVICE).float()
+    state_std = torch.from_numpy(stats['std']).to(DEVICE).float()
+    return env, state_dim, action_dim, state_mean, state_std

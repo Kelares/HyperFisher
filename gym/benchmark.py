@@ -6,6 +6,7 @@ from enum import Enum
 from dataclasses import dataclass
 import importlib
 import json
+from pathlib import Path
 
 class ModelArch(Enum):
     TRANSFORMER = "transformer"
@@ -27,6 +28,7 @@ class ExperimentConfig:
     level: AgentLevel
     model: ModelArch
     record: bool
+    context_length: int
 
     @property
     def dataset_id(self) -> str:
@@ -37,19 +39,23 @@ CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM,
+    context_length=64,
+
     record=False
 )
+
 # LOSS_ACHIEVED = "0.00576"
 # PATH_OF_SAVE = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}.pt"
 # LOSS_ACHIEVED = "0.00326" #PERFECT SSM
 # LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
-LOSS_ACHIEVED = "0.04017"
+# LOSS_ACHIEVED = "0.04017"
+LOSS_ACHIEVED = "0.03923"
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
-CONTEXT_LEN = 20
+CONTEXT_LEN = CURRENT_CONFIG.context_length
 RTG_SCALE = 1000.0
 TARGET_RETURN = 3600.0  # We ask the model for an "Expert" performance
 DEVICE = "cuda"          # Inference is fast enough on CPU
@@ -218,6 +224,10 @@ print(f"Range: [{min_score:.2f}, {max_score:.2f}]")
 print("="*30)
 
 print(f"success rate: {(succesful_runs/(len(SEEDS)*len(OCCLUSION_LENGTHS)))*100}%\n")
+
+run_dir = Path(RUN_DIR) / "benchmarks"
+run_dir.mkdir(parents=True, exist_ok=True)
+
 
 with open(f"{RUN_DIR}/benchmarks/benchmark.txt", "w+") as f:
     f.write("="*30 +"\n")

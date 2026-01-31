@@ -1,2 +1,0 @@
-/var/spool/slurm/slurmd/job40645/slurm_script: line 14: activate: No such file or directory
-slurmstepd-byzantium: error: *** JOB 40645 ON byzantium CANCELLED AT 2026-01-09T21:22:34 ***

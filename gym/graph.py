@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # --- CONFIGURATION ---
-INPUT_FILE = 'hopper/runs/ssm_medium_Loss_0.03888/benchmarks/benchmark.json'
-OUTPUT_IMAGE = 'ssm_robustness_results.png'
+INPUT_FILE = 'hopper/runs/ssm_medium_Loss_0.03923/benchmarks/benchmark.json'
+OUTPUT_IMAGE = '0.03923_ssm_robustness_results.png'
 
 def main():
     # 1. Load the Data

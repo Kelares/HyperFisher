@@ -26,6 +26,7 @@ class ExperimentConfig:
     level: AgentLevel
     model: ModelArch
     record: bool
+    context_length: int
 
     @property
     def dataset_id(self) -> str:
@@ -36,6 +37,8 @@ CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM,
+    context_length=20,
+
     record=True
 )
 # LOSS_ACHIEVED = "0.01577"
@@ -44,13 +47,15 @@ CURRENT_CONFIG = ExperimentConfig(
 # LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
 # LOSS_ACHIEVED = "0.01706"
 # LOSS_ACHIEVED = "0.20617"
-LOSS_ACHIEVED = "0.04017"
+# LOSS_ACHIEVED = "0.04017"
+LOSS_ACHIEVED = "0.05833"
+
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
 # --- CONFIGURATION ---
 # Must match your training config exactly!
-CONTEXT_LEN = 20
+CONTEXT_LEN = CURRENT_CONFIG.context_length
 RTG_SCALE = 1000.0
 TARGET_RETURN = 3600.0  # We ask the model for an "Expert" performance
 DEVICE = "cuda"          # Inference is fast enough on CPU
@@ -58,7 +63,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std, act_mean, act_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR)
+env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, RUN_DIR)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -143,14 +148,12 @@ while not done:
     else:
         current_state_input = history_states
 
-    # Inside while not done:
+
+    # A. Ask Model for Action
     action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
+    action_np = action.cpu().numpy()
 
-    # 1. Un-normalize for the environment
-    action_raw = (action * act_std) + act_mean
-    action_np = torch.clamp(action_raw, -1, 1).cpu().numpy() # Safety clamp
-
-    # 2. Step environment
+    # B. Step Environment
     next_obs, reward, terminated, truncated, _ = env.step(action_np)
 
 
@@ -169,11 +172,9 @@ while not done:
     next_obs_t = (next_obs_t - state_mean) / state_std
     history_states = torch.cat([history_states, next_obs_t], dim=1)
 
-    # 3. Update History - CRITICAL: Store the NORM_ACTION the model expects
-    # If the model outputs normalized actions, store 'action' directly.
-    # If the model outputs raw actions, you MUST normalize them here.
-    action_to_store = action.view(1, 1, action_dim) 
-    history_actions = torch.cat([history_actions, action_to_store], dim=1)
+    # 2. Append Action Taken
+    action_t = action.view(1, 1, action_dim)
+    history_actions = torch.cat([history_actions, action_t], dim=1)
 
 
     # 3. Calculate and Append New Return-to-Go
