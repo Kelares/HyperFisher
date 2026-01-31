@@ -1,0 +1,1506 @@
+mujoco/hopper/medium-v0
+<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
+ssm
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+<module 'ssm' from '/home/u253954/SSM_benchmark/gym/ssm/__init__.py'>
+ssm
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+Epoch 01 | Loss: 0.042226
+   ✅ Saved Best
+Epoch 02 | Loss: 0.042184
+   ✅ Saved Best
+Epoch 03 | Loss: 0.042155
+   ✅ Saved Best
+Epoch 04 | Loss: 0.042125
+   ✅ Saved Best
+Epoch 05 | Loss: 0.042097
+   ✅ Saved Best
+Epoch 06 | Loss: 0.042067
+   ✅ Saved Best
+Epoch 07 | Loss: 0.042040
+   ✅ Saved Best
+Epoch 08 | Loss: 0.042020
+   ✅ Saved Best
+Epoch 09 | Loss: 0.041992
+   ✅ Saved Best
+Epoch 10 | Loss: 0.041967
+   ✅ Saved Best
+Epoch 11 | Loss: 0.041944
+   ✅ Saved Best
+Epoch 12 | Loss: 0.041920
+   ✅ Saved Best
+Epoch 13 | Loss: 0.041896
+   ✅ Saved Best
+Epoch 14 | Loss: 0.041876
+   ✅ Saved Best
+Epoch 15 | Loss: 0.041854
+   ✅ Saved Best
+Epoch 16 | Loss: 0.041837
+   ✅ Saved Best
+Epoch 17 | Loss: 0.041815
+   ✅ Saved Best
+Epoch 18 | Loss: 0.041799
+   ✅ Saved Best
+Epoch 19 | Loss: 0.041782
+   ✅ Saved Best
+Epoch 20 | Loss: 0.041761
+   ✅ Saved Best
+Epoch 21 | Loss: 0.041747
+   ✅ Saved Best
+Epoch 22 | Loss: 0.041728
+   ✅ Saved Best
+Epoch 23 | Loss: 0.041707
+   ✅ Saved Best
+Epoch 24 | Loss: 0.041691
+   ✅ Saved Best
+Epoch 25 | Loss: 0.041676
+   ✅ Saved Best
+Epoch 26 | Loss: 0.041658
+   ✅ Saved Best
+Epoch 27 | Loss: 0.041643
+   ✅ Saved Best
+Epoch 28 | Loss: 0.041630
+   ✅ Saved Best
+Epoch 29 | Loss: 0.041612
+   ✅ Saved Best
+Epoch 30 | Loss: 0.041599
+   ✅ Saved Best
+Epoch 31 | Loss: 0.041585
+   ✅ Saved Best
+Epoch 32 | Loss: 0.041575
+   ✅ Saved Best
+Epoch 33 | Loss: 0.041562
+   ✅ Saved Best
+Epoch 34 | Loss: 0.041551
+   ✅ Saved Best
+Epoch 35 | Loss: 0.041531
+   ✅ Saved Best
+Epoch 36 | Loss: 0.041528
+   ✅ Saved Best
+Epoch 37 | Loss: 0.041511
+   ✅ Saved Best
+Epoch 38 | Loss: 0.041502
+   ✅ Saved Best
+Epoch 39 | Loss: 0.041485
+   ✅ Saved Best
+Epoch 40 | Loss: 0.041474
+   ✅ Saved Best
+Epoch 41 | Loss: 0.041465
+   ✅ Saved Best
+Epoch 42 | Loss: 0.041453
+   ✅ Saved Best
+Epoch 43 | Loss: 0.041440
+   ✅ Saved Best
+Epoch 44 | Loss: 0.041429
+   ✅ Saved Best
+Epoch 45 | Loss: 0.041416
+   ✅ Saved Best
+Epoch 46 | Loss: 0.041410
+   ✅ Saved Best
+Epoch 47 | Loss: 0.041393
+   ✅ Saved Best
+Epoch 48 | Loss: 0.041386
+   ✅ Saved Best
+Epoch 49 | Loss: 0.041378
+   ✅ Saved Best
+Epoch 50 | Loss: 0.041366
+   ✅ Saved Best
+Epoch 51 | Loss: 0.041357
+   ✅ Saved Best
+Epoch 52 | Loss: 0.041350
+   ✅ Saved Best
+Epoch 53 | Loss: 0.041337
+   ✅ Saved Best
+Epoch 54 | Loss: 0.041335
+   ✅ Saved Best
+Epoch 55 | Loss: 0.041318
+   ✅ Saved Best
+Epoch 56 | Loss: 0.041311
+   ✅ Saved Best
+Epoch 57 | Loss: 0.041303
+   ✅ Saved Best
+Epoch 58 | Loss: 0.041293
+   ✅ Saved Best
+Epoch 59 | Loss: 0.041283
+   ✅ Saved Best
+Epoch 60 | Loss: 0.041279
+   ✅ Saved Best
+Epoch 61 | Loss: 0.041271
+   ✅ Saved Best
+Epoch 62 | Loss: 0.041262
+   ✅ Saved Best
+Epoch 63 | Loss: 0.041256
+   ✅ Saved Best
+Epoch 64 | Loss: 0.041248
+   ✅ Saved Best
+Epoch 65 | Loss: 0.041241
+   ✅ Saved Best
+Epoch 66 | Loss: 0.041233
+   ✅ Saved Best
+Epoch 67 | Loss: 0.041223
+   ✅ Saved Best
+Epoch 68 | Loss: 0.041221
+   ✅ Saved Best
+Epoch 69 | Loss: 0.041216
+   ✅ Saved Best
+Epoch 70 | Loss: 0.041204
+   ✅ Saved Best
+Epoch 71 | Loss: 0.041199
+   ✅ Saved Best
+Epoch 72 | Loss: 0.041197
+   ✅ Saved Best
+Epoch 73 | Loss: 0.041184
+   ✅ Saved Best
+Epoch 74 | Loss: 0.041175
+   ✅ Saved Best
+Epoch 75 | Loss: 0.041178
+Epoch 76 | Loss: 0.041167
+   ✅ Saved Best
+Epoch 77 | Loss: 0.041161
+   ✅ Saved Best
+Epoch 78 | Loss: 0.041156
+   ✅ Saved Best
+Epoch 79 | Loss: 0.041155
+   ✅ Saved Best
+Epoch 80 | Loss: 0.041146
+   ✅ Saved Best
+Epoch 81 | Loss: 0.041141
+   ✅ Saved Best
+Epoch 82 | Loss: 0.041136
+   ✅ Saved Best
+Epoch 83 | Loss: 0.041130
+   ✅ Saved Best
+Epoch 84 | Loss: 0.041122
+   ✅ Saved Best
+Epoch 85 | Loss: 0.041117
+   ✅ Saved Best
+Epoch 86 | Loss: 0.041111
+   ✅ Saved Best
+Epoch 87 | Loss: 0.041106
+   ✅ Saved Best
+Epoch 88 | Loss: 0.041099
+   ✅ Saved Best
+Epoch 89 | Loss: 0.041096
+   ✅ Saved Best
+Epoch 90 | Loss: 0.041090
+   ✅ Saved Best
+Epoch 91 | Loss: 0.041091
+Epoch 92 | Loss: 0.041082
+   ✅ Saved Best
+Epoch 93 | Loss: 0.041077
+   ✅ Saved Best
+Epoch 94 | Loss: 0.041067
+   ✅ Saved Best
+Epoch 95 | Loss: 0.041064
+   ✅ Saved Best
+Epoch 96 | Loss: 0.041061
+   ✅ Saved Best
+Epoch 97 | Loss: 0.041059
+   ✅ Saved Best
+Epoch 98 | Loss: 0.041054
+   ✅ Saved Best
+Epoch 99 | Loss: 0.041048
+   ✅ Saved Best
+Epoch 100 | Loss: 0.041043
+   ✅ Saved Best
+Epoch 101 | Loss: 0.041038
+   ✅ Saved Best
+Epoch 102 | Loss: 0.041031
+   ✅ Saved Best
+Epoch 103 | Loss: 0.041031
+   ✅ Saved Best
+Epoch 104 | Loss: 0.041029
+   ✅ Saved Best
+Epoch 105 | Loss: 0.041017
+   ✅ Saved Best
+Epoch 106 | Loss: 0.041010
+   ✅ Saved Best
+Epoch 107 | Loss: 0.041006
+   ✅ Saved Best
+Epoch 108 | Loss: 0.041006
+   ✅ Saved Best
+Epoch 109 | Loss: 0.041003
+   ✅ Saved Best
+Epoch 110 | Loss: 0.040996
+   ✅ Saved Best
+Epoch 111 | Loss: 0.040991
+   ✅ Saved Best
+Epoch 112 | Loss: 0.040991
+   ✅ Saved Best
+Epoch 113 | Loss: 0.040981
+   ✅ Saved Best
+Epoch 114 | Loss: 0.040977
+   ✅ Saved Best
+Epoch 115 | Loss: 0.040976
+   ✅ Saved Best
+Epoch 116 | Loss: 0.040969
+   ✅ Saved Best
+Epoch 117 | Loss: 0.040967
+   ✅ Saved Best
+Epoch 118 | Loss: 0.040963
+   ✅ Saved Best
+Epoch 119 | Loss: 0.040956
+   ✅ Saved Best
+Epoch 120 | Loss: 0.040957
+Epoch 121 | Loss: 0.040948
+   ✅ Saved Best
+Epoch 122 | Loss: 0.040949
+Epoch 123 | Loss: 0.040942
+   ✅ Saved Best
+Epoch 124 | Loss: 0.040936
+   ✅ Saved Best
+Epoch 125 | Loss: 0.040936
+Epoch 126 | Loss: 0.040931
+   ✅ Saved Best
+Epoch 127 | Loss: 0.040926
+   ✅ Saved Best
+Epoch 128 | Loss: 0.040923
+   ✅ Saved Best
+Epoch 129 | Loss: 0.040918
+   ✅ Saved Best
+Epoch 130 | Loss: 0.040916
+   ✅ Saved Best
+Epoch 131 | Loss: 0.040913
+   ✅ Saved Best
+Epoch 132 | Loss: 0.040909
+   ✅ Saved Best
+Epoch 133 | Loss: 0.040906
+   ✅ Saved Best
+Epoch 134 | Loss: 0.040904
+   ✅ Saved Best
+Epoch 135 | Loss: 0.040898
+   ✅ Saved Best
+Epoch 136 | Loss: 0.040892
+   ✅ Saved Best
+Epoch 137 | Loss: 0.040893
+Epoch 138 | Loss: 0.040890
+   ✅ Saved Best
+Epoch 139 | Loss: 0.040885
+   ✅ Saved Best
+Epoch 140 | Loss: 0.040882
+   ✅ Saved Best
+Epoch 141 | Loss: 0.040880
+   ✅ Saved Best
+Epoch 142 | Loss: 0.040875
+   ✅ Saved Best
+Epoch 143 | Loss: 0.040874
+   ✅ Saved Best
+Epoch 144 | Loss: 0.040871
+   ✅ Saved Best
+Epoch 145 | Loss: 0.040868
+   ✅ Saved Best
+Epoch 146 | Loss: 0.040864
+   ✅ Saved Best
+Epoch 147 | Loss: 0.040859
+   ✅ Saved Best
+Epoch 148 | Loss: 0.040859
+   ✅ Saved Best
+Epoch 149 | Loss: 0.040852
+   ✅ Saved Best
+Epoch 150 | Loss: 0.040852
+   ✅ Saved Best
+Epoch 151 | Loss: 0.040845
+   ✅ Saved Best
+Epoch 152 | Loss: 0.040846
+Epoch 153 | Loss: 0.040844
+   ✅ Saved Best
+Epoch 154 | Loss: 0.040836
+   ✅ Saved Best
+Epoch 155 | Loss: 0.040841
+Epoch 156 | Loss: 0.040831
+   ✅ Saved Best
+Epoch 157 | Loss: 0.040828
+   ✅ Saved Best
+Epoch 158 | Loss: 0.040826
+   ✅ Saved Best
+Epoch 159 | Loss: 0.040823
+   ✅ Saved Best
+Epoch 160 | Loss: 0.040821
+   ✅ Saved Best
+Epoch 161 | Loss: 0.040819
+   ✅ Saved Best
+Epoch 162 | Loss: 0.040813
+   ✅ Saved Best
+Epoch 163 | Loss: 0.040811
+   ✅ Saved Best
+Epoch 164 | Loss: 0.040808
+   ✅ Saved Best
+Epoch 165 | Loss: 0.040802
+   ✅ Saved Best
+Epoch 166 | Loss: 0.040800
+   ✅ Saved Best
+Epoch 167 | Loss: 0.040799
+   ✅ Saved Best
+Epoch 168 | Loss: 0.040797
+   ✅ Saved Best
+Epoch 169 | Loss: 0.040793
+   ✅ Saved Best
+Epoch 170 | Loss: 0.040789
+   ✅ Saved Best
+Epoch 171 | Loss: 0.040785
+   ✅ Saved Best
+Epoch 172 | Loss: 0.040782
+   ✅ Saved Best
+Epoch 173 | Loss: 0.040779
+   ✅ Saved Best
+Epoch 174 | Loss: 0.040775
+   ✅ Saved Best
+Epoch 175 | Loss: 0.040773
+   ✅ Saved Best
+Epoch 176 | Loss: 0.040771
+   ✅ Saved Best
+Epoch 177 | Loss: 0.040768
+   ✅ Saved Best
+Epoch 178 | Loss: 0.040764
+   ✅ Saved Best
+Epoch 179 | Loss: 0.040764
+   ✅ Saved Best
+Epoch 180 | Loss: 0.040761
+   ✅ Saved Best
+Epoch 181 | Loss: 0.040759
+   ✅ Saved Best
+Epoch 182 | Loss: 0.040754
+   ✅ Saved Best
+Epoch 183 | Loss: 0.040754
+Epoch 184 | Loss: 0.040752
+   ✅ Saved Best
+Epoch 185 | Loss: 0.040751
+   ✅ Saved Best
+Epoch 186 | Loss: 0.040746
+   ✅ Saved Best
+Epoch 187 | Loss: 0.040742
+   ✅ Saved Best
+Epoch 188 | Loss: 0.040743
+Epoch 189 | Loss: 0.040737
+   ✅ Saved Best
+Epoch 190 | Loss: 0.040733
+   ✅ Saved Best
+Epoch 191 | Loss: 0.040734
+Epoch 192 | Loss: 0.040735
+Epoch 193 | Loss: 0.040733
+   ✅ Saved Best
+Epoch 194 | Loss: 0.040730
+   ✅ Saved Best
+Epoch 195 | Loss: 0.040725
+   ✅ Saved Best
+Epoch 196 | Loss: 0.040722
+   ✅ Saved Best
+Epoch 197 | Loss: 0.040721
+   ✅ Saved Best
+Epoch 198 | Loss: 0.040716
+   ✅ Saved Best
+Epoch 199 | Loss: 0.040717
+Epoch 200 | Loss: 0.040712
+   ✅ Saved Best
+Epoch 201 | Loss: 0.040714
+Epoch 202 | Loss: 0.040707
+   ✅ Saved Best
+Epoch 203 | Loss: 0.040708
+Epoch 204 | Loss: 0.040711
+Epoch 205 | Loss: 0.040702
+   ✅ Saved Best
+Epoch 206 | Loss: 0.040704
+Epoch 207 | Loss: 0.040702
+Epoch 208 | Loss: 0.040699
+   ✅ Saved Best
+Epoch 209 | Loss: 0.040696
+   ✅ Saved Best
+Epoch 210 | Loss: 0.040695
+   ✅ Saved Best
+Epoch 211 | Loss: 0.040691
+   ✅ Saved Best
+Epoch 212 | Loss: 0.040692
+Epoch 213 | Loss: 0.040688
+   ✅ Saved Best
+Epoch 214 | Loss: 0.040686
+   ✅ Saved Best
+Epoch 215 | Loss: 0.040683
+   ✅ Saved Best
+Epoch 216 | Loss: 0.040683
+Epoch 217 | Loss: 0.040679
+   ✅ Saved Best
+Epoch 218 | Loss: 0.040676
+   ✅ Saved Best
+Epoch 219 | Loss: 0.040676
+Epoch 220 | Loss: 0.040675
+   ✅ Saved Best
+Epoch 221 | Loss: 0.040672
+   ✅ Saved Best
+Epoch 222 | Loss: 0.040671
+   ✅ Saved Best
+Epoch 223 | Loss: 0.040671
+Epoch 224 | Loss: 0.040666
+   ✅ Saved Best
+Epoch 225 | Loss: 0.040667
+Epoch 226 | Loss: 0.040665
+   ✅ Saved Best
+Epoch 227 | Loss: 0.040661
+   ✅ Saved Best
+Epoch 228 | Loss: 0.040660
+   ✅ Saved Best
+Epoch 229 | Loss: 0.040659
+   ✅ Saved Best
+Epoch 230 | Loss: 0.040653
+   ✅ Saved Best
+Epoch 231 | Loss: 0.040654
+Epoch 232 | Loss: 0.040650
+   ✅ Saved Best
+Epoch 233 | Loss: 0.040653
+Epoch 234 | Loss: 0.040650
+   ✅ Saved Best
+Epoch 235 | Loss: 0.040651
+Epoch 236 | Loss: 0.040650
+   ✅ Saved Best
+Epoch 237 | Loss: 0.040644
+   ✅ Saved Best
+Epoch 238 | Loss: 0.040645
+Epoch 239 | Loss: 0.040638
+   ✅ Saved Best
+Epoch 240 | Loss: 0.040639
+Epoch 241 | Loss: 0.040640
+Epoch 242 | Loss: 0.040631
+   ✅ Saved Best
+Epoch 243 | Loss: 0.040634
+Epoch 244 | Loss: 0.040629
+   ✅ Saved Best
+Epoch 245 | Loss: 0.040625
+   ✅ Saved Best
+Epoch 246 | Loss: 0.040626
+Epoch 247 | Loss: 0.040625
+Epoch 248 | Loss: 0.040622
+   ✅ Saved Best
+Epoch 249 | Loss: 0.040617
+   ✅ Saved Best
+Epoch 250 | Loss: 0.040618
+Epoch 251 | Loss: 0.040617
+   ✅ Saved Best
+Epoch 252 | Loss: 0.040614
+   ✅ Saved Best
+Epoch 253 | Loss: 0.040613
+   ✅ Saved Best
+Epoch 254 | Loss: 0.040613
+   ✅ Saved Best
+Epoch 255 | Loss: 0.040610
+   ✅ Saved Best
+Epoch 256 | Loss: 0.040610
+   ✅ Saved Best
+Epoch 257 | Loss: 0.040605
+   ✅ Saved Best
+Epoch 258 | Loss: 0.040604
+   ✅ Saved Best
+Epoch 259 | Loss: 0.040603
+   ✅ Saved Best
+Epoch 260 | Loss: 0.040600
+   ✅ Saved Best
+Epoch 261 | Loss: 0.040603
+Epoch 262 | Loss: 0.040600
+Epoch 263 | Loss: 0.040598
+   ✅ Saved Best
+Epoch 264 | Loss: 0.040593
+   ✅ Saved Best
+Epoch 265 | Loss: 0.040598
+Epoch 266 | Loss: 0.040592
+   ✅ Saved Best
+Epoch 267 | Loss: 0.040595
+Epoch 268 | Loss: 0.040590
+   ✅ Saved Best
+Epoch 269 | Loss: 0.040589
+   ✅ Saved Best
+Epoch 270 | Loss: 0.040587
+   ✅ Saved Best
+Epoch 271 | Loss: 0.040584
+   ✅ Saved Best
+Epoch 272 | Loss: 0.040588
+Epoch 273 | Loss: 0.040579
+   ✅ Saved Best
+Epoch 274 | Loss: 0.040584
+Epoch 275 | Loss: 0.040583
+Epoch 276 | Loss: 0.040581
+Epoch 277 | Loss: 0.040576
+   ✅ Saved Best
+Epoch 278 | Loss: 0.040573
+   ✅ Saved Best
+Epoch 279 | Loss: 0.040577
+Epoch 280 | Loss: 0.040578
+Epoch 281 | Loss: 0.040573
+   ✅ Saved Best
+Epoch 282 | Loss: 0.040574
+Epoch 283 | Loss: 0.040571
+   ✅ Saved Best
+Epoch 284 | Loss: 0.040571
+Epoch 285 | Loss: 0.040571
+Epoch 286 | Loss: 0.040569
+   ✅ Saved Best
+Epoch 287 | Loss: 0.040563
+   ✅ Saved Best
+Epoch 288 | Loss: 0.040566
+Epoch 289 | Loss: 0.040565
+Epoch 290 | Loss: 0.040562
+   ✅ Saved Best
+Epoch 291 | Loss: 0.040560
+   ✅ Saved Best
+Epoch 292 | Loss: 0.040556
+   ✅ Saved Best
+Epoch 293 | Loss: 0.040558
+Epoch 294 | Loss: 0.040559
+Epoch 295 | Loss: 0.040558
+Epoch 296 | Loss: 0.040556
+   ✅ Saved Best
+Epoch 297 | Loss: 0.040555
+   ✅ Saved Best
+Epoch 298 | Loss: 0.040558
+Epoch 299 | Loss: 0.040554
+   ✅ Saved Best
+Epoch 300 | Loss: 0.040552
+   ✅ Saved Best
+Epoch 301 | Loss: 0.040551
+   ✅ Saved Best
+Epoch 302 | Loss: 0.040548
+   ✅ Saved Best
+Epoch 303 | Loss: 0.040544
+   ✅ Saved Best
+Epoch 304 | Loss: 0.040546
+Epoch 305 | Loss: 0.040541
+   ✅ Saved Best
+Epoch 306 | Loss: 0.040549
+Epoch 307 | Loss: 0.040544
+Epoch 308 | Loss: 0.040540
+   ✅ Saved Best
+Epoch 309 | Loss: 0.040538
+   ✅ Saved Best
+Epoch 310 | Loss: 0.040543
+Epoch 311 | Loss: 0.040535
+   ✅ Saved Best
+Epoch 312 | Loss: 0.040538
+Epoch 313 | Loss: 0.040536
+Epoch 314 | Loss: 0.040536
+Epoch 315 | Loss: 0.040532
+   ✅ Saved Best
+Epoch 316 | Loss: 0.040533
+Epoch 317 | Loss: 0.040533
+Epoch 318 | Loss: 0.040530
+   ✅ Saved Best
+Epoch 319 | Loss: 0.040532
+Epoch 320 | Loss: 0.040529
+   ✅ Saved Best
+Epoch 321 | Loss: 0.040529
+   ✅ Saved Best
+Epoch 322 | Loss: 0.040528
+   ✅ Saved Best
+Epoch 323 | Loss: 0.040524
+   ✅ Saved Best
+Epoch 324 | Loss: 0.040529
+Epoch 325 | Loss: 0.040522
+   ✅ Saved Best
+Epoch 326 | Loss: 0.040523
+Epoch 327 | Loss: 0.040522
+   ✅ Saved Best
+Epoch 328 | Loss: 0.040522
+   ✅ Saved Best
+Epoch 329 | Loss: 0.040519
+   ✅ Saved Best
+Epoch 330 | Loss: 0.040515
+   ✅ Saved Best
+Epoch 331 | Loss: 0.040514
+   ✅ Saved Best
+Epoch 332 | Loss: 0.040520
+Epoch 333 | Loss: 0.040518
+Epoch 334 | Loss: 0.040511
+   ✅ Saved Best
+Epoch 335 | Loss: 0.040511
+   ✅ Saved Best
+Epoch 336 | Loss: 0.040510
+   ✅ Saved Best
+Epoch 337 | Loss: 0.040513
+Epoch 338 | Loss: 0.040506
+   ✅ Saved Best
+Epoch 339 | Loss: 0.040508
+Epoch 340 | Loss: 0.040508
+Epoch 341 | Loss: 0.040508
+Epoch 342 | Loss: 0.040506
+   ✅ Saved Best
+Epoch 343 | Loss: 0.040499
+   ✅ Saved Best
+Epoch 344 | Loss: 0.040504
+Epoch 345 | Loss: 0.040500
+Epoch 346 | Loss: 0.040500
+Epoch 347 | Loss: 0.040501
+Epoch 348 | Loss: 0.040497
+   ✅ Saved Best
+Epoch 349 | Loss: 0.040499
+Epoch 350 | Loss: 0.040496
+   ✅ Saved Best
+Epoch 351 | Loss: 0.040495
+   ✅ Saved Best
+Epoch 352 | Loss: 0.040496
+Epoch 353 | Loss: 0.040493
+   ✅ Saved Best
+Epoch 354 | Loss: 0.040494
+Epoch 355 | Loss: 0.040491
+   ✅ Saved Best
+Epoch 356 | Loss: 0.040489
+   ✅ Saved Best
+Epoch 357 | Loss: 0.040488
+   ✅ Saved Best
+Epoch 358 | Loss: 0.040489
+Epoch 359 | Loss: 0.040486
+   ✅ Saved Best
+Epoch 360 | Loss: 0.040487
+Epoch 361 | Loss: 0.040485
+   ✅ Saved Best
+Epoch 362 | Loss: 0.040487
+Epoch 363 | Loss: 0.040483
+   ✅ Saved Best
+Epoch 364 | Loss: 0.040482
+   ✅ Saved Best
+Epoch 365 | Loss: 0.040486
+Epoch 366 | Loss: 0.040478
+   ✅ Saved Best
+Epoch 367 | Loss: 0.040479
+Epoch 368 | Loss: 0.040483
+Epoch 369 | Loss: 0.040478
+   ✅ Saved Best
+Epoch 370 | Loss: 0.040477
+   ✅ Saved Best
+Epoch 371 | Loss: 0.040473
+   ✅ Saved Best
+Epoch 372 | Loss: 0.040475
+Epoch 373 | Loss: 0.040474
+Epoch 374 | Loss: 0.040473
+   ✅ Saved Best
+Epoch 375 | Loss: 0.040472
+   ✅ Saved Best
+Epoch 376 | Loss: 0.040473
+Epoch 377 | Loss: 0.040471
+   ✅ Saved Best
+Epoch 378 | Loss: 0.040468
+   ✅ Saved Best
+Epoch 379 | Loss: 0.040468
+   ✅ Saved Best
+Epoch 380 | Loss: 0.040469
+Epoch 381 | Loss: 0.040470
+Epoch 382 | Loss: 0.040470
+Epoch 383 | Loss: 0.040463
+   ✅ Saved Best
+Epoch 384 | Loss: 0.040468
+Epoch 385 | Loss: 0.040466
+Epoch 386 | Loss: 0.040469
+Epoch 387 | Loss: 0.040462
+   ✅ Saved Best
+Epoch 388 | Loss: 0.040462
+Epoch 389 | Loss: 0.040462
+Epoch 390 | Loss: 0.040461
+   ✅ Saved Best
+Epoch 391 | Loss: 0.040457
+   ✅ Saved Best
+Epoch 392 | Loss: 0.040458
+Epoch 393 | Loss: 0.040456
+   ✅ Saved Best
+Epoch 394 | Loss: 0.040455
+   ✅ Saved Best
+Epoch 395 | Loss: 0.040452
+   ✅ Saved Best
+Epoch 396 | Loss: 0.040452
+   ✅ Saved Best
+Epoch 397 | Loss: 0.040451
+   ✅ Saved Best
+Epoch 398 | Loss: 0.040453
+Epoch 399 | Loss: 0.040452
+Epoch 400 | Loss: 0.040449
+   ✅ Saved Best
+Epoch 401 | Loss: 0.040451
+Epoch 402 | Loss: 0.040447
+   ✅ Saved Best
+Epoch 403 | Loss: 0.040444
+   ✅ Saved Best
+Epoch 404 | Loss: 0.040447
+Epoch 405 | Loss: 0.040446
+Epoch 406 | Loss: 0.040443
+   ✅ Saved Best
+Epoch 407 | Loss: 0.040443
+Epoch 408 | Loss: 0.040447
+Epoch 409 | Loss: 0.040441
+   ✅ Saved Best
+Epoch 410 | Loss: 0.040442
+Epoch 411 | Loss: 0.040439
+   ✅ Saved Best
+Epoch 412 | Loss: 0.040440
+Epoch 413 | Loss: 0.040439
+   ✅ Saved Best
+Epoch 414 | Loss: 0.040438
+   ✅ Saved Best
+Epoch 415 | Loss: 0.040436
+   ✅ Saved Best
+Epoch 416 | Loss: 0.040436
+   ✅ Saved Best
+Epoch 417 | Loss: 0.040435
+   ✅ Saved Best
+Epoch 418 | Loss: 0.040436
+Epoch 419 | Loss: 0.040431
+   ✅ Saved Best
+Epoch 420 | Loss: 0.040431
+   ✅ Saved Best
+Epoch 421 | Loss: 0.040432
+Epoch 422 | Loss: 0.040431
+   ✅ Saved Best
+Epoch 423 | Loss: 0.040428
+   ✅ Saved Best
+Epoch 424 | Loss: 0.040430
+Epoch 425 | Loss: 0.040426
+   ✅ Saved Best
+Epoch 426 | Loss: 0.040431
+Epoch 427 | Loss: 0.040425
+   ✅ Saved Best
+Epoch 428 | Loss: 0.040425
+   ✅ Saved Best
+Epoch 429 | Loss: 0.040425
+Epoch 430 | Loss: 0.040425
+Epoch 431 | Loss: 0.040423
+   ✅ Saved Best
+Epoch 432 | Loss: 0.040422
+   ✅ Saved Best
+Epoch 433 | Loss: 0.040422
+   ✅ Saved Best
+Epoch 434 | Loss: 0.040419
+   ✅ Saved Best
+Epoch 435 | Loss: 0.040420
+Epoch 436 | Loss: 0.040420
+Epoch 437 | Loss: 0.040421
+Epoch 438 | Loss: 0.040416
+   ✅ Saved Best
+Epoch 439 | Loss: 0.040416
+   ✅ Saved Best
+Epoch 440 | Loss: 0.040411
+   ✅ Saved Best
+Epoch 441 | Loss: 0.040413
+Epoch 442 | Loss: 0.040412
+Epoch 443 | Loss: 0.040415
+Epoch 444 | Loss: 0.040415
+Epoch 445 | Loss: 0.040413
+Epoch 446 | Loss: 0.040414
+Epoch 447 | Loss: 0.040410
+   ✅ Saved Best
+Epoch 448 | Loss: 0.040410
+Epoch 449 | Loss: 0.040411
+Epoch 450 | Loss: 0.040411
+Epoch 451 | Loss: 0.040410
+Epoch 452 | Loss: 0.040409
+   ✅ Saved Best
+Epoch 453 | Loss: 0.040406
+   ✅ Saved Best
+Epoch 454 | Loss: 0.040405
+   ✅ Saved Best
+Epoch 455 | Loss: 0.040405
+Epoch 456 | Loss: 0.040405
+Epoch 457 | Loss: 0.040401
+   ✅ Saved Best
+Epoch 458 | Loss: 0.040403
+Epoch 459 | Loss: 0.040403
+Epoch 460 | Loss: 0.040402
+Epoch 461 | Loss: 0.040400
+   ✅ Saved Best
+Epoch 462 | Loss: 0.040401
+Epoch 463 | Loss: 0.040398
+   ✅ Saved Best
+Epoch 464 | Loss: 0.040400
+Epoch 465 | Loss: 0.040398
+   ✅ Saved Best
+Epoch 466 | Loss: 0.040399
+Epoch 467 | Loss: 0.040398
+   ✅ Saved Best
+Epoch 468 | Loss: 0.040394
+   ✅ Saved Best
+Epoch 469 | Loss: 0.040396
+Epoch 470 | Loss: 0.040394
+Epoch 471 | Loss: 0.040391
+   ✅ Saved Best
+Epoch 472 | Loss: 0.040393
+Epoch 473 | Loss: 0.040393
+Epoch 474 | Loss: 0.040390
+   ✅ Saved Best
+Epoch 475 | Loss: 0.040389
+   ✅ Saved Best
+Epoch 476 | Loss: 0.040392
+Epoch 477 | Loss: 0.040388
+   ✅ Saved Best
+Epoch 478 | Loss: 0.040391
+Epoch 479 | Loss: 0.040390
+Epoch 480 | Loss: 0.040387
+   ✅ Saved Best
+Epoch 481 | Loss: 0.040386
+   ✅ Saved Best
+Epoch 482 | Loss: 0.040384
+   ✅ Saved Best
+Epoch 483 | Loss: 0.040388
+Epoch 484 | Loss: 0.040385
+Epoch 485 | Loss: 0.040387
+Epoch 486 | Loss: 0.040384
+   ✅ Saved Best
+Epoch 487 | Loss: 0.040383
+   ✅ Saved Best
+Epoch 488 | Loss: 0.040381
+   ✅ Saved Best
+Epoch 489 | Loss: 0.040383
+Epoch 490 | Loss: 0.040378
+   ✅ Saved Best
+Epoch 491 | Loss: 0.040380
+Epoch 492 | Loss: 0.040379
+Epoch 493 | Loss: 0.040379
+Epoch 494 | Loss: 0.040384
+Epoch 495 | Loss: 0.040378
+   ✅ Saved Best
+Epoch 496 | Loss: 0.040375
+   ✅ Saved Best
+Epoch 497 | Loss: 0.040374
+   ✅ Saved Best
+Epoch 498 | Loss: 0.040373
+   ✅ Saved Best
+Epoch 499 | Loss: 0.040374
+Epoch 500 | Loss: 0.040371
+   ✅ Saved Best
+Epoch 501 | Loss: 0.040371
+Epoch 502 | Loss: 0.040372
+Epoch 503 | Loss: 0.040370
+   ✅ Saved Best
+Epoch 504 | Loss: 0.040372
+Epoch 505 | Loss: 0.040368
+   ✅ Saved Best
+Epoch 506 | Loss: 0.040369
+Epoch 507 | Loss: 0.040367
+   ✅ Saved Best
+Epoch 508 | Loss: 0.040369
+Epoch 509 | Loss: 0.040370
+Epoch 510 | Loss: 0.040365
+   ✅ Saved Best
+Epoch 511 | Loss: 0.040366
+Epoch 512 | Loss: 0.040364
+   ✅ Saved Best
+Epoch 513 | Loss: 0.040365
+Epoch 514 | Loss: 0.040363
+   ✅ Saved Best
+Epoch 515 | Loss: 0.040368
+Epoch 516 | Loss: 0.040362
+   ✅ Saved Best
+Epoch 517 | Loss: 0.040365
+Epoch 518 | Loss: 0.040363
+Epoch 519 | Loss: 0.040361
+   ✅ Saved Best
+Epoch 520 | Loss: 0.040363
+Epoch 521 | Loss: 0.040361
+   ✅ Saved Best
+Epoch 522 | Loss: 0.040360
+   ✅ Saved Best
+Epoch 523 | Loss: 0.040360
+Epoch 524 | Loss: 0.040357
+   ✅ Saved Best
+Epoch 525 | Loss: 0.040360
+Epoch 526 | Loss: 0.040357
+Epoch 527 | Loss: 0.040357
+Epoch 528 | Loss: 0.040356
+   ✅ Saved Best
+Epoch 529 | Loss: 0.040353
+   ✅ Saved Best
+Epoch 530 | Loss: 0.040357
+Epoch 531 | Loss: 0.040354
+Epoch 532 | Loss: 0.040358
+Epoch 533 | Loss: 0.040353
+   ✅ Saved Best
+Epoch 534 | Loss: 0.040355
+Epoch 535 | Loss: 0.040350
+   ✅ Saved Best
+Epoch 536 | Loss: 0.040350
+Epoch 537 | Loss: 0.040355
+Epoch 538 | Loss: 0.040352
+Epoch 539 | Loss: 0.040352
+Epoch 540 | Loss: 0.040350
+Epoch 541 | Loss: 0.040348
+   ✅ Saved Best
+Epoch 542 | Loss: 0.040350
+Epoch 543 | Loss: 0.040347
+   ✅ Saved Best
+Epoch 544 | Loss: 0.040346
+   ✅ Saved Best
+Epoch 545 | Loss: 0.040350
+Epoch 546 | Loss: 0.040346
+Epoch 547 | Loss: 0.040347
+Epoch 548 | Loss: 0.040345
+   ✅ Saved Best
+Epoch 549 | Loss: 0.040346
+Epoch 550 | Loss: 0.040342
+   ✅ Saved Best
+Epoch 551 | Loss: 0.040348
+Epoch 552 | Loss: 0.040342
+Epoch 553 | Loss: 0.040339
+   ✅ Saved Best
+Epoch 554 | Loss: 0.040345
+Epoch 555 | Loss: 0.040345
+Epoch 556 | Loss: 0.040340
+Epoch 557 | Loss: 0.040342
+Epoch 558 | Loss: 0.040339
+   ✅ Saved Best
+Epoch 559 | Loss: 0.040343
+Epoch 560 | Loss: 0.040337
+   ✅ Saved Best
+Epoch 561 | Loss: 0.040340
+Epoch 562 | Loss: 0.040335
+   ✅ Saved Best
+Epoch 563 | Loss: 0.040336
+Epoch 564 | Loss: 0.040340
+Epoch 565 | Loss: 0.040338
+Epoch 566 | Loss: 0.040334
+   ✅ Saved Best
+Epoch 567 | Loss: 0.040334
+   ✅ Saved Best
+Epoch 568 | Loss: 0.040336
+Epoch 569 | Loss: 0.040336
+Epoch 570 | Loss: 0.040334
+Epoch 571 | Loss: 0.040333
+   ✅ Saved Best
+Epoch 572 | Loss: 0.040333
+   ✅ Saved Best
+Epoch 573 | Loss: 0.040332
+   ✅ Saved Best
+Epoch 574 | Loss: 0.040333
+Epoch 575 | Loss: 0.040331
+   ✅ Saved Best
+Epoch 576 | Loss: 0.040328
+   ✅ Saved Best
+Epoch 577 | Loss: 0.040330
+Epoch 578 | Loss: 0.040330
+Epoch 579 | Loss: 0.040327
+   ✅ Saved Best
+Epoch 580 | Loss: 0.040326
+   ✅ Saved Best
+Epoch 581 | Loss: 0.040329
+Epoch 582 | Loss: 0.040326
+Epoch 583 | Loss: 0.040328
+Epoch 584 | Loss: 0.040324
+   ✅ Saved Best
+Epoch 585 | Loss: 0.040330
+Epoch 586 | Loss: 0.040324
+Epoch 587 | Loss: 0.040325
+Epoch 588 | Loss: 0.040324
+   ✅ Saved Best
+Epoch 589 | Loss: 0.040322
+   ✅ Saved Best
+Epoch 590 | Loss: 0.040322
+   ✅ Saved Best
+Epoch 591 | Loss: 0.040323
+Epoch 592 | Loss: 0.040320
+   ✅ Saved Best
+Epoch 593 | Loss: 0.040323
+Epoch 594 | Loss: 0.040323
+Epoch 595 | Loss: 0.040319
+   ✅ Saved Best
+Epoch 596 | Loss: 0.040322
+Epoch 597 | Loss: 0.040321
+Epoch 598 | Loss: 0.040322
+Epoch 599 | Loss: 0.040318
+   ✅ Saved Best
+Epoch 600 | Loss: 0.040319
+Epoch 601 | Loss: 0.040321
+Epoch 602 | Loss: 0.040315
+   ✅ Saved Best
+Epoch 603 | Loss: 0.040314
+   ✅ Saved Best
+Epoch 604 | Loss: 0.040317
+Epoch 605 | Loss: 0.040316
+Epoch 606 | Loss: 0.040314
+Epoch 607 | Loss: 0.040313
+   ✅ Saved Best
+Epoch 608 | Loss: 0.040312
+   ✅ Saved Best
+Epoch 609 | Loss: 0.040315
+Epoch 610 | Loss: 0.040310
+   ✅ Saved Best
+Epoch 611 | Loss: 0.040311
+Epoch 612 | Loss: 0.040310
+Epoch 613 | Loss: 0.040313
+Epoch 614 | Loss: 0.040314
+Epoch 615 | Loss: 0.040313
+Epoch 616 | Loss: 0.040313
+Epoch 617 | Loss: 0.040311
+Epoch 618 | Loss: 0.040308
+   ✅ Saved Best
+Epoch 619 | Loss: 0.040312
+Epoch 620 | Loss: 0.040306
+   ✅ Saved Best
+Epoch 621 | Loss: 0.040309
+Epoch 622 | Loss: 0.040311
+Epoch 623 | Loss: 0.040310
+Epoch 624 | Loss: 0.040305
+   ✅ Saved Best
+Epoch 625 | Loss: 0.040305
+Epoch 626 | Loss: 0.040307
+Epoch 627 | Loss: 0.040303
+   ✅ Saved Best
+Epoch 628 | Loss: 0.040304
+Epoch 629 | Loss: 0.040306
+Epoch 630 | Loss: 0.040299
+   ✅ Saved Best
+Epoch 631 | Loss: 0.040301
+Epoch 632 | Loss: 0.040302
+Epoch 633 | Loss: 0.040301
+Epoch 634 | Loss: 0.040302
+Epoch 635 | Loss: 0.040302
+Epoch 636 | Loss: 0.040300
+Epoch 637 | Loss: 0.040300
+Epoch 638 | Loss: 0.040298
+   ✅ Saved Best
+Epoch 639 | Loss: 0.040301
+Epoch 640 | Loss: 0.040294
+   ✅ Saved Best
+Epoch 641 | Loss: 0.040296
+Epoch 642 | Loss: 0.040301
+Epoch 643 | Loss: 0.040297
+Epoch 644 | Loss: 0.040296
+Epoch 645 | Loss: 0.040293
+   ✅ Saved Best
+Epoch 646 | Loss: 0.040295
+Epoch 647 | Loss: 0.040294
+Epoch 648 | Loss: 0.040296
+Epoch 649 | Loss: 0.040294
+Epoch 650 | Loss: 0.040293
+   ✅ Saved Best
+Epoch 651 | Loss: 0.040291
+   ✅ Saved Best
+Epoch 652 | Loss: 0.040292
+Epoch 653 | Loss: 0.040290
+   ✅ Saved Best
+Epoch 654 | Loss: 0.040291
+Epoch 655 | Loss: 0.040289
+   ✅ Saved Best
+Epoch 656 | Loss: 0.040284
+   ✅ Saved Best
+Epoch 657 | Loss: 0.040293
+Epoch 658 | Loss: 0.040289
+Epoch 659 | Loss: 0.040287
+Epoch 660 | Loss: 0.040289
+Epoch 661 | Loss: 0.040283
+   ✅ Saved Best
+Epoch 662 | Loss: 0.040287
+Epoch 663 | Loss: 0.040285
+Epoch 664 | Loss: 0.040286
+Epoch 665 | Loss: 0.040284
+Epoch 666 | Loss: 0.040287
+Epoch 667 | Loss: 0.040285
+Epoch 668 | Loss: 0.040283
+   ✅ Saved Best
+Epoch 669 | Loss: 0.040283
+Epoch 670 | Loss: 0.040286
+Epoch 671 | Loss: 0.040288
+Epoch 672 | Loss: 0.040282
+   ✅ Saved Best
+Epoch 673 | Loss: 0.040282
+   ✅ Saved Best
+Epoch 674 | Loss: 0.040278
+   ✅ Saved Best
+Epoch 675 | Loss: 0.040283
+Epoch 676 | Loss: 0.040279
+Epoch 677 | Loss: 0.040280
+Epoch 678 | Loss: 0.040281
+Epoch 679 | Loss: 0.040278
+   ✅ Saved Best
+Epoch 680 | Loss: 0.040280
+Epoch 681 | Loss: 0.040279
+Epoch 682 | Loss: 0.040278
+Epoch 683 | Loss: 0.040275
+   ✅ Saved Best
+Epoch 684 | Loss: 0.040278
+Epoch 685 | Loss: 0.040277
+Epoch 686 | Loss: 0.040275
+   ✅ Saved Best
+Epoch 687 | Loss: 0.040279
+Epoch 688 | Loss: 0.040275
+   ✅ Saved Best
+Epoch 689 | Loss: 0.040273
+   ✅ Saved Best
+Epoch 690 | Loss: 0.040276
+Epoch 691 | Loss: 0.040271
+   ✅ Saved Best
+Epoch 692 | Loss: 0.040272
+Epoch 693 | Loss: 0.040271
+Epoch 694 | Loss: 0.040272
+Epoch 695 | Loss: 0.040273
+Epoch 696 | Loss: 0.040273
+Epoch 697 | Loss: 0.040271
+   ✅ Saved Best
+Epoch 698 | Loss: 0.040272
+Epoch 699 | Loss: 0.040274
+Epoch 700 | Loss: 0.040272
+Epoch 701 | Loss: 0.040267
+   ✅ Saved Best
+Epoch 702 | Loss: 0.040269
+Epoch 703 | Loss: 0.040268
+Epoch 704 | Loss: 0.040266
+   ✅ Saved Best
+Epoch 705 | Loss: 0.040269
+Epoch 706 | Loss: 0.040267
+Epoch 707 | Loss: 0.040262
+   ✅ Saved Best
+Epoch 708 | Loss: 0.040268
+Epoch 709 | Loss: 0.040268
+Epoch 710 | Loss: 0.040266
+Epoch 711 | Loss: 0.040262
+   ✅ Saved Best
+Epoch 712 | Loss: 0.040265
+Epoch 713 | Loss: 0.040264
+Epoch 714 | Loss: 0.040262
+Epoch 715 | Loss: 0.040263
+Epoch 716 | Loss: 0.040265
+Epoch 717 | Loss: 0.040262
+Epoch 718 | Loss: 0.040265
+Epoch 719 | Loss: 0.040258
+   ✅ Saved Best
+Epoch 720 | Loss: 0.040260
+Epoch 721 | Loss: 0.040262
+Epoch 722 | Loss: 0.040261
+Epoch 723 | Loss: 0.040260
+Epoch 724 | Loss: 0.040260
+Epoch 725 | Loss: 0.040263
+Epoch 726 | Loss: 0.040260
+Epoch 727 | Loss: 0.040258
+Epoch 728 | Loss: 0.040257
+   ✅ Saved Best
+Epoch 729 | Loss: 0.040253
+   ✅ Saved Best
+Epoch 730 | Loss: 0.040259
+Epoch 731 | Loss: 0.040256
+Epoch 732 | Loss: 0.040257
+Epoch 733 | Loss: 0.040257
+Epoch 734 | Loss: 0.040256
+Epoch 735 | Loss: 0.040255
+Epoch 736 | Loss: 0.040258
+Epoch 737 | Loss: 0.040256
+Epoch 738 | Loss: 0.040252
+   ✅ Saved Best
+Epoch 739 | Loss: 0.040255
+Epoch 740 | Loss: 0.040255
+Epoch 741 | Loss: 0.040249
+   ✅ Saved Best
+Epoch 742 | Loss: 0.040255
+Epoch 743 | Loss: 0.040251
+Epoch 744 | Loss: 0.040252
+Epoch 745 | Loss: 0.040249
+Epoch 746 | Loss: 0.040250
+Epoch 747 | Loss: 0.040249
+Epoch 748 | Loss: 0.040248
+   ✅ Saved Best
+Epoch 749 | Loss: 0.040251
+Epoch 750 | Loss: 0.040248
+Epoch 751 | Loss: 0.040250
+Epoch 752 | Loss: 0.040248
+Epoch 753 | Loss: 0.040248
+Epoch 754 | Loss: 0.040248
+Epoch 755 | Loss: 0.040249
+Epoch 756 | Loss: 0.040246
+   ✅ Saved Best
+Epoch 757 | Loss: 0.040246
+   ✅ Saved Best
+Epoch 758 | Loss: 0.040250
+Epoch 759 | Loss: 0.040248
+Epoch 760 | Loss: 0.040246
+Epoch 761 | Loss: 0.040249
+Epoch 762 | Loss: 0.040245
+   ✅ Saved Best
+Epoch 763 | Loss: 0.040248
+Epoch 764 | Loss: 0.040244
+   ✅ Saved Best
+Epoch 765 | Loss: 0.040244
+   ✅ Saved Best
+Epoch 766 | Loss: 0.040246
+Epoch 767 | Loss: 0.040243
+   ✅ Saved Best
+Epoch 768 | Loss: 0.040244
+Epoch 769 | Loss: 0.040243
+Epoch 770 | Loss: 0.040244
+Epoch 771 | Loss: 0.040242
+   ✅ Saved Best
+Epoch 772 | Loss: 0.040245
+Epoch 773 | Loss: 0.040240
+   ✅ Saved Best
+Epoch 774 | Loss: 0.040240
+   ✅ Saved Best
+Epoch 775 | Loss: 0.040241
+Epoch 776 | Loss: 0.040239
+   ✅ Saved Best
+Epoch 777 | Loss: 0.040242
+Epoch 778 | Loss: 0.040239
+Epoch 779 | Loss: 0.040240
+Epoch 780 | Loss: 0.040241
+Epoch 781 | Loss: 0.040238
+   ✅ Saved Best
+Epoch 782 | Loss: 0.040239
+Epoch 783 | Loss: 0.040241
+Epoch 784 | Loss: 0.040238
+   ✅ Saved Best
+Epoch 785 | Loss: 0.040235
+   ✅ Saved Best
+Epoch 786 | Loss: 0.040236
+Epoch 787 | Loss: 0.040233
+   ✅ Saved Best
+Epoch 788 | Loss: 0.040236
+Epoch 789 | Loss: 0.040233
+Epoch 790 | Loss: 0.040235
+Epoch 791 | Loss: 0.040235
+Epoch 792 | Loss: 0.040231
+   ✅ Saved Best
+Epoch 793 | Loss: 0.040231
+   ✅ Saved Best
+Epoch 794 | Loss: 0.040237
+Epoch 795 | Loss: 0.040233
+Epoch 796 | Loss: 0.040233
+Epoch 797 | Loss: 0.040231
+   ✅ Saved Best
+Epoch 798 | Loss: 0.040236
+Epoch 799 | Loss: 0.040228
+   ✅ Saved Best
+Epoch 800 | Loss: 0.040232
+Epoch 801 | Loss: 0.040231
+Epoch 802 | Loss: 0.040232
+Epoch 803 | Loss: 0.040232
+Epoch 804 | Loss: 0.040231
+Epoch 805 | Loss: 0.040230
+Epoch 806 | Loss: 0.040231
+Epoch 807 | Loss: 0.040232
+Epoch 808 | Loss: 0.040230
+Epoch 809 | Loss: 0.040231
+Epoch 810 | Loss: 0.040229
+Epoch 811 | Loss: 0.040228
+   ✅ Saved Best
+Epoch 812 | Loss: 0.040229
+Epoch 813 | Loss: 0.040232
+Epoch 814 | Loss: 0.040229
+Epoch 815 | Loss: 0.040227
+   ✅ Saved Best
+Epoch 816 | Loss: 0.040228
+Epoch 817 | Loss: 0.040224
+   ✅ Saved Best
+Epoch 818 | Loss: 0.040226
+Epoch 819 | Loss: 0.040225
+Epoch 820 | Loss: 0.040230
+Epoch 821 | Loss: 0.040224
+Epoch 822 | Loss: 0.040227
+Epoch 823 | Loss: 0.040224
+Epoch 824 | Loss: 0.040226
+Epoch 825 | Loss: 0.040226
+Epoch 826 | Loss: 0.040227
+Epoch 827 | Loss: 0.040226
+Epoch 828 | Loss: 0.040220
+   ✅ Saved Best
+Epoch 829 | Loss: 0.040222
+Epoch 830 | Loss: 0.040221
+Epoch 831 | Loss: 0.040221
+Epoch 832 | Loss: 0.040222
+Epoch 833 | Loss: 0.040219
+   ✅ Saved Best
+Epoch 834 | Loss: 0.040223
+Epoch 835 | Loss: 0.040216
+   ✅ Saved Best
+Epoch 836 | Loss: 0.040218
+Epoch 837 | Loss: 0.040219
+Epoch 838 | Loss: 0.040221
+Epoch 839 | Loss: 0.040216
+   ✅ Saved Best
+Epoch 840 | Loss: 0.040221
+Epoch 841 | Loss: 0.040223
+Epoch 842 | Loss: 0.040218
+Epoch 843 | Loss: 0.040217
+Epoch 844 | Loss: 0.040220
+Epoch 845 | Loss: 0.040218
+Epoch 846 | Loss: 0.040218
+Epoch 847 | Loss: 0.040215
+   ✅ Saved Best
+Epoch 848 | Loss: 0.040216
+Epoch 849 | Loss: 0.040221
+Epoch 850 | Loss: 0.040216
+Epoch 851 | Loss: 0.040217
+Epoch 852 | Loss: 0.040213
+   ✅ Saved Best
+Epoch 853 | Loss: 0.040216
+Epoch 854 | Loss: 0.040213
+Epoch 855 | Loss: 0.040216
+Epoch 856 | Loss: 0.040214
+Epoch 857 | Loss: 0.040216
+Epoch 858 | Loss: 0.040215
+Epoch 859 | Loss: 0.040215
+Epoch 860 | Loss: 0.040212
+   ✅ Saved Best
+Epoch 861 | Loss: 0.040214
+Epoch 862 | Loss: 0.040213
+Epoch 863 | Loss: 0.040212
+Epoch 864 | Loss: 0.040211
+   ✅ Saved Best
+Epoch 865 | Loss: 0.040215
+Epoch 866 | Loss: 0.040214
+Epoch 867 | Loss: 0.040213
+Epoch 868 | Loss: 0.040213
+Epoch 869 | Loss: 0.040210
+   ✅ Saved Best
+Epoch 870 | Loss: 0.040209
+   ✅ Saved Best
+Epoch 871 | Loss: 0.040213
+Epoch 872 | Loss: 0.040211
+Epoch 873 | Loss: 0.040208
+   ✅ Saved Best
+Epoch 874 | Loss: 0.040209
+Epoch 875 | Loss: 0.040209
+Epoch 876 | Loss: 0.040211
+Epoch 877 | Loss: 0.040206
+   ✅ Saved Best
+Epoch 878 | Loss: 0.040206
+   ✅ Saved Best
+Epoch 879 | Loss: 0.040209
+Epoch 880 | Loss: 0.040209
+Epoch 881 | Loss: 0.040208
+Epoch 882 | Loss: 0.040205
+   ✅ Saved Best
+Epoch 883 | Loss: 0.040207
+Epoch 884 | Loss: 0.040204
+   ✅ Saved Best
+Epoch 885 | Loss: 0.040209
+Epoch 886 | Loss: 0.040208
+Epoch 887 | Loss: 0.040203
+   ✅ Saved Best
+Epoch 888 | Loss: 0.040208
+Epoch 889 | Loss: 0.040207
+Epoch 890 | Loss: 0.040208
+Epoch 891 | Loss: 0.040205
+Epoch 892 | Loss: 0.040200
+   ✅ Saved Best
+Epoch 893 | Loss: 0.040204
+Epoch 894 | Loss: 0.040206
+Epoch 895 | Loss: 0.040203
+Epoch 896 | Loss: 0.040202
+Epoch 897 | Loss: 0.040200
+   ✅ Saved Best
+Epoch 898 | Loss: 0.040202
+Epoch 899 | Loss: 0.040201
+Epoch 900 | Loss: 0.040202
+Epoch 901 | Loss: 0.040201
+Epoch 902 | Loss: 0.040201
+Epoch 903 | Loss: 0.040200
+   ✅ Saved Best
+Epoch 904 | Loss: 0.040201
+Epoch 905 | Loss: 0.040201
+Epoch 906 | Loss: 0.040202
+Epoch 907 | Loss: 0.040203
+Epoch 908 | Loss: 0.040198
+   ✅ Saved Best
+Epoch 909 | Loss: 0.040198
+   ✅ Saved Best
+Epoch 910 | Loss: 0.040199
+Epoch 911 | Loss: 0.040197
+   ✅ Saved Best
+Epoch 912 | Loss: 0.040197
+   ✅ Saved Best
+Epoch 913 | Loss: 0.040198
+Epoch 914 | Loss: 0.040197
+   ✅ Saved Best
+Epoch 915 | Loss: 0.040196
+   ✅ Saved Best
+Epoch 916 | Loss: 0.040195
+   ✅ Saved Best
+Epoch 917 | Loss: 0.040194
+   ✅ Saved Best
+Epoch 918 | Loss: 0.040197
+Epoch 919 | Loss: 0.040196
+Epoch 920 | Loss: 0.040194
+   ✅ Saved Best
+Epoch 921 | Loss: 0.040197
+Epoch 922 | Loss: 0.040194
+Epoch 923 | Loss: 0.040194
+   ✅ Saved Best
+Epoch 924 | Loss: 0.040196
+Epoch 925 | Loss: 0.040200
+Epoch 926 | Loss: 0.040194
+Epoch 927 | Loss: 0.040191
+   ✅ Saved Best
+Epoch 928 | Loss: 0.040196
+Epoch 929 | Loss: 0.040195
+Epoch 930 | Loss: 0.040192
+Epoch 931 | Loss: 0.040194
+Epoch 932 | Loss: 0.040192
+Epoch 933 | Loss: 0.040193
+Epoch 934 | Loss: 0.040194
+Epoch 935 | Loss: 0.040193
+Epoch 936 | Loss: 0.040192
+Epoch 937 | Loss: 0.040196
+Epoch 938 | Loss: 0.040191
+Epoch 939 | Loss: 0.040192
+Epoch 940 | Loss: 0.040190
+   ✅ Saved Best
+Epoch 941 | Loss: 0.040190
+Epoch 942 | Loss: 0.040189
+   ✅ Saved Best
+Epoch 943 | Loss: 0.040190
+Epoch 944 | Loss: 0.040195
+Epoch 945 | Loss: 0.040193
+Epoch 946 | Loss: 0.040189
+   ✅ Saved Best
+Epoch 947 | Loss: 0.040189
+   ✅ Saved Best
+Epoch 948 | Loss: 0.040192
+Epoch 949 | Loss: 0.040189
+   ✅ Saved Best
+Epoch 950 | Loss: 0.040190
+Epoch 951 | Loss: 0.040186
+   ✅ Saved Best
+Epoch 952 | Loss: 0.040190
+Epoch 953 | Loss: 0.040191
+Epoch 954 | Loss: 0.040186
+   ✅ Saved Best
+Epoch 955 | Loss: 0.040191
+Epoch 956 | Loss: 0.040182
+   ✅ Saved Best
+Epoch 957 | Loss: 0.040186
+Epoch 958 | Loss: 0.040187
+Epoch 959 | Loss: 0.040184
+Epoch 960 | Loss: 0.040184
+Epoch 961 | Loss: 0.040186
+Epoch 962 | Loss: 0.040183
+Epoch 963 | Loss: 0.040184
+Epoch 964 | Loss: 0.040185
+Epoch 965 | Loss: 0.040184
+Epoch 966 | Loss: 0.040184
+Epoch 967 | Loss: 0.040184
+Epoch 968 | Loss: 0.040184
+Epoch 969 | Loss: 0.040183
+Epoch 970 | Loss: 0.040183
+Epoch 971 | Loss: 0.040184
+Epoch 972 | Loss: 0.040187
+Epoch 973 | Loss: 0.040181
+   ✅ Saved Best
+Epoch 974 | Loss: 0.040184
+Epoch 975 | Loss: 0.040177
+   ✅ Saved Best
+Epoch 976 | Loss: 0.040178
+Epoch 977 | Loss: 0.040178
+Epoch 978 | Loss: 0.040184
+Epoch 979 | Loss: 0.040182
+Epoch 980 | Loss: 0.040177
+Epoch 981 | Loss: 0.040179
+Epoch 982 | Loss: 0.040181
+Epoch 983 | Loss: 0.040177
+   ✅ Saved Best
+Epoch 984 | Loss: 0.040180
+Epoch 985 | Loss: 0.040175
+   ✅ Saved Best
+Epoch 986 | Loss: 0.040178
+Epoch 987 | Loss: 0.040179
+Epoch 988 | Loss: 0.040175
+Epoch 989 | Loss: 0.040176
+Epoch 990 | Loss: 0.040179
+Epoch 991 | Loss: 0.040176
+Epoch 992 | Loss: 0.040180
+Epoch 993 | Loss: 0.040175
+Epoch 994 | Loss: 0.040180
+Epoch 995 | Loss: 0.040175
+Epoch 996 | Loss: 0.040174
+   ✅ Saved Best
+Epoch 997 | Loss: 0.040175
+Epoch 998 | Loss: 0.040175
+Epoch 999 | Loss: 0.040173
+   ✅ Saved Best
+Epoch 1000 | Loss: 0.040175
+Final model saved to hopper/runs/ssm_medium_Loss_0.04017
