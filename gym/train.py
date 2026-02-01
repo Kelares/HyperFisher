@@ -37,7 +37,7 @@ CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM,
-    context_length=64
+    context_length=20
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -60,13 +60,14 @@ print(model)
 actor = model.create_actor(DEVICE)
 
 def train():
+    print("INIT TRAINING")
     # --- 1. SETUP ---
     LEARNING_RATE = 8e-4 if CURRENT_CONFIG.model == ModelArch.SSM else 1e-3
     optimizer = torch.optim.AdamW(actor.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
 
 
 
-    LOSS_ACHIEVED = "0.04324"
+    LOSS_ACHIEVED = "0.04107"
 
     RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
     PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
@@ -82,7 +83,7 @@ def train():
         best_loss = float('inf')
         patience_counter = 0
         PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
-        EPOCHS = 10 # Increased slightly for Mamba convergence
+        EPOCHS = 300 # Increased slightly for Mamba convergence
         total_loss = 0
         
         for epoch in range(EPOCHS):
@@ -137,7 +138,7 @@ def train():
         run_dir.mkdir(parents=True, exist_ok=True)
         torch.save(actor.state_dict(), run_dir / "agent.pt")
         print(f"Final model saved to {run_dir}")
-
-if __name__ == "__main__":
-    train()
+print("BEFORE TRAIN CALL")
+train()
+print("AFTER TRAIN CALL")
 

@@ -66,7 +66,7 @@ def train():
 
 
 
-    LOSS_ACHIEVED = "0.04579"
+    LOSS_ACHIEVED = "0.04238"
 
     RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
     PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
@@ -82,7 +82,7 @@ def train():
         best_loss = float('inf')
         patience_counter = 0
         PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
-        EPOCHS = 20 # Increased slightly for Mamba convergence
+        EPOCHS = 300 # Increased slightly for Mamba convergence
         total_loss = 0
         
         for epoch in range(EPOCHS):
@@ -138,6 +138,5 @@ def train():
         torch.save(actor.state_dict(), run_dir / "agent.pt")
         print(f"Final model saved to {run_dir}")
 
-if __name__ == "__main__":
-    train()
+train()
 

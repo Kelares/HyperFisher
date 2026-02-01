@@ -1,0 +1,505 @@
+mujoco/hopper/medium-v0
+<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
+Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
+<module 'ssm' from '/home/u253954/SSM_benchmark/gym/ssm/__init__.py'>
+BEFORE TRAIN CALL
+INIT TRAINING
+Epoch 01 | Loss: 0.042486
+   ✅ New Best Model Saved (Loss: 0.04249)
+Epoch 02 | Loss: 0.042421
+   ✅ New Best Model Saved (Loss: 0.04242)
+Epoch 03 | Loss: 0.042389
+   ✅ New Best Model Saved (Loss: 0.04239)
+Epoch 04 | Loss: 0.042344
+   ✅ New Best Model Saved (Loss: 0.04234)
+Epoch 05 | Loss: 0.042315
+   ✅ New Best Model Saved (Loss: 0.04231)
+Epoch 06 | Loss: 0.042278
+   ✅ New Best Model Saved (Loss: 0.04228)
+Epoch 07 | Loss: 0.042251
+   ✅ New Best Model Saved (Loss: 0.04225)
+Epoch 08 | Loss: 0.042215
+   ✅ New Best Model Saved (Loss: 0.04221)
+Epoch 09 | Loss: 0.042192
+   ✅ New Best Model Saved (Loss: 0.04219)
+Epoch 10 | Loss: 0.042160
+   ✅ New Best Model Saved (Loss: 0.04216)
+Epoch 11 | Loss: 0.042134
+   ✅ New Best Model Saved (Loss: 0.04213)
+Epoch 12 | Loss: 0.042124
+   ✅ New Best Model Saved (Loss: 0.04212)
+Epoch 13 | Loss: 0.042088
+   ✅ New Best Model Saved (Loss: 0.04209)
+Epoch 14 | Loss: 0.042062
+   ✅ New Best Model Saved (Loss: 0.04206)
+Epoch 15 | Loss: 0.042040
+   ✅ New Best Model Saved (Loss: 0.04204)
+Epoch 16 | Loss: 0.042025
+   ✅ New Best Model Saved (Loss: 0.04202)
+Epoch 17 | Loss: 0.041990
+   ✅ New Best Model Saved (Loss: 0.04199)
+Epoch 18 | Loss: 0.041965
+   ✅ New Best Model Saved (Loss: 0.04196)
+Epoch 19 | Loss: 0.041951
+   ✅ New Best Model Saved (Loss: 0.04195)
+Epoch 20 | Loss: 0.041929
+   ✅ New Best Model Saved (Loss: 0.04193)
+Epoch 21 | Loss: 0.041914
+   ✅ New Best Model Saved (Loss: 0.04191)
+Epoch 22 | Loss: 0.041893
+   ✅ New Best Model Saved (Loss: 0.04189)
+Epoch 23 | Loss: 0.041878
+   ✅ New Best Model Saved (Loss: 0.04188)
+Epoch 24 | Loss: 0.041863
+   ✅ New Best Model Saved (Loss: 0.04186)
+Epoch 25 | Loss: 0.041842
+   ✅ New Best Model Saved (Loss: 0.04184)
+Epoch 26 | Loss: 0.041833
+   ✅ New Best Model Saved (Loss: 0.04183)
+Epoch 27 | Loss: 0.041822
+   ✅ New Best Model Saved (Loss: 0.04182)
+Epoch 28 | Loss: 0.041792
+   ✅ New Best Model Saved (Loss: 0.04179)
+Epoch 29 | Loss: 0.041784
+   ✅ New Best Model Saved (Loss: 0.04178)
+Epoch 30 | Loss: 0.041763
+   ✅ New Best Model Saved (Loss: 0.04176)
+Epoch 31 | Loss: 0.041746
+   ✅ New Best Model Saved (Loss: 0.04175)
+Epoch 32 | Loss: 0.041738
+   ✅ New Best Model Saved (Loss: 0.04174)
+Epoch 33 | Loss: 0.041721
+   ✅ New Best Model Saved (Loss: 0.04172)
+Epoch 34 | Loss: 0.041706
+   ✅ New Best Model Saved (Loss: 0.04171)
+Epoch 35 | Loss: 0.041692
+   ✅ New Best Model Saved (Loss: 0.04169)
+Epoch 36 | Loss: 0.041681
+   ✅ New Best Model Saved (Loss: 0.04168)
+Epoch 37 | Loss: 0.041672
+   ✅ New Best Model Saved (Loss: 0.04167)
+Epoch 38 | Loss: 0.041658
+   ✅ New Best Model Saved (Loss: 0.04166)
+Epoch 39 | Loss: 0.041640
+   ✅ New Best Model Saved (Loss: 0.04164)
+Epoch 40 | Loss: 0.041629
+   ✅ New Best Model Saved (Loss: 0.04163)
+Epoch 41 | Loss: 0.041612
+   ✅ New Best Model Saved (Loss: 0.04161)
+Epoch 42 | Loss: 0.041603
+   ✅ New Best Model Saved (Loss: 0.04160)
+Epoch 43 | Loss: 0.041588
+   ✅ New Best Model Saved (Loss: 0.04159)
+Epoch 44 | Loss: 0.041581
+   ✅ New Best Model Saved (Loss: 0.04158)
+Epoch 45 | Loss: 0.041568
+   ✅ New Best Model Saved (Loss: 0.04157)
+Epoch 46 | Loss: 0.041553
+   ✅ New Best Model Saved (Loss: 0.04155)
+Epoch 47 | Loss: 0.041544
+   ✅ New Best Model Saved (Loss: 0.04154)
+Epoch 48 | Loss: 0.041537
+   ✅ New Best Model Saved (Loss: 0.04154)
+Epoch 49 | Loss: 0.041528
+   ✅ New Best Model Saved (Loss: 0.04153)
+Epoch 50 | Loss: 0.041510
+   ✅ New Best Model Saved (Loss: 0.04151)
+Epoch 51 | Loss: 0.041499
+   ✅ New Best Model Saved (Loss: 0.04150)
+Epoch 52 | Loss: 0.041492
+   ✅ New Best Model Saved (Loss: 0.04149)
+Epoch 53 | Loss: 0.041480
+   ✅ New Best Model Saved (Loss: 0.04148)
+Epoch 54 | Loss: 0.041472
+   ✅ New Best Model Saved (Loss: 0.04147)
+Epoch 55 | Loss: 0.041461
+   ✅ New Best Model Saved (Loss: 0.04146)
+Epoch 56 | Loss: 0.041448
+   ✅ New Best Model Saved (Loss: 0.04145)
+Epoch 57 | Loss: 0.041443
+   ✅ New Best Model Saved (Loss: 0.04144)
+Epoch 58 | Loss: 0.041430
+   ✅ New Best Model Saved (Loss: 0.04143)
+Epoch 59 | Loss: 0.041425
+   ✅ New Best Model Saved (Loss: 0.04142)
+Epoch 60 | Loss: 0.041415
+   ✅ New Best Model Saved (Loss: 0.04142)
+Epoch 61 | Loss: 0.041405
+   ✅ New Best Model Saved (Loss: 0.04140)
+Epoch 62 | Loss: 0.041399
+   ✅ New Best Model Saved (Loss: 0.04140)
+Epoch 63 | Loss: 0.041391
+   ✅ New Best Model Saved (Loss: 0.04139)
+Epoch 64 | Loss: 0.041379
+   ✅ New Best Model Saved (Loss: 0.04138)
+Epoch 65 | Loss: 0.041371
+   ✅ New Best Model Saved (Loss: 0.04137)
+Epoch 66 | Loss: 0.041368
+   ✅ New Best Model Saved (Loss: 0.04137)
+Epoch 67 | Loss: 0.041354
+   ✅ New Best Model Saved (Loss: 0.04135)
+Epoch 68 | Loss: 0.041350
+   ✅ New Best Model Saved (Loss: 0.04135)
+Epoch 69 | Loss: 0.041341
+   ✅ New Best Model Saved (Loss: 0.04134)
+Epoch 70 | Loss: 0.041333
+   ✅ New Best Model Saved (Loss: 0.04133)
+Epoch 71 | Loss: 0.041325
+   ✅ New Best Model Saved (Loss: 0.04132)
+Epoch 72 | Loss: 0.041319
+   ✅ New Best Model Saved (Loss: 0.04132)
+Epoch 73 | Loss: 0.041314
+   ✅ New Best Model Saved (Loss: 0.04131)
+Epoch 74 | Loss: 0.041304
+   ✅ New Best Model Saved (Loss: 0.04130)
+Epoch 75 | Loss: 0.041298
+   ✅ New Best Model Saved (Loss: 0.04130)
+Epoch 76 | Loss: 0.041290
+   ✅ New Best Model Saved (Loss: 0.04129)
+Epoch 77 | Loss: 0.041289
+   ✅ New Best Model Saved (Loss: 0.04129)
+Epoch 78 | Loss: 0.041281
+   ✅ New Best Model Saved (Loss: 0.04128)
+Epoch 79 | Loss: 0.041276
+   ✅ New Best Model Saved (Loss: 0.04128)
+Epoch 80 | Loss: 0.041269
+   ✅ New Best Model Saved (Loss: 0.04127)
+Epoch 81 | Loss: 0.041262
+   ✅ New Best Model Saved (Loss: 0.04126)
+Epoch 82 | Loss: 0.041254
+   ✅ New Best Model Saved (Loss: 0.04125)
+Epoch 83 | Loss: 0.041243
+   ✅ New Best Model Saved (Loss: 0.04124)
+Epoch 84 | Loss: 0.041244
+   No improvement. Patience: 1/3
+Epoch 85 | Loss: 0.041235
+   ✅ New Best Model Saved (Loss: 0.04124)
+Epoch 86 | Loss: 0.041231
+   ✅ New Best Model Saved (Loss: 0.04123)
+Epoch 87 | Loss: 0.041219
+   ✅ New Best Model Saved (Loss: 0.04122)
+Epoch 88 | Loss: 0.041221
+   No improvement. Patience: 1/3
+Epoch 89 | Loss: 0.041213
+   ✅ New Best Model Saved (Loss: 0.04121)
+Epoch 90 | Loss: 0.041208
+   ✅ New Best Model Saved (Loss: 0.04121)
+Epoch 91 | Loss: 0.041202
+   ✅ New Best Model Saved (Loss: 0.04120)
+Epoch 92 | Loss: 0.041199
+   ✅ New Best Model Saved (Loss: 0.04120)
+Epoch 93 | Loss: 0.041191
+   ✅ New Best Model Saved (Loss: 0.04119)
+Epoch 94 | Loss: 0.041195
+   No improvement. Patience: 1/3
+Epoch 95 | Loss: 0.041184
+   ✅ New Best Model Saved (Loss: 0.04118)
+Epoch 96 | Loss: 0.041178
+   ✅ New Best Model Saved (Loss: 0.04118)
+Epoch 97 | Loss: 0.041176
+   ✅ New Best Model Saved (Loss: 0.04118)
+Epoch 98 | Loss: 0.041170
+   ✅ New Best Model Saved (Loss: 0.04117)
+Epoch 99 | Loss: 0.041164
+   ✅ New Best Model Saved (Loss: 0.04116)
+Epoch 100 | Loss: 0.041157
+   ✅ New Best Model Saved (Loss: 0.04116)
+Epoch 101 | Loss: 0.041156
+   ✅ New Best Model Saved (Loss: 0.04116)
+Epoch 102 | Loss: 0.041151
+   ✅ New Best Model Saved (Loss: 0.04115)
+Epoch 103 | Loss: 0.041144
+   ✅ New Best Model Saved (Loss: 0.04114)
+Epoch 104 | Loss: 0.041144
+   ✅ New Best Model Saved (Loss: 0.04114)
+Epoch 105 | Loss: 0.041138
+   ✅ New Best Model Saved (Loss: 0.04114)
+Epoch 106 | Loss: 0.041130
+   ✅ New Best Model Saved (Loss: 0.04113)
+Epoch 107 | Loss: 0.041130
+   ✅ New Best Model Saved (Loss: 0.04113)
+Epoch 108 | Loss: 0.041121
+   ✅ New Best Model Saved (Loss: 0.04112)
+Epoch 109 | Loss: 0.041118
+   ✅ New Best Model Saved (Loss: 0.04112)
+Epoch 110 | Loss: 0.041111
+   ✅ New Best Model Saved (Loss: 0.04111)
+Epoch 111 | Loss: 0.041107
+   ✅ New Best Model Saved (Loss: 0.04111)
+Epoch 112 | Loss: 0.041103
+   ✅ New Best Model Saved (Loss: 0.04110)
+Epoch 113 | Loss: 0.041101
+   ✅ New Best Model Saved (Loss: 0.04110)
+Epoch 114 | Loss: 0.041098
+   ✅ New Best Model Saved (Loss: 0.04110)
+Epoch 115 | Loss: 0.041092
+   ✅ New Best Model Saved (Loss: 0.04109)
+Epoch 116 | Loss: 0.041086
+   ✅ New Best Model Saved (Loss: 0.04109)
+Epoch 117 | Loss: 0.041090
+   No improvement. Patience: 1/3
+Epoch 118 | Loss: 0.041080
+   ✅ New Best Model Saved (Loss: 0.04108)
+Epoch 119 | Loss: 0.041077
+   ✅ New Best Model Saved (Loss: 0.04108)
+Epoch 120 | Loss: 0.041069
+   ✅ New Best Model Saved (Loss: 0.04107)
+Epoch 121 | Loss: 0.041071
+   No improvement. Patience: 1/3
+Epoch 122 | Loss: 0.041068
+   ✅ New Best Model Saved (Loss: 0.04107)
+Epoch 123 | Loss: 0.041062
+   ✅ New Best Model Saved (Loss: 0.04106)
+Epoch 124 | Loss: 0.041056
+   ✅ New Best Model Saved (Loss: 0.04106)
+Epoch 125 | Loss: 0.041054
+   ✅ New Best Model Saved (Loss: 0.04105)
+Epoch 126 | Loss: 0.041050
+   ✅ New Best Model Saved (Loss: 0.04105)
+Epoch 127 | Loss: 0.041054
+   No improvement. Patience: 1/3
+Epoch 128 | Loss: 0.041043
+   ✅ New Best Model Saved (Loss: 0.04104)
+Epoch 129 | Loss: 0.041039
+   ✅ New Best Model Saved (Loss: 0.04104)
+Epoch 130 | Loss: 0.041033
+   ✅ New Best Model Saved (Loss: 0.04103)
+Epoch 131 | Loss: 0.041033
+   ✅ New Best Model Saved (Loss: 0.04103)
+Epoch 132 | Loss: 0.041028
+   ✅ New Best Model Saved (Loss: 0.04103)
+Epoch 133 | Loss: 0.041029
+   No improvement. Patience: 1/3
+Epoch 134 | Loss: 0.041018
+   ✅ New Best Model Saved (Loss: 0.04102)
+Epoch 135 | Loss: 0.041016
+   ✅ New Best Model Saved (Loss: 0.04102)
+Epoch 136 | Loss: 0.041016
+   No improvement. Patience: 1/3
+Epoch 137 | Loss: 0.041011
+   ✅ New Best Model Saved (Loss: 0.04101)
+Epoch 138 | Loss: 0.041008
+   ✅ New Best Model Saved (Loss: 0.04101)
+Epoch 139 | Loss: 0.041005
+   ✅ New Best Model Saved (Loss: 0.04101)
+Epoch 140 | Loss: 0.040997
+   ✅ New Best Model Saved (Loss: 0.04100)
+Epoch 141 | Loss: 0.040992
+   ✅ New Best Model Saved (Loss: 0.04099)
+Epoch 142 | Loss: 0.040995
+   No improvement. Patience: 1/3
+Epoch 143 | Loss: 0.040992
+   No improvement. Patience: 2/3
+Epoch 144 | Loss: 0.040989
+   ✅ New Best Model Saved (Loss: 0.04099)
+Epoch 145 | Loss: 0.040983
+   ✅ New Best Model Saved (Loss: 0.04098)
+Epoch 146 | Loss: 0.040984
+   No improvement. Patience: 1/3
+Epoch 147 | Loss: 0.040979
+   ✅ New Best Model Saved (Loss: 0.04098)
+Epoch 148 | Loss: 0.040979
+   ✅ New Best Model Saved (Loss: 0.04098)
+Epoch 149 | Loss: 0.040973
+   ✅ New Best Model Saved (Loss: 0.04097)
+Epoch 150 | Loss: 0.040968
+   ✅ New Best Model Saved (Loss: 0.04097)
+Epoch 151 | Loss: 0.040971
+   No improvement. Patience: 1/3
+Epoch 152 | Loss: 0.040966
+   ✅ New Best Model Saved (Loss: 0.04097)
+Epoch 153 | Loss: 0.040963
+   ✅ New Best Model Saved (Loss: 0.04096)
+Epoch 154 | Loss: 0.040962
+   ✅ New Best Model Saved (Loss: 0.04096)
+Epoch 155 | Loss: 0.040956
+   ✅ New Best Model Saved (Loss: 0.04096)
+Epoch 156 | Loss: 0.040954
+   ✅ New Best Model Saved (Loss: 0.04095)
+Epoch 157 | Loss: 0.040951
+   ✅ New Best Model Saved (Loss: 0.04095)
+Epoch 158 | Loss: 0.040948
+   ✅ New Best Model Saved (Loss: 0.04095)
+Epoch 159 | Loss: 0.040948
+   ✅ New Best Model Saved (Loss: 0.04095)
+Epoch 160 | Loss: 0.040943
+   ✅ New Best Model Saved (Loss: 0.04094)
+Epoch 161 | Loss: 0.040940
+   ✅ New Best Model Saved (Loss: 0.04094)
+Epoch 162 | Loss: 0.040937
+   ✅ New Best Model Saved (Loss: 0.04094)
+Epoch 163 | Loss: 0.040933
+   ✅ New Best Model Saved (Loss: 0.04093)
+Epoch 164 | Loss: 0.040932
+   ✅ New Best Model Saved (Loss: 0.04093)
+Epoch 165 | Loss: 0.040929
+   ✅ New Best Model Saved (Loss: 0.04093)
+Epoch 166 | Loss: 0.040925
+   ✅ New Best Model Saved (Loss: 0.04092)
+Epoch 167 | Loss: 0.040923
+   ✅ New Best Model Saved (Loss: 0.04092)
+Epoch 168 | Loss: 0.040919
+   ✅ New Best Model Saved (Loss: 0.04092)
+Epoch 169 | Loss: 0.040917
+   ✅ New Best Model Saved (Loss: 0.04092)
+Epoch 170 | Loss: 0.040914
+   ✅ New Best Model Saved (Loss: 0.04091)
+Epoch 171 | Loss: 0.040912
+   ✅ New Best Model Saved (Loss: 0.04091)
+Epoch 172 | Loss: 0.040911
+   ✅ New Best Model Saved (Loss: 0.04091)
+Epoch 173 | Loss: 0.040905
+   ✅ New Best Model Saved (Loss: 0.04091)
+Epoch 174 | Loss: 0.040904
+   ✅ New Best Model Saved (Loss: 0.04090)
+Epoch 175 | Loss: 0.040900
+   ✅ New Best Model Saved (Loss: 0.04090)
+Epoch 176 | Loss: 0.040898
+   ✅ New Best Model Saved (Loss: 0.04090)
+Epoch 177 | Loss: 0.040897
+   ✅ New Best Model Saved (Loss: 0.04090)
+Epoch 178 | Loss: 0.040895
+   ✅ New Best Model Saved (Loss: 0.04089)
+Epoch 179 | Loss: 0.040894
+   ✅ New Best Model Saved (Loss: 0.04089)
+Epoch 180 | Loss: 0.040890
+   ✅ New Best Model Saved (Loss: 0.04089)
+Epoch 181 | Loss: 0.040889
+   ✅ New Best Model Saved (Loss: 0.04089)
+Epoch 182 | Loss: 0.040889
+   No improvement. Patience: 1/3
+Epoch 183 | Loss: 0.040888
+   ✅ New Best Model Saved (Loss: 0.04089)
+Epoch 184 | Loss: 0.040880
+   ✅ New Best Model Saved (Loss: 0.04088)
+Epoch 185 | Loss: 0.040875
+   ✅ New Best Model Saved (Loss: 0.04088)
+Epoch 186 | Loss: 0.040870
+   ✅ New Best Model Saved (Loss: 0.04087)
+Epoch 187 | Loss: 0.040868
+   ✅ New Best Model Saved (Loss: 0.04087)
+Epoch 188 | Loss: 0.040867
+   ✅ New Best Model Saved (Loss: 0.04087)
+Epoch 189 | Loss: 0.040863
+   ✅ New Best Model Saved (Loss: 0.04086)
+Epoch 190 | Loss: 0.040859
+   ✅ New Best Model Saved (Loss: 0.04086)
+Epoch 191 | Loss: 0.040856
+   ✅ New Best Model Saved (Loss: 0.04086)
+Epoch 192 | Loss: 0.040856
+   No improvement. Patience: 1/3
+Epoch 193 | Loss: 0.040851
+   ✅ New Best Model Saved (Loss: 0.04085)
+Epoch 194 | Loss: 0.040847
+   ✅ New Best Model Saved (Loss: 0.04085)
+Epoch 195 | Loss: 0.040844
+   ✅ New Best Model Saved (Loss: 0.04084)
+Epoch 196 | Loss: 0.040847
+   No improvement. Patience: 1/3
+Epoch 197 | Loss: 0.040845
+   No improvement. Patience: 2/3
+Epoch 198 | Loss: 0.040840
+   ✅ New Best Model Saved (Loss: 0.04084)
+Epoch 199 | Loss: 0.040839
+   ✅ New Best Model Saved (Loss: 0.04084)
+Epoch 200 | Loss: 0.040837
+   ✅ New Best Model Saved (Loss: 0.04084)
+Epoch 201 | Loss: 0.040832
+   ✅ New Best Model Saved (Loss: 0.04083)
+Epoch 202 | Loss: 0.040836
+   No improvement. Patience: 1/3
+Epoch 203 | Loss: 0.040829
+   ✅ New Best Model Saved (Loss: 0.04083)
+Epoch 204 | Loss: 0.040828
+   ✅ New Best Model Saved (Loss: 0.04083)
+Epoch 205 | Loss: 0.040831
+   No improvement. Patience: 1/3
+Epoch 206 | Loss: 0.040820
+   ✅ New Best Model Saved (Loss: 0.04082)
+Epoch 207 | Loss: 0.040820
+   ✅ New Best Model Saved (Loss: 0.04082)
+Epoch 208 | Loss: 0.040821
+   No improvement. Patience: 1/3
+Epoch 209 | Loss: 0.040816
+   ✅ New Best Model Saved (Loss: 0.04082)
+Epoch 210 | Loss: 0.040814
+   ✅ New Best Model Saved (Loss: 0.04081)
+Epoch 211 | Loss: 0.040812
+   ✅ New Best Model Saved (Loss: 0.04081)
+Epoch 212 | Loss: 0.040808
+   ✅ New Best Model Saved (Loss: 0.04081)
+Epoch 213 | Loss: 0.040806
+   ✅ New Best Model Saved (Loss: 0.04081)
+Epoch 214 | Loss: 0.040801
+   ✅ New Best Model Saved (Loss: 0.04080)
+Epoch 215 | Loss: 0.040800
+   ✅ New Best Model Saved (Loss: 0.04080)
+Epoch 216 | Loss: 0.040802
+   No improvement. Patience: 1/3
+Epoch 217 | Loss: 0.040800
+   No improvement. Patience: 2/3
+Epoch 218 | Loss: 0.040798
+   ✅ New Best Model Saved (Loss: 0.04080)
+Epoch 219 | Loss: 0.040796
+   ✅ New Best Model Saved (Loss: 0.04080)
+Epoch 220 | Loss: 0.040791
+   ✅ New Best Model Saved (Loss: 0.04079)
+Epoch 221 | Loss: 0.040786
+   ✅ New Best Model Saved (Loss: 0.04079)
+Epoch 222 | Loss: 0.040793
+   No improvement. Patience: 1/3
+Epoch 223 | Loss: 0.040787
+   No improvement. Patience: 2/3
+Epoch 224 | Loss: 0.040784
+   ✅ New Best Model Saved (Loss: 0.04078)
+Epoch 225 | Loss: 0.040785
+   No improvement. Patience: 1/3
+Epoch 226 | Loss: 0.040781
+   ✅ New Best Model Saved (Loss: 0.04078)
+Epoch 227 | Loss: 0.040779
+   ✅ New Best Model Saved (Loss: 0.04078)
+Epoch 228 | Loss: 0.040778
+   ✅ New Best Model Saved (Loss: 0.04078)
+Epoch 229 | Loss: 0.040776
+   ✅ New Best Model Saved (Loss: 0.04078)
+Epoch 230 | Loss: 0.040773
+   ✅ New Best Model Saved (Loss: 0.04077)
+Epoch 231 | Loss: 0.040773
+   No improvement. Patience: 1/3
+Epoch 232 | Loss: 0.040770
+   ✅ New Best Model Saved (Loss: 0.04077)
+Epoch 233 | Loss: 0.040768
+   ✅ New Best Model Saved (Loss: 0.04077)
+Epoch 234 | Loss: 0.040767
+   ✅ New Best Model Saved (Loss: 0.04077)
+Epoch 235 | Loss: 0.040764
+   ✅ New Best Model Saved (Loss: 0.04076)
+Epoch 236 | Loss: 0.040762
+   ✅ New Best Model Saved (Loss: 0.04076)
+Epoch 237 | Loss: 0.040762
+   No improvement. Patience: 1/3
+Epoch 238 | Loss: 0.040758
+   ✅ New Best Model Saved (Loss: 0.04076)
+Epoch 239 | Loss: 0.040764
+   No improvement. Patience: 1/3
+Epoch 240 | Loss: 0.040756
+   ✅ New Best Model Saved (Loss: 0.04076)
+Epoch 241 | Loss: 0.040756
+   No improvement. Patience: 1/3
+Epoch 242 | Loss: 0.040752
+   ✅ New Best Model Saved (Loss: 0.04075)
+Epoch 243 | Loss: 0.040757
+   No improvement. Patience: 1/3
+Epoch 244 | Loss: 0.040749
+   ✅ New Best Model Saved (Loss: 0.04075)
+Epoch 245 | Loss: 0.040746
+   ✅ New Best Model Saved (Loss: 0.04075)
+Epoch 246 | Loss: 0.040749
+   No improvement. Patience: 1/3
+Epoch 247 | Loss: 0.040747
+   No improvement. Patience: 2/3
+Epoch 248 | Loss: 0.040747
+   No improvement. Patience: 3/3
+🛑 Early Stopping triggered. Model has converged.
+Final model saved to hopper/runs/ssm_medium_Loss_0.04075
+AFTER TRAIN CALL
