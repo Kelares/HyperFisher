@@ -37,7 +37,7 @@ CURRENT_CONFIG = ExperimentConfig(
     gym=Gyms.HOPPER,
     level=AgentLevel.MEDIUM,
     model=ModelArch.SSM,
-    context_length=20
+    context_length=64
 )
 
 print(CURRENT_CONFIG.dataset_id)
@@ -67,7 +67,7 @@ def train():
 
 
 
-    LOSS_ACHIEVED = "0.04107"
+    LOSS_ACHIEVED = "0.04075"
 
     RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
     PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
@@ -83,7 +83,7 @@ def train():
         best_loss = float('inf')
         patience_counter = 0
         PATIENCE_LIMIT = 3  # Stop if no improvement for 3 epochs
-        EPOCHS = 300 # Increased slightly for Mamba convergence
+        EPOCHS = 20 # Increased slightly for Mamba convergence
         total_loss = 0
         
         for epoch in range(EPOCHS):
