@@ -1,3 +1,0 @@
-[submodule "gym/Minigrid"]
-	path = gym/Minigrid
-	url = https://github.com/Farama-Foundation/Minigrid.git
