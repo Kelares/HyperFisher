@@ -1,7 +1,5 @@
 import gymnasium as gym
 from minigrid.wrappers import FlatObsWrapper
-from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
 from sb3_contrib import RecurrentPPO
 
 

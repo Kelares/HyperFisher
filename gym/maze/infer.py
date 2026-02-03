@@ -2,9 +2,9 @@ import gymnasium as gym
 from minigrid.wrappers import FlatObsWrapper
 import numpy as np
 import pickle
-from stable_baselines3 import PPO
+from sb3_contrib import RecurrentPPO
 
-def generate_minigrid_dataset(env_id, num_episodes=1000, save_path="MiniGrid-MemoryS17Random.pickle"):
+def generate_minigrid_dataset(env_id, num_episodes=1000):
     # Use FlatObsWrapper to make it compatible with Decision Transformer inputs
     env = gym.make(env_id, render_mode=None)
     env = FlatObsWrapper(env)
@@ -12,7 +12,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000, save_path="MiniGrid-Mem
     dataset = []
 
     print(f"Starting data collection for {env_id}...")
-    model = PPO.load("ppo_minigrid_expert")
+    model = RecurrentPPO.load("ppo_minigrid_expert")
 
     for ep in range(num_episodes):
         obs, _ = env.reset()
@@ -35,7 +35,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000, save_path="MiniGrid-Mem
             
             # Note: For Memory tasks, you can use the 'minigrid' built-in bot:
             # Here we simulate the oracle action selection:
-            action, _ = model.predict(obs) # Replace with your Solver/Bot
+            action, _ = model.predict(obs)
             
             # Record current state
             episode_data['observations'].append(obs)
@@ -52,6 +52,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000, save_path="MiniGrid-Mem
         if (ep + 1) % 100 == 0:
             print(f"Collected {ep + 1}/{num_episodes} episodes")
 
+    save_path = f"{env_id}.pickle"
     with open(save_path, 'wb') as f:
         pickle.dump(dataset, f)
     print(f"Dataset saved to {save_path}")
