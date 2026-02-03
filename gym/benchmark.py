@@ -1,7 +1,6 @@
 
 import torch
 import numpy as np
-from torchrl.modules import DTActor, DecisionTransformer
 from enum import Enum
 from dataclasses import dataclass
 import importlib
@@ -49,7 +48,10 @@ CURRENT_CONFIG = ExperimentConfig(
 # LOSS_ACHIEVED = "0.00326" #PERFECT SSM
 # LOSS_ACHIEVED = "0.00046" # PERFECT TRANSFORMER
 # LOSS_ACHIEVED = "0.04017"
-LOSS_ACHIEVED = "0.03923"
+# LOSS_ACHIEVED = "0.04324"
+# LOSS_ACHIEVED = "0.04107"
+# LOSS_ACHIEVED = "0.04075"
+LOSS_ACHIEVED = "0.03962"
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 
@@ -63,7 +65,7 @@ DEVICE = "cuda"          # Inference is fast enough on CPU
 # --- 1. SETUP ENVIRONMENT & MODEL ---
 gym = importlib.import_module(CURRENT_CONFIG.gym.value)
 print(gym)
-env, state_dim, action_dim, state_mean, state_std, act_mean, act_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
+env, state_dim, action_dim, state_mean, state_std = gym.liveEnv(CURRENT_CONFIG, DEVICE, LOSS_ACHIEVED)
 
 # Initialize Model Architecture
 model = importlib.import_module(CURRENT_CONFIG.model.value)
@@ -162,12 +164,9 @@ for seed in SEEDS:
             else:
                 current_state_input = history_states
             
-            # Inside while not done:
+            # A. Ask Model for Action
             action = get_action(current_state_input, history_actions, history_rtg, TARGET_RETURN)
-
-            # 1. Un-normalize for the environment
-            action_raw = (action * act_std) + act_mean
-            action_np = torch.clamp(action_raw, -1, 1).cpu().numpy() # Safety clamp
+            action_np = action.cpu().numpy()
 
             # 2. Step environment
             next_obs, reward, terminated, truncated, _ = env.step(action_np)

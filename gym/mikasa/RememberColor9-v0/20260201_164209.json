@@ -1,0 +1,25 @@
+{
+  "env_info": {
+    "env_id": "RememberColor9-v0",
+    "env_kwargs": {
+      "num_envs": 1,
+      "obs_mode": "rgb",
+      "render_mode": "all"
+    },
+    "max_episode_steps": 60
+  },
+  "commit_info": null,
+  "episodes": [
+    {
+      "episode_id": 0,
+      "episode_seed": 42,
+      "control_mode": "pd_joint_delta_pos",
+      "elapsed_steps": 320,
+      "reset_kwargs": {
+        "options": {},
+        "seed": 42
+      },
+      "success": false
+    }
+  ]
+}

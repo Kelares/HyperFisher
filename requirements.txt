@@ -1,6 +1,6 @@
 absl-py==2.3.1
 attrs==25.4.0
-causal-conv1d==1.5.3.post1
+# causal-conv1d==1.5.3.post1
 certifi==2025.11.12
 cffi==2.0.0
 charset-normalizer==3.4.4
@@ -35,13 +35,13 @@ Jinja2==3.1.3
 kiwisolver==1.4.9
 labmaze==1.0.6
 lxml==6.0.2
-mamba-ssm==2.2.6.post3
+# mamba-ssm==2.2.6.post3
 markdown-it-py==4.0.0
 MarkupSafe==2.1.5
 matplotlib==3.10.7
 mdurl==0.1.2
 minari==0.5.3
-mjrl==1.0.0
+# mjrl==1.0.0
 moviepy==2.2.1
 mpmath==1.3.0
 mujoco==3.3.7

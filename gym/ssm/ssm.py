@@ -17,10 +17,9 @@ except ImportError:
 STATE_DIM = 11
 ACT_DIM = 3
 HIDDEN_SIZE = 128
-MAX_LENGTH = 20  # Matches CONTEXT_LEN in your other files
 
 class DecisionMamba(nn.Module):
-    def __init__(self, state_dim, act_dim, hidden_size, max_length):
+    def __init__(self, state_dim, act_dim, hidden_size):
         super().__init__()
         self.hidden_size = hidden_size
         
@@ -96,6 +95,5 @@ def create_actor(device):
         state_dim=STATE_DIM,
         act_dim=ACT_DIM,
         hidden_size=HIDDEN_SIZE,
-        max_length=MAX_LENGTH
     )
     return model.to(device)

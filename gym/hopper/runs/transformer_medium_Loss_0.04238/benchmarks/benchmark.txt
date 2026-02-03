@@ -1,0 +1,582 @@
+==============================
+📊 FINAL RESULTS (25 Episodes)
+Mean: 2294.85 ± 786.84
+Range: [1747.13, 3707.33]
+==============================
+success rate: 24.0%
+RECORDS:::
+Seed: 200
+==============================
+Gap length: 0
+  reward: 3612.211642323938
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1789.059332362531
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1789.059332362531
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1789.059332362531
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1789.059332362531
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 201
+==============================
+Gap length: 0
+  reward: 3546.8775534167858
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 2844.6401667301143
+  steps_taken: 747
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1816.0939966432215
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1816.0939966432215
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1816.0939966432215
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 202
+==============================
+Gap length: 0
+  reward: 3603.8137770259777
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1774.954174702628
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1774.954174702628
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1774.954174702628
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1774.954174702628
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 203
+==============================
+Gap length: 0
+  reward: 3575.0847627246862
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1751.2834121049518
+  steps_taken: 509
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1751.2834121049518
+  steps_taken: 509
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1751.2834121049518
+  steps_taken: 509
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1751.2834121049518
+  steps_taken: 509
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 204
+==============================
+Gap length: 0
+  reward: 3542.4114573599186
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1778.3109586581083
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1778.3109586581083
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1778.3109586581083
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1778.3109586581083
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 205
+==============================
+Gap length: 0
+  reward: 3577.9988846083343
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3592.6113156411047
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 2745.5782065109697
+  steps_taken: 729
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1848.7432369794433
+  steps_taken: 541
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1848.7432369794433
+  steps_taken: 541
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 206
+==============================
+Gap length: 0
+  reward: 3534.744808367856
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1765.8697440149824
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1765.8697440149824
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1765.8697440149824
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1765.8697440149824
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 207
+==============================
+Gap length: 0
+  reward: 3544.424705264188
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 2720.4484401074005
+  steps_taken: 725
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1777.0241640190195
+  steps_taken: 520
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1777.0241640190195
+  steps_taken: 520
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1777.0241640190195
+  steps_taken: 520
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 208
+==============================
+Gap length: 0
+  reward: 3555.458199190673
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1770.8357530000944
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1770.8357530000944
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1770.8357530000944
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1770.8357530000944
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 209
+==============================
+Gap length: 0
+  reward: 3604.0704370675235
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3593.656797113455
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 3672.4395015037444
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 45
+  reward: 2187.452209053449
+  steps_taken: 600
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1926.080430598457
+  steps_taken: 547
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 210
+==============================
+Gap length: 0
+  reward: 3575.862333546227
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1765.5267623569353
+  steps_taken: 512
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1765.5267623569353
+  steps_taken: 512
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1765.5267623569353
+  steps_taken: 512
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1765.5267623569353
+  steps_taken: 512
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 211
+==============================
+Gap length: 0
+  reward: 3221.5602854873205
+  steps_taken: 883
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 15
+  reward: 3372.4875632558587
+  steps_taken: 873
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1864.1628566800919
+  steps_taken: 527
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1864.1628566800919
+  steps_taken: 527
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1864.1628566800919
+  steps_taken: 527
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 212
+==============================
+Gap length: 0
+  reward: 3583.863242803148
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3663.9205322253547
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 1804.4868087069658
+  steps_taken: 517
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1804.4868087069658
+  steps_taken: 517
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1804.4868087069658
+  steps_taken: 517
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 213
+==============================
+Gap length: 0
+  reward: 3525.766967104572
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1752.7462903694195
+  steps_taken: 513
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1752.7462903694195
+  steps_taken: 513
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1752.7462903694195
+  steps_taken: 513
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1752.7462903694195
+  steps_taken: 513
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 214
+==============================
+Gap length: 0
+  reward: 3559.355791899094
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1744.147990546184
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1744.147990546184
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1744.147990546184
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1744.147990546184
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 215
+==============================
+Gap length: 0
+  reward: 3542.0763533281583
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1782.347351473585
+  steps_taken: 516
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1782.347351473585
+  steps_taken: 516
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1782.347351473585
+  steps_taken: 516
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1782.347351473585
+  steps_taken: 516
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 216
+==============================
+Gap length: 0
+  reward: 3602.2506696372443
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1769.0654050218243
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1769.0654050218243
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1769.0654050218243
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1769.0654050218243
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 217
+==============================
+Gap length: 0
+  reward: 3702.5166606303314
+  steps_taken: 959
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 15
+  reward: 1757.1637797362077
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1757.1637797362077
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1757.1637797362077
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1757.1637797362077
+  steps_taken: 511
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 218
+==============================
+Gap length: 0
+  reward: 3569.639754812402
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1792.9394050041672
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1792.9394050041672
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1792.9394050041672
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1792.9394050041672
+  steps_taken: 514
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 219
+==============================
+Gap length: 0
+  reward: 3542.343429623088
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1772.7421126259949
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1772.7421126259949
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1772.7421126259949
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1772.7421126259949
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 220
+==============================
+Gap length: 0
+  reward: 3598.5315209407363
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3611.37457444653
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 1859.6390015059726
+  steps_taken: 528
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1859.6390015059726
+  steps_taken: 528
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1859.6390015059726
+  steps_taken: 528
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 221
+==============================
+Gap length: 0
+  reward: 3580.7270956725147
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 1775.7310388319781
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1775.7310388319781
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1775.7310388319781
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1775.7310388319781
+  steps_taken: 515
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 222
+==============================
+Gap length: 0
+  reward: 3566.4582228459353
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3594.929837864928
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 1824.6494341074292
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1824.6494341074292
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1824.6494341074292
+  steps_taken: 523
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 223
+==============================
+Gap length: 0
+  reward: 3570.7821980467165
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 2901.321742828189
+  steps_taken: 765
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 30
+  reward: 1788.588291825576
+  steps_taken: 518
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1788.588291825576
+  steps_taken: 518
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1788.588291825576
+  steps_taken: 518
+  reason: Reason: 💀 DIED (Terminated)
+==============================
+Seed: 224
+==============================
+Gap length: 0
+  reward: 3563.109658887664
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 15
+  reward: 3597.236179097817
+  steps_taken: 1000
+  reason: Reason: ⏰ TIMEOUT (Truncated)
+Gap length: 30
+  reward: 1781.551393471074
+  steps_taken: 519
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 45
+  reward: 1781.551393471074
+  steps_taken: 519
+  reason: Reason: 💀 DIED (Terminated)
+Gap length: 60
+  reward: 1781.551393471074
+  steps_taken: 519
+  reason: Reason: 💀 DIED (Terminated)
+==============================

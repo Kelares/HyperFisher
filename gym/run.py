@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from torchrl.modules import DTActor, DecisionTransformer
 from enum import Enum
 from dataclasses import dataclass
 import importlib
@@ -48,7 +47,8 @@ CURRENT_CONFIG = ExperimentConfig(
 # LOSS_ACHIEVED = "0.01706"
 # LOSS_ACHIEVED = "0.20617"
 # LOSS_ACHIEVED = "0.04017"
-LOSS_ACHIEVED = "0.05833"
+# LOSS_ACHIEVED = "0.04324"
+LOSS_ACHIEVED = "0.04075"
 
 RUN_DIR = f"{CURRENT_CONFIG.gym.value}/runs/{CURRENT_CONFIG.model.value}_{CURRENT_CONFIG.level.value}_Loss_{LOSS_ACHIEVED}"
 PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
@@ -57,7 +57,7 @@ PATH_OF_SAVE = f"{RUN_DIR}/agent.pt"
 # Must match your training config exactly!
 CONTEXT_LEN = CURRENT_CONFIG.context_length
 RTG_SCALE = 1000.0
-TARGET_RETURN = 3600.0  # We ask the model for an "Expert" performance
+TARGET_RETURN = 3800.0  # We ask the model for an "Expert" performance
 DEVICE = "cuda"          # Inference is fast enough on CPU
 
 # --- 1. SETUP ENVIRONMENT & MODEL ---
