@@ -6,13 +6,13 @@ from sb3_contrib import RecurrentPPO
 
 
 # 1. Setup Environment
-env_id = "MiniGrid-MemoryS17Random-v0"
+env_id = "MiniGrid-MemoryS13Random-v0"
 env = gym.make(env_id, render_mode=None)
 env = FlatObsWrapper(env)  # Flattens the 7x7x3 view into a vector
 
 # 2. Define the Model
 # We use a larger MLP because the 'Memory' task requires internalizing logic
-model = PPO(
+model = RecurrentPPO(
     "MlpLstmPolicy", 
     env, 
     verbose=1,
