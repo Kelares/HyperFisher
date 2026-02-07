@@ -35,6 +35,6 @@ model = RecurrentPPO(
 # Memory tasks often have a "Step Function" learning curve: 
 # It stays at 0.5 for a long time, then suddenly jumps to 0.95.
 print("Training started... If success_rate stays at 0.5, let it run longer.")
-model.learn(total_timesteps=1_000_000)
+model.learn(total_timesteps=1000000)
 
 model.save("ppo_minigrid_expert_v2")

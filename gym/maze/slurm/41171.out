@@ -1,0 +1,3 @@
+Using cuda device
+Wrapping the env in a DummyVecEnv.
+Training started... If success_rate stays at 0.5, let it run longer.

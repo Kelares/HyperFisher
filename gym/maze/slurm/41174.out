@@ -1,0 +1,12 @@
+Starting data collection for MiniGrid-MemoryS13Random-v0...
+Collected 100/1000 episodes
+Collected 200/1000 episodes
+Collected 300/1000 episodes
+Collected 400/1000 episodes
+Collected 500/1000 episodes
+Collected 600/1000 episodes
+Collected 700/1000 episodes
+Collected 800/1000 episodes
+Collected 900/1000 episodes
+Collected 1000/1000 episodes
+Dataset saved to MiniGrid-MemoryS13Random-v0.pickle
