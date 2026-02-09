@@ -3,24 +3,35 @@ import torch
 from gymnasium.wrappers import RecordVideo
 import gymnasium as gym
 from minigrid.wrappers import FlatObsWrapper
+import random
 
 
-
-env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode="rgb_array")
-env = RecordVideo(env, video_folder="runs", name_prefix="mamba-eval", 
-                      episode_trigger=lambda x: True) # Record every episode
-env = FlatObsWrapper(env)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 actor = create_actor(device)
 
-actor.load_state_dict(torch.load("mamba_maze_best.pt", map_location=device))
+LOSS_ACHIEVED = "0.20568031128396325"
+index = 5
+FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
+
+actor = create_actor(device)
+
+actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
 actor.eval()
+
+
+env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode="rgb_array")
+env = RecordVideo(env, video_folder=FOLDER_PATH, name_prefix="") # Record every episode
+env = FlatObsWrapper(env)
 
 
 target_return = 1.0 # High goal for Decision Mamba
 
 
-obs, _ = env.reset()
+random_seed = random.randint(0,1_000_000)
+env.set_wrapper_attr("name_prefix", random_seed)
+
+obs, _ = env.reset(seed=random_seed)
+print("SEED: ", env.unwrapped.np_random_seed)
 done = False
 
 # Initialize buffers for the sequence

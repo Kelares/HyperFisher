@@ -112,30 +112,37 @@ def train_step(actor, optimizer, batch, device):
     # 3. Compute Loss with Manual Masking
     # 'reduction=none' allows us to zero out the padding loss before averaging
     loss = F.cross_entropy(logits, targets, reduction='none')
+
+    # 3a. Apply a "Reward Weight" 
+    # This makes the model learn more from steps that have a high RTG
+    # We take the RTG at each step and use it as a multiplier
+    reward_weights = rtgs.view(-1) 
     
-    # Apply the mask
-    masked_loss = (loss * mask.view(-1)).sum() / mask.sum()
+    # 3b. We add 0.1 so that even 0-reward samples have a tiny bit of influence
+    weighted_loss = loss * (reward_weights + 0.1)
+
+    # 4. Apply the mask
+    masked_loss = (weighted_loss * mask.view(-1)).sum() / mask.sum()
     
-    # 4. Backward pass
+    # 5. Backward pass
     optimizer.zero_grad()
     masked_loss.backward()
     optimizer.step()
     
     return masked_loss.item()
-# Run it
 
 
 actor = create_actor(device)
 
 ################################################################
-LOSS_ACHIEVED = "0.23"
-index = 1
-FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
+# LOSS_ACHIEVED = "0.23"
+# index = 1
+# FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
 
-actor = create_actor(device)
+# actor = create_actor(device)
 
-actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device, weights_only=True))
-actor.eval()
+# actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device, weights_only=True))
+# actor.eval()
 ################################################################
 
 

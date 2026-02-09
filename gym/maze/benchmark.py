@@ -8,10 +8,12 @@ import os
 import re
 import numpy as np
 
-LOSS_ACHIEVED = "0.23"
-index = 1
+
+LOSS_ACHIEVED = "0.20568031128396325"
+index = 5
 FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 actor = create_actor(device)
 
 actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
@@ -21,7 +23,6 @@ actor.eval()
 env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode="rgb_array")
 
 env = FlatObsWrapper(env)
-device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 NUM_EPISODES = 100
@@ -64,12 +65,11 @@ for seed in SEEDS:
         states = torch.cat([states, cur_state], dim=1)
         actions = torch.cat([actions, cur_act], dim=1)
         rtgs = torch.cat([rtgs, cur_rtg], dim=1)
-
     success = total_reward
     record["seeds"][seed] = {
         "reward": total_reward,
-        "steps": len(actions),
-        "reason": f"Reason: {'Success' if total_reward else 'Fail'}"
+        "steps": len(actions[0]),
+        "reason": 'Success' if total_reward else 'Fail'
     }
     succesful_runs += 1 if total_reward else 0
     print(f"Reason {'truncated' if truncated else 'terminated'}")
