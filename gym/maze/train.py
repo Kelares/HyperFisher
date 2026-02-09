@@ -151,7 +151,7 @@ optimizer = torch.optim.AdamW(
     weight_decay=weight_decay
 )
 
-num_epochs = 1  # Start with this for MiniGrid-Memory
+num_epochs = 500  # Start with this for MiniGrid-Memory
 best_loss = float('inf')
 
 repeat_counter = 0
@@ -174,7 +174,7 @@ for epoch in range(num_epochs):
     else:
         repeat_counter += 1
 
-    if repeat_counter == 5:
+    if repeat_counter == 10:
         print("repeat_counter limit reached.")
         break
 

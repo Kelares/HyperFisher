@@ -1,0 +1,37 @@
+<torch.utils.data.dataloader.DataLoader object at 0x7fc488ba3af0>
+Epoch 1/1000 - Loss: 0.2430
+Epoch 2/1000 - Loss: 0.2369
+Epoch 3/1000 - Loss: 0.2347
+Epoch 4/1000 - Loss: 0.2359
+Epoch 5/1000 - Loss: 0.2350
+Epoch 6/1000 - Loss: 0.2342
+Epoch 7/1000 - Loss: 0.2312
+Epoch 8/1000 - Loss: 0.2317
+Epoch 9/1000 - Loss: 0.2345
+Epoch 10/1000 - Loss: 0.2316
+Epoch 11/1000 - Loss: 0.2294
+Epoch 12/1000 - Loss: 0.2318
+Epoch 13/1000 - Loss: 0.2277
+Epoch 14/1000 - Loss: 0.2293
+Epoch 15/1000 - Loss: 0.2293
+Epoch 16/1000 - Loss: 0.2276
+Epoch 17/1000 - Loss: 0.2271
+Epoch 18/1000 - Loss: 0.2304
+Epoch 19/1000 - Loss: 0.2277
+Epoch 20/1000 - Loss: 0.2282
+Epoch 21/1000 - Loss: 0.2275
+Epoch 22/1000 - Loss: 0.2266
+Epoch 23/1000 - Loss: 0.2251
+Epoch 24/1000 - Loss: 0.2251
+Epoch 25/1000 - Loss: 0.2247
+Epoch 26/1000 - Loss: 0.2254
+Epoch 27/1000 - Loss: 0.2209
+Epoch 28/1000 - Loss: 0.2201
+Epoch 29/1000 - Loss: 0.2275
+Epoch 30/1000 - Loss: 0.2236
+Epoch 31/1000 - Loss: 0.2209
+Epoch 32/1000 - Loss: 0.2212
+Epoch 33/1000 - Loss: 0.2221
+repeat_counter limit reached.
+['1_0.23', '3_0.24120769542168807', '2_0.23964066229720804']
+SAVING IN runs/4_0.2201048572433186

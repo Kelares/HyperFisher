@@ -1,0 +1,12 @@
+/home/u253954/.conda/envs/maze/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+Traceback (most recent call last):
+  File "/home/u253954/SSM_benchmark/gym/maze/train.py", line 7, in <module>
+    from ssm import create_actor, STATE_DIM, ACT_DIM
+  File "/home/u253954/SSM_benchmark/gym/maze/ssm.py", line 3, in <module>
+    from mamba_ssm import Mamba
+  File "/home/u253954/.conda/envs/maze/lib/python3.10/site-packages/mamba_ssm/__init__.py", line 3, in <module>
+    from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, mamba_inner_fn
+  File "/home/u253954/.conda/envs/maze/lib/python3.10/site-packages/mamba_ssm/ops/selective_scan_interface.py", line 7, in <module>
+    from einops import rearrange, repeat
+ModuleNotFoundError: No module named 'einops'
