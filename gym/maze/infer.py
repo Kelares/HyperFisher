@@ -1,61 +1,55 @@
+from ssm import create_actor, STATE_DIM, ACT_DIM
+import torch
+from gymnasium.wrappers import RecordVideo
 import gymnasium as gym
 from minigrid.wrappers import FlatObsWrapper
-import numpy as np
-import pickle
-from sb3_contrib import RecurrentPPO
 
-def generate_minigrid_dataset(env_id, num_episodes=1000):
-    # Use FlatObsWrapper to make it compatible with Decision Transformer inputs
-    env = gym.make(env_id, render_mode=None)
-    env = FlatObsWrapper(env)
-    
-    dataset = []
 
-    print(f"Starting data collection for {env_id}...")
-    model = RecurrentPPO.load("ppo_minigrid_expert_v2")
 
-    for ep in range(num_episodes):
-        obs, _ = env.reset()
-        terminated = False
-        truncated = False
-        
-        episode_data = {
-            'observations': [],
-            'actions': [],
-            'rewards': [],
-            'terminals': []
-        }
+env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode="rgb_array")
+env = RecordVideo(env, video_folder="runs", name_prefix="mamba-eval", 
+                      episode_trigger=lambda x: True) # Record every episode
+env = FlatObsWrapper(env)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+actor = create_actor(device)
 
-        while not (terminated or truncated):
-            # --- ORACLE LOGIC ---
-            # For Minigrid-Memory, the 'Oracle' can be a simple BFS or 
-            # the internal 'env.unwrapped.actions' sequence if you use 
-            # a scripted bot. Here, we'll assume a 'Perfect' solver.
-            # --------------------
-            
-            # Note: For Memory tasks, you can use the 'minigrid' built-in bot:
-            # Here we simulate the oracle action selection:
-            action, _ = model.predict(obs)
-            
-            # Record current state
-            episode_data['observations'].append(obs)
-            episode_data['actions'].append(action)
-            
-            # Step the env
-            obs, reward, terminated, truncated, info = env.step(action)
-            
-            episode_data['rewards'].append(reward)
-            episode_data['terminals'].append(terminated)
+actor.load_state_dict(torch.load("mamba_maze_best.pt", map_location=device))
+actor.eval()
 
-        dataset.append(episode_data)
-        
-        if (ep + 1) % 100 == 0:
-            print(f"Collected {ep + 1}/{num_episodes} episodes")
 
-    save_path = f"{env_id}.pickle"
-    with open(save_path, 'wb') as f:
-        pickle.dump(dataset, f)
-    print(f"Dataset saved to {save_path}")
+target_return = 1.0 # High goal for Decision Mamba
 
-# Run it
-generate_minigrid_dataset("MiniGrid-MemoryS13Random-v0")
+
+obs, _ = env.reset()
+done = False
+
+# Initialize buffers for the sequence
+states = torch.from_numpy(obs).float().reshape(1, 1, 2835).to(device)
+actions = torch.zeros((1, 1), dtype=torch.long).to(device)
+rtgs = torch.tensor([target_return]).float().reshape(1, 1, 1).to(device)
+
+total_reward = 0
+while not done:
+    with torch.no_grad():
+        # Get action prediction from Mamba
+        logits = actor(states, actions, rtgs)
+        action = torch.argmax(logits[:, -1, :], dim=-1).item()
+    obs, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
+
+    total_reward += reward
+
+    # Update sequence buffers (Decision Mamba needs the history)
+    cur_state = torch.from_numpy(obs).float().reshape(1, 1, 2835).to(device)
+    cur_rtg = torch.tensor([target_return - total_reward]).float().reshape(1, 1, 1).to(device)
+    cur_act = torch.tensor([[action]]).to(device)
+
+    states = torch.cat([states, cur_state], dim=1)
+    actions = torch.cat([actions, cur_act], dim=1)
+    rtgs = torch.cat([rtgs, cur_rtg], dim=1)
+
+    # Optional: Keep a sliding window if sequences get too long
+    # states = states[:, -30:, :] ...
+print(f"Reason {'truncated' if truncated else 'terminated'}")
+print(f"Episode finished with reward: {total_reward}")
+env.close()
