@@ -151,7 +151,7 @@ optimizer = torch.optim.AdamW(
     weight_decay=weight_decay
 )
 
-num_epochs = 5  # Start with this for MiniGrid-Memory
+num_epochs = 1  # Start with this for MiniGrid-Memory
 best_loss = float('inf')
 
 for epoch in range(num_epochs):
@@ -190,7 +190,7 @@ def get_dynamic_session_id(path="./runs"):
 
 folder_name = f"{get_dynamic_session_id()}_{best_loss}"
 
-run_dir = Path(folder_name) 
+run_dir = "runs" / Path(folder_name) 
 run_dir.mkdir(parents=True, exist_ok=True)
 
 print(f"SAVING IN {run_dir}")
