@@ -154,6 +154,7 @@ optimizer = torch.optim.AdamW(
 num_epochs = 1  # Start with this for MiniGrid-Memory
 best_loss = float('inf')
 
+repeat_counter = 0
 for epoch in range(num_epochs):
     epoch_loss = 0
     actor.train() # Set to training mode
@@ -169,7 +170,13 @@ for epoch in range(num_epochs):
     if avg_loss < best_loss:
         best_loss = avg_loss
         torch.save(actor.state_dict(), "mamba_maze_best.pt")
+        repeat_counter = 0
+    else:
+        repeat_counter += 1
 
+    if repeat_counter == 5:
+        print("repeat_counter limit reached.")
+        break
 
 
 def get_dynamic_session_id(path="./runs"):
