@@ -4,7 +4,7 @@ from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.monitor import Monitor
 
 # 1. Setup Environment
-env_id = "MiniGrid-MemoryS13Random-v0"
+env_id = "MiniGrid-MemoryS7-v0"
 env = gym.make(env_id, render_mode=None)
 env = FlatObsWrapper(env)
 env = Monitor(env) # Tracks stats for success_rate
@@ -35,7 +35,7 @@ model = RecurrentPPO(
 print("Training started... If success_rate stays at 0.5, let it run longer.")
 model.learn(total_timesteps=1000000)
 
-model.save("ppo_minigrid_expert_v3")
+model.save("oracle_S7")
 
 
 # Transitions to get from wrapper

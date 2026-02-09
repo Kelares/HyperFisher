@@ -1,0 +1,14 @@
+/home/u253954/.conda/envs/maze/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+Traceback (most recent call last):
+  File "/home/u253954/SSM_benchmark/gym/maze/ppo.py", line 8, in <module>
+    env = gym.make(env_id, render_mode=None)
+  File "/home/u253954/.local/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/u253954/.local/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/u253954/.local/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/u253954/.local/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `MiniGrid-MemoryS7Random` doesn't exist. Did you mean: `MiniGrid-MemoryS17Random`?
