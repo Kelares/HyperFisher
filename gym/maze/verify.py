@@ -10,7 +10,7 @@ def verify_dataset(file_path):
     episode_returns = [sum(ep['rewards']) for ep in data]
     successes = [1 if r > 0 else 0 for r in episode_returns]
     episode_lengths = [len(ep['observations']) for ep in data]
-
+    print(f"random rtg: {data[0]['rtg']}")
     print(f"--- Dataset Verification ---")
     print(f"Total Episodes: {len(data)}")
     print(f"Success Rate:   {np.mean(successes) * 100:.2f}%")
@@ -20,4 +20,4 @@ def verify_dataset(file_path):
     if np.mean(successes) < 0.95:
         print("⚠️ WARNING: Your oracle is not 'expert' yet. Offline RL on noisy data is much harder.")
 
-verify_dataset("perfect_expert_data.pkl")
+verify_dataset("dataset_rtg_99+.pkl")
