@@ -181,7 +181,7 @@ for epoch in range(num_epochs):
     else:
         repeat_counter += 1
 
-    if repeat_counter == 10:
+    if repeat_counter == 50:
         print("repeat_counter limit reached.")
         break
 
