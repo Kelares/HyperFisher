@@ -14,18 +14,16 @@ model = RecurrentPPO(
     "MlpLstmPolicy", 
     env, 
     verbose=1,
-    learning_rate=2e-4,     # Slightly lower LR often helps LSTMs
-    n_steps=128,            # Smaller rollout window per 'actor' 
-    batch_size=64,          # Standard batch size
+    learning_rate=1e-4,     # Lowered for LSTM stability
+    n_steps=512,            # Increased to capture full trajectories
+    batch_size=128,         # Larger batch for more stable gradients
     n_epochs=10,
     gamma=0.99,
-    ent_coef=0.1,           # HIGHER entropy coefficient (Crucial to break 50% plateau)
-    gae_lambda=0.95,
-    clip_range=0.2,
+    ent_coef=0.05,          # Balanced exploration
     policy_kwargs=dict(
-        net_arch=dict(pi=[64, 64], qf=[64, 64]), # Feature extractor layers
-        lstm_hidden_size=128,                    # Larger memory capacity
-        n_lstm_layers=1,
+        net_arch=dict(pi=[128, 128], qf=[128, 128]), # Wider feature extraction
+        lstm_hidden_size=256,                        # Larger memory capacity
+        n_lstm_layers=2,                             # Deepened memory
     ),
     tensorboard_log="./tb_logs/",
     device="auto"
@@ -37,7 +35,7 @@ model = RecurrentPPO(
 print("Training started... If success_rate stays at 0.5, let it run longer.")
 model.learn(total_timesteps=1000000)
 
-model.save("ppo_minigrid_expert_v2")
+model.save("ppo_minigrid_expert_v3")
 
 
 # Transitions to get from wrapper
