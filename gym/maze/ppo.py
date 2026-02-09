@@ -38,3 +38,9 @@ print("Training started... If success_rate stays at 0.5, let it run longer.")
 model.learn(total_timesteps=1000000)
 
 model.save("ppo_minigrid_expert_v2")
+
+
+# Transitions to get from wrapper
+# Soft Q Imitation Learning,
+# Behavior cloning
+# A reward of ‘1 - 0.9 * (step_count / max_steps)’ is given for success, and ‘0’ for failure.

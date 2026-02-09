@@ -39,12 +39,12 @@ def collect_perfect_expert_data(model_path, env_id, target_episodes=1000):
 
         attempts += 1
         # CRITICAL: Only save if the agent actually succeeded
-        if total_reward > 0:
+        if total_reward > 0.99:
             expert_trajectories.append(traj)
             if len(expert_trajectories) % 50 == 0:
                 print(f"Collected {len(expert_trajectories)}/{target_episodes}")
 
-    with open("perfect_expert_data.pkl", "wb") as f:
+    with open("perfect_expert_data++.pkl", "wb") as f:
         pickle.dump(expert_trajectories, f)
     print(f"Success! Filtered from {attempts} total attempts.")
 

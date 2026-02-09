@@ -21,7 +21,7 @@ def load_dataset(file_name):
         dataset = pickle.load(f)
     return dataset
 
-sieve = load_dataset("perfect_expert_data+.pkl")
+sieve = load_dataset("perfect_expert_data_99+.pkl")
 
 class MiniGridTrajectoryDataset(Dataset):
     def __init__(self, trajectories, context_len=20):

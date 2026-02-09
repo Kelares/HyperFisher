@@ -9,8 +9,8 @@ import random
 device = "cuda" if torch.cuda.is_available() else "cpu"
 actor = create_actor(device)
 
-LOSS_ACHIEVED = "0.20568031128396325"
-index = 5
+LOSS_ACHIEVED = "0.19779316292089574"
+index = 7
 FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
 
 actor = create_actor(device)
@@ -28,6 +28,7 @@ target_return = 1.0 # High goal for Decision Mamba
 
 
 random_seed = random.randint(0,1_000_000)
+random_seed = 297
 env.set_wrapper_attr("name_prefix", random_seed)
 
 obs, _ = env.reset(seed=random_seed)
