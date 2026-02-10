@@ -12,7 +12,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
     dataset = []
 
     print(f"Starting data collection for {env_id}...")
-    model = RecurrentPPO.load("ppo_minigrid_expert")
+    model = RecurrentPPO.load("oracle_S7")
 
     for ep in range(num_episodes):
         obs, _ = env.reset()
@@ -58,4 +58,4 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
     print(f"Dataset saved to {save_path}")
 
 # Run it
-generate_minigrid_dataset("MiniGrid-MemoryS13Random-v0")
+generate_minigrid_dataset("MiniGrid-MemoryS7-v0")

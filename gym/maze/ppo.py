@@ -1,12 +1,14 @@
 import gymnasium as gym
-from minigrid.wrappers import FlatObsWrapper
+from minigrid.wrappers import FlatObsWrapper, OneHotPartialObsWrapper
 from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.monitor import Monitor
 
 # 1. Setup Environment
 env_id = "MiniGrid-MemoryS7-v0"
 env = gym.make(env_id, render_mode=None)
+env = OneHotPartialObsWrapper(env)
 env = FlatObsWrapper(env)
+
 env = Monitor(env) # Tracks stats for success_rate
 
 # 2. Define the Model with specific Recurrent Hyperparameters
@@ -25,7 +27,6 @@ model = RecurrentPPO(
         lstm_hidden_size=256,                        # Larger memory capacity
         n_lstm_layers=2,                             # Deepened memory
     ),
-    tensorboard_log="./tb_logs/",
     device="auto"
 )
 
