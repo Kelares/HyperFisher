@@ -1,5 +1,5 @@
 import gymnasium as gym
-from minigrid.wrappers import FlatObsWrapper
+from minigrid.wrappers import FlatObsWrapper, OneHotPartialObsWrapper
 import numpy as np
 import pickle
 from sb3_contrib import RecurrentPPO
@@ -7,12 +7,13 @@ from sb3_contrib import RecurrentPPO
 def generate_minigrid_dataset(env_id, num_episodes=1000):
     # Use FlatObsWrapper to make it compatible with Decision Transformer inputs
     env = gym.make(env_id, render_mode=None)
+    env = OneHotPartialObsWrapper(env)
     env = FlatObsWrapper(env)
     
     dataset = []
 
     print(f"Starting data collection for {env_id}...")
-    model = RecurrentPPO.load("oracle_S7")
+    model = RecurrentPPO.load("oracle_S7_v2.zip")
 
     for ep in range(num_episodes):
         obs, _ = env.reset()
@@ -52,7 +53,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
         if (ep + 1) % 100 == 0:
             print(f"Collected {ep + 1}/{num_episodes} episodes")
 
-    save_path = f"{env_id}.pickle"
+    save_path = f"{env_id}_v2_.pickle"
     with open(save_path, 'wb') as f:
         pickle.dump(dataset, f)
     print(f"Dataset saved to {save_path}")

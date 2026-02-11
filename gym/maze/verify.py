@@ -20,4 +20,4 @@ def verify_dataset(file_path):
     if np.mean(successes) < 0.95:
         print("⚠️ WARNING: Your oracle is not 'expert' yet. Offline RL on noisy data is much harder.")
 
-verify_dataset("MiniGrid-MemoryS7-v0.pickle")
+verify_dataset("MiniGrid-MemoryS7-v0_v2_.pickle")
