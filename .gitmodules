@@ -1,6 +1,3 @@
 [submodule "gym/Minigrid"]
 	path = gym/Minigrid
 	url = https://github.com/Farama-Foundation/Minigrid.git
-[submodule "gym/maze/gym/maze/recurrent_ppo_truncated_bptt"]
-	path = gym/maze/gym/maze/recurrent_ppo_truncated_bptt
-	url = https://github.com/MarcoMeter/recurrent-ppo-truncated-bptt.git
