@@ -58,7 +58,8 @@ class MiniGridTrajectoryDataset(Dataset):
         
         # Observations: Shape (curr_len, 3, 84, 84)
         states = torch.tensor(np.array(s), dtype=torch.float32)
-        
+        if states.max() > 1.0:
+            print(states.max(), "state out of bounds")
         # Correctly capture dimensions for padding
         # Unpack the 4 dimensions: sequence, channels, height, width
         _, c, h, w = states.shape 
@@ -89,7 +90,7 @@ class MiniGridTrajectoryDataset(Dataset):
         }
 
 # --- How to use with DataLoader ---
-trajectory_dataset = MiniGridTrajectoryDataset(dataset, context_len=30)
+trajectory_dataset = MiniGridTrajectoryDataset(dataset)
 dataloader = DataLoader(trajectory_dataset, batch_size=64, shuffle=True)
 print(dataloader)
 
@@ -135,13 +136,13 @@ def train_step(actor, optimizer, batch, device):
 actor = create_actor(device)
 
 ################################################################
-LOSS_ACHIEVED = "0.1336"
-index = 9
-FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
-FOLDER_PATH.mkdir(parents=True, exist_ok=True)
-actor = create_actor(device)
+# LOSS_ACHIEVED = "0.1336"
+# index = 9
+# FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
+# FOLDER_PATH.mkdir(parents=True, exist_ok=True)
+# actor = create_actor(device)
 
-actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
+# actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
 ################################################################
 
 

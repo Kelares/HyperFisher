@@ -12,8 +12,8 @@ CONTEXT_LEN=20
 
 
 
-LOSS_ACHIEVED = "0.0518"
-index = 10
+LOSS_ACHIEVED = "0.04095631358637051"
+index = 11
 FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
 FOLDER_PATH.mkdir(parents=True, exist_ok=True)
 actor = create_actor(device)
@@ -58,27 +58,34 @@ while not done:
         # model expects (B, L, C, H, W) for states
         # logits shape: (B, L, act_dim)
         logits = actor(states, actions, rtgs)
-        
+        print(logits)
         # Take the action from the very last timestep
         action = torch.argmax(logits[:, -1, :], dim=-1).item()
 
     obs, reward, done, info = env.step([action])
+    print(obs, obs.shape, reward, [action])
 
+    # --- CRITICAL FIX START ---
+    # Update the buffer: The action we just used to transition FROM the current state
+    # must be recorded in the current timestep's slot.
+    actions[:, -1] = torch.tensor([[action]]).to(device)
+    # --- CRITICAL FIX END ---
+    
     total_reward += reward
 
-    # 3. Process new observation (Already 3x84x84)
+    # 3. PREPARE NEXT STEP
     cur_state = torch.from_numpy(obs).float().unsqueeze(0).unsqueeze(0).to(device)
     
-    # 4. Update RTG
-    # Use the same decay logic as training
-    current_target -= (0.9 / 845) 
-    cur_rtg = torch.tensor([current_target]).float().reshape(1, 1, 1).to(device)
-    cur_act = torch.tensor([[action]]).to(device)
+    # Fix RTG: Keep it constant! (Remove the -= decay line)
+    cur_rtg = torch.tensor([target_return]).float().reshape(1, 1, 1).to(device)
+    
+    # Create a new placeholder for the NEXT action (initialized to 0)
+    next_action_placeholder = torch.zeros((1, 1), dtype=torch.long).to(device)
 
-    # 5. Concatenate to history
+    # 5. Concatenate
     states = torch.cat([states, cur_state], dim=1)
-    actions = torch.cat([actions, cur_act], dim=1)
     rtgs = torch.cat([rtgs, cur_rtg], dim=1)
+    actions = torch.cat([actions, next_action_placeholder], dim=1) # Append placeholder
 
     # 6. Sliding Window (Crucial)
     # Ensure this matches the 'CONTEXT_LEN' used in TrajectoryDataset
