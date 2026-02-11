@@ -7,55 +7,81 @@ STATE_DIM = 2835
 ACT_DIM = 7     # Discrete actions 0-6
 HIDDEN_SIZE = 128
 
+class FlexibleMiniGridEncoder(nn.Module):
+    def __init__(self, output_dim=128):
+        super().__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=3, stride=2, padding=1), nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1), nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1), nn.ReLU(),
+        )
+        
+        # KEY CHANGE: This ensures that no matter if the input is 84x84 or 100x100,
+        # the output of the CNN is always 4x4 spatially.
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((4, 4))
+        
+        self.flat = nn.Flatten()
+        # 64 channels * 4 * 4 grid = 1024
+        self.linear = nn.Linear(64 * 4 * 4, output_dim)
+
+    def forward(self, x):
+        x = self.cnn(x)
+        x = self.adaptive_pool(x)
+        x = self.flat(x)
+        return self.linear(x)
+    
 class DecisionMamba(nn.Module):
     def __init__(self, state_dim, act_dim, hidden_size):
         super().__init__()
-        self.hidden_size = hidden_size
+        # Use the flexible CNN to process pixel observations
+        self.state_encoder = FlexibleMiniGridEncoder(output_dim=hidden_size)
         
-        # 1. Embeddings
-        self.embed_s = nn.Linear(state_dim, hidden_size)
-        # Use nn.Embedding for discrete actions
-        self.embed_a = nn.Embedding(act_dim, hidden_size)
-        self.embed_R = nn.Linear(1, hidden_size)
+        # Embed discrete actions (e.g., 0-6 in MiniGrid)
+        self.action_embed = nn.Embedding(act_dim, hidden_size)
+        
+        # Embed continuous RTG values
+        self.rtg_embed = nn.Linear(1, hidden_size)
 
-        # 2. Backbone: Mamba
+        self.hidden_size = hidden_size
+
+        # Mamba Backbone
         self.backbone = Mamba(
             d_model=hidden_size,
-            d_state=64, # High d_state is good for memory tasks
+            d_state=64, # High d_state helps with long-term memory tasks like S9
             d_conv=4,
             expand=2,
         )
         
-        # 3. Action Head (Classification)
-        # We remove Tanh and output logits for CrossEntropyLoss
+        # Action Head: Predicts logits for the next action
         self.predict_action = nn.Linear(hidden_size, act_dim)
 
-    def forward(self, states, actions, returns):
-        B, T, _ = states.shape 
-
-        # --- A. Embed Inputs ---
-        s_emb = self.embed_s(states)
-        # actions is now (B, T) long integers
-        a_emb = self.embed_a(actions) 
-        r_emb = self.embed_R(returns)
+    def forward(self, states, actions, rtgs):
+        # states: (batch, seq_len, 3, 84, 84)
+        batch_size, seq_len, c, h, w = states.shape
         
-        # --- B. Stack Sequence ---
-        # Format: [R1, s1, a1, R2, s2, a2 ...]
-        stacked_inputs = torch.stack((r_emb, s_emb, a_emb), dim=1)
-        stacked_inputs = stacked_inputs.permute(0, 2, 1, 3).reshape(B, 3 * T, self.hidden_size)
-
-        # --- C. Pass through Mamba ---
-        hidden_states = self.backbone(stacked_inputs)
-
-        # --- D. Extract Action Predictions ---
-        # Reshape to (B, T, 3, H)
-        hidden_states = hidden_states.view(B, T, 3, self.hidden_size)
+        # 1. Process states through CNN
+        # Flatten batch and seq_len for the CNN
+        flat_states = states.reshape(-1, c, h, w) 
+        state_embeddings = self.state_encoder(flat_states) # (batch*seq_len, hidden_size)
+        state_embeddings = state_embeddings.reshape(batch_size, seq_len, -1)
         
-        # Predict Action from the State token's hidden state (index 1)
-        state_hidden = hidden_states[:, :, 1, :] 
-        logits = self.predict_action(state_hidden)
-
-        return logits # Returns (B, T, 7)
+        # 2. Embed others
+        action_embeddings = self.action_embed(actions)
+        rtg_embeddings = self.rtg_embed(rtgs)
+        
+        # 3. Interleave (R1, S1, A1, R2, S2, A2...)
+        # Decision Transformer/Mamba usually stacks these into a single sequence
+        stacked_inputs = torch.stack(
+            (rtg_embeddings, state_embeddings, action_embeddings), dim=2
+        ).reshape(batch_size, 3 * seq_len, self.hidden_size)
+        
+        # 4. Pass through Mamba
+        output = self.backbone(stacked_inputs)
+        
+        # 5. Predict action from the state tokens
+        # Typically we extract every 3rd token (the ones corresponding to state embeddings)
+        logits = self.predict_action(output[:, 1::3, :])
+        return logits
 
 
 def create_actor(device):

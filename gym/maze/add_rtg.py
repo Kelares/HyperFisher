@@ -6,7 +6,7 @@ def load_dataset(file_name):
         dataset = pickle.load(f)
     return dataset
 
-d = load_dataset("oracle_S7_v2")
+d = load_dataset("MiniGrid-MemoryS9-v0_S9_PRE.pickle")
 #env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode=None)
 ######################################### env.env.env.env.max_steps
 def get_decaying_rtg(rewards, max_steps=845): #FIXED MAX_STEPS FOR MiniGrid-MemoryS13Random-v0
@@ -31,22 +31,22 @@ def get_decaying_rtg(rewards, max_steps=845): #FIXED MAX_STEPS FOR MiniGrid-Memo
             
     return rtg
 
-def calculate_rtg(rewards, gamma=1.0):
-    """
-    Calculates the cumulative sum of future rewards.
-    rewards: list or np.array of rewards in an episode
-    """
-    rtg = np.zeros_like(rewards, dtype=np.float32)
-    running_return = 0
-    for t in reversed(range(len(rewards))):
-        running_return += rewards[t]
-        rtg[t] = running_return
-    return rtg
+# def calculate_rtg(rewards, gamma=1.0):
+#     """
+#     Calculates the cumulative sum of future rewards.
+#     rewards: list or np.array of rewards in an episode
+#     """
+#     rtg = np.zeros_like(rewards, dtype=np.float32)
+#     running_return = 0
+#     for t in reversed(range(len(rewards))):
+#         running_return += rewards[t]
+#         rtg[t] = running_return
+#     return rtg
 
 for i, traj in enumerate(d):
     rtg = get_decaying_rtg(traj["rewards"])
     traj["rtg"] = rtg
     d[i] = traj
 
-with open("dataset_rtg_oracle_S7_v2.pkl", "wb+") as f:
+with open("rtg+S9_dataset.pickle", "wb+") as f:
     pickle.dump(d, f)

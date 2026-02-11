@@ -11,17 +11,15 @@ import os
 from pathlib import Path
 
 
-env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode=None)
-env = FlatObsWrapper(env)
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
 
-    
 def load_dataset(file_name):
     with open(file_name, "rb") as f:
         dataset = pickle.load(f)
     return dataset
 
-sieve = load_dataset("dataset_rtg_99+.pkl")
+dataset = load_dataset("rtg+S9_dataset.pickle")
 
 class MiniGridTrajectoryDataset(Dataset):
     def __init__(self, trajectories, context_len=20):
@@ -47,50 +45,52 @@ class MiniGridTrajectoryDataset(Dataset):
         end_step = start_step + self.context_len
         traj_total_len = len(traj['observations'])
         
-        # Slice the data (handle cases where trajectory ends before context_len)
+        # Slice the data (seq_len, 3, 84, 84)
         real_end = min(end_step, traj_total_len)
         s = traj['observations'][start_step:real_end]
         a = traj['actions'][start_step:real_end]
         r = traj['rewards'][start_step:real_end]
         rtg = traj['rtg'][start_step:real_end]
         
-        # 1. Padding: Convert to torch and pad with zeros if sequence is too short
+        # 1. Padding Logic
         curr_len = len(s)
         pad_len = self.context_len - curr_len
         
-        # Observations (B, K, 147)
+        # Observations: Shape (curr_len, 3, 84, 84)
         states = torch.tensor(np.array(s), dtype=torch.float32)
-
-        curr_len, feature_dim = states.shape # feature_dim should be 147
+        
+        # Correctly capture dimensions for padding
+        # Unpack the 4 dimensions: sequence, channels, height, width
+        _, c, h, w = states.shape 
         
         if pad_len > 0:
-            # print(f"DEBUG: feature_dim {feature_dim}, pad_len: {pad_len}")
-            padding = torch.zeros((pad_len, feature_dim))
+            # Create padding with the same spatial dimensions
+            padding = torch.zeros((pad_len, c, h, w), dtype=torch.float32)
             states = torch.cat([states, padding], dim=0)        
 
-        # Actions (B, K) - Long for CrossEntropy
-        actions = torch.tensor(np.array(a), dtype=torch.long)
+        # Actions: Long for CrossEntropy
+        actions = torch.tensor(np.array(a), dtype=torch.long).flatten()
         if pad_len > 0:
             actions = torch.cat([actions, torch.zeros((pad_len,), dtype=torch.long)], dim=0)
             
-        # RTGs (B, K, 1)
+        # RTGs: Shape (curr_len, 1)
         returns = torch.tensor(np.array(rtg), dtype=torch.float32).reshape(-1, 1)
         if pad_len > 0:
             returns = torch.cat([returns, torch.zeros((pad_len, 1))], dim=0)
             
-        # 2. Masking: 1 for real data, 0 for padding
+        # Masking: 1 for real data, 0 for padding
         mask = torch.cat([torch.ones(curr_len), torch.zeros(pad_len)], dim=0)
         
         return {
-            'states': states,
-            'actions': actions,
-            'rtgs': returns,
-            'mask': mask
+            'states': states,    # (context_len, 3, 84, 84)
+            'actions': actions,  # (context_len,)
+            'rtgs': returns,     # (context_len, 1)
+            'mask': mask         # (context_len,)
         }
 
 # --- How to use with DataLoader ---
-dataset = MiniGridTrajectoryDataset(sieve, context_len=30)
-dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+trajectory_dataset = MiniGridTrajectoryDataset(dataset, context_len=30)
+dataloader = DataLoader(trajectory_dataset, batch_size=64, shuffle=True)
 print(dataloader)
 
 def train_step(actor, optimizer, batch, device):
@@ -135,14 +135,13 @@ def train_step(actor, optimizer, batch, device):
 actor = create_actor(device)
 
 ################################################################
-# LOSS_ACHIEVED = "0.23"
-# index = 1
-# FOLDER_PATH = f"runs/{index}_{LOSS_ACHIEVED}"
+LOSS_ACHIEVED = "0.1336"
+index = 9
+FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
+FOLDER_PATH.mkdir(parents=True, exist_ok=True)
+actor = create_actor(device)
 
-# actor = create_actor(device)
-
-# actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device, weights_only=True))
-# actor.eval()
+actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
 ################################################################
 
 

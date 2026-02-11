@@ -5,75 +5,90 @@ import gymnasium as gym
 from minigrid.wrappers import FlatObsWrapper
 import random
 from pathlib import Path
-
+import pickle
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-actor = create_actor(device)
+CONTEXT_LEN=20
 
-LOSS_ACHIEVED = "0.18458359515704"
-index = 8
+
+
+LOSS_ACHIEVED = "0.0518"
+index = 10
 FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
 FOLDER_PATH.mkdir(parents=True, exist_ok=True)
-
-
 actor = create_actor(device)
 
 actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device))
 actor.eval()
 
 
-env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode="rgb_array")
-env = RecordVideo(env, video_folder=FOLDER_PATH / "videos", name_prefix="") # Record every episode
-env = FlatObsWrapper(env)
+# env = gym.make("MiniGrid-MemoryS9-v0", render_mode="rgb_array")
+# env = RecordVideo(env, video_folder=FOLDER_PATH / "videos", name_prefix="") # Record every episode
+# env = FlatObsWrapper(env)
 
+from recurrent_ppo_truncated_bptt.environments.minigrid_env import Minigrid
+import numpy as np
 
+env = Minigrid(env_name = "MiniGrid-MemoryS9-v0", realtime_mode = True)
+# env = RecordVideo(env, video_folder=FOLDER_PATH / "videos", name_prefix="") # Record every episode
 
 
 random_seed = random.randint(0,1_000_000)
 # random_seed = 297
-env.set_wrapper_attr("name_prefix", random_seed)
+# env.set_wrapper_attr("name_prefix", random_seed)
 
-obs, _ = env.reset(seed=random_seed)
-print("SEED: ", env.unwrapped.np_random_seed)
+obs = env.reset()
 done = False
 
-# Initialize buffers for the sequence
-target_return = 1.0 # High goal for Decision Mamba
-states = torch.from_numpy(obs).float().reshape(1, 1, 2835).to(device)
+# 2. Initialize sequence buffers
+# Shape: (Batch=1, Seq=1, C=3, H=84, W=84)
+states = torch.from_numpy(obs).float().unsqueeze(0).unsqueeze(0).to(device)
 actions = torch.zeros((1, 1), dtype=torch.long).to(device)
+
+target_return = 1.0 # The "Expert" goal
 rtgs = torch.tensor([target_return]).float().reshape(1, 1, 1).to(device)
 
+done = False
+current_target = target_return
 
 total_reward = 0
-current_target = target_return
+
 while not done:
     with torch.no_grad():
-        # Get action prediction from Mamba
+        # model expects (B, L, C, H, W) for states
+        # logits shape: (B, L, act_dim)
         logits = actor(states, actions, rtgs)
+        
+        # Take the action from the very last timestep
         action = torch.argmax(logits[:, -1, :], dim=-1).item()
-    obs, reward, terminated, truncated, _ = env.step(action)
-    done = terminated or truncated
+
+    obs, reward, done, info = env.step([action])
 
     total_reward += reward
 
-
-    # Use the same decay logic as training (1/845 per step)
-    # This acts as the 'clock' for the SSM hidden state
-    step_penalty = 0.9 / 845  # 845 = max_step for MemoryS13Random
-    current_target -= step_penalty
-
-    # Update sequence buffers (Decision Mamba needs the history)
-    cur_state = torch.from_numpy(obs).float().reshape(1, 1, 2835).to(device)
+    # 3. Process new observation (Already 3x84x84)
+    cur_state = torch.from_numpy(obs).float().unsqueeze(0).unsqueeze(0).to(device)
+    
+    # 4. Update RTG
+    # Use the same decay logic as training
+    current_target -= (0.9 / 845) 
     cur_rtg = torch.tensor([current_target]).float().reshape(1, 1, 1).to(device)
     cur_act = torch.tensor([[action]]).to(device)
 
+    # 5. Concatenate to history
     states = torch.cat([states, cur_state], dim=1)
     actions = torch.cat([actions, cur_act], dim=1)
     rtgs = torch.cat([rtgs, cur_rtg], dim=1)
 
-    # Optional: Keep a sliding window if sequences get too long
-    # states = states[:, -30:, :] ...
+    # 6. Sliding Window (Crucial)
+    # Ensure this matches the 'CONTEXT_LEN' used in TrajectoryDataset
+    if states.shape[1] > CONTEXT_LEN:
+        states = states[:, -CONTEXT_LEN:, ...]
+        actions = actions[:, -CONTEXT_LEN:]
+        rtgs = rtgs[:, -CONTEXT_LEN:, :]
+    
+
+env.render()
 print(f"Steps taken: {len(actions[0])}")
-print(f"Reason: {'truncated' if truncated else 'terminated'}")
 print(f"Episode finished with reward: {total_reward}")
 env.close()

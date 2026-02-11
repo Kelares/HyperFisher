@@ -7,6 +7,7 @@ def verify_dataset(file_path):
     
     # In your collection script, 'rewards' is a list per episode
     # Success is defined as any reward > 0 in an episode
+    print(data[0]["rewards"])
     episode_returns = [sum(ep['rewards']) for ep in data]
     successes = [1 if r > 0 else 0 for r in episode_returns]
     episode_lengths = [len(ep['observations']) for ep in data]
@@ -20,4 +21,4 @@ def verify_dataset(file_path):
     if np.mean(successes) < 0.95:
         print("⚠️ WARNING: Your oracle is not 'expert' yet. Offline RL on noisy data is much harder.")
 
-verify_dataset("MiniGrid-MemoryS7-v0_v2_.pickle")
+verify_dataset("MiniGrid-MemoryS9-v0_S9_PRE.pickle")
