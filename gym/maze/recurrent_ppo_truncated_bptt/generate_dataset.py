@@ -14,11 +14,16 @@ import numpy as np
 device = "cpu"
 torch.set_default_tensor_type("torch.FloatTensor")
 
+# --- CONFIGURATION ---
+# 0.2 means 20% of the time we force a random mistake.
+# This creates the "Noisy Expert" data needed to cure the loops.
+EPSILON = 0.2  
+# ---------------------
 
 def generate_minigrid_dataset(env_id, num_episodes=1000):
     dataset = []
 
-    print(f"Starting data collection for {env_id}...")
+    print(f"Starting NOISY data collection for {env_id} with EPSILON={EPSILON}...")
     
     state_dict, config = pickle.load(open("./minigrid.nn", "rb"))
 
@@ -52,30 +57,36 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
         }
 
         while not done:
-            # --- ORACLE LOGIC ---
-            # For Minigrid-Memory, the 'Oracle' can be a simple BFS or 
-            # the internal 'env.unwrapped.actions' sequence if you use 
-            # a scripted bot. Here, we'll assume a 'Perfect' solver.
-            # --------------------
-            
-            # Note: For Memory tasks, you can use the 'minigrid' built-in bot:
-            # Here we simulate the oracle action selection:
-
+            # --- 1. RUN EXPERT (Update Memory) ---
+            # CRITICAL: We MUST run the model forward pass even if we plan to 
+            # do a random move. The LSTM/GRU 'recurrent_cell' needs to see 
+            # the current observation to update its internal map. 
+            # If we skipped this, the expert would have "memory gaps".
             policy, value, recurrent_cell = model(torch.tensor(np.expand_dims(obs, 0)), recurrent_cell, device, 1)
-            # Sample action
-            action = []
-            # print(policy)
+            
+            # Extract the Expert's proposed action
+            expert_action = []
             for action_branch in policy:
-                # print(action_branch)
-                action.append(action_branch.sample().item())
-            # Step environment
+                expert_action.append(action_branch.sample().item())
+
+            # --- 2. APPLY NOISE (Epsilon-Greedy) ---
+            if np.random.rand() < EPSILON:
+                # NOISE: Force a random action from the environment
+                # We wrap it in a list to match the expert_action structure [int]
+                # This causes collisions and forces the expert to learn recovery on the next step.
+                action = [env.action_space.sample()]
+            else:
+                # EXPERT: Do the optimal move
+                action = expert_action
+            
+            # --- 3. EXECUTE ---
             obs, reward, done, info = env.step(action)
             
             # Record current state
             episode_data['observations'].append(obs)
             episode_data['actions'].append(action)
             episode_data['rewards'].append(reward)
-            # print(action, reward, done)
+            
         dataset.append(episode_data)
         
         if (ep + 1) % 5 == 0:
@@ -84,7 +95,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
     save_path = f"{env_id}_S9_PRE.pickle"
     with open(save_path, 'wb') as f:
         pickle.dump(dataset, f)
-    print(f"Dataset saved to {save_path}")
+    print(f"Noisy Expert Dataset saved to {save_path}")
 
 # Run it
 generate_minigrid_dataset("MiniGrid-MemoryS9-v0")

@@ -10,6 +10,7 @@ import re
 import os
 from pathlib import Path
 
+NULL_ACTION = 6 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
@@ -19,7 +20,7 @@ def load_dataset(file_name):
         dataset = pickle.load(f)
     return dataset
 
-dataset = load_dataset("rtg+S9_dataset.pickle")
+dataset = load_dataset("dataset_rtg_S9_80%.pickle")
 
 class MiniGridTrajectoryDataset(Dataset):
     def __init__(self, trajectories, context_len=20):
@@ -60,6 +61,8 @@ class MiniGridTrajectoryDataset(Dataset):
         states = torch.tensor(np.array(s), dtype=torch.float32)
         if states.max() > 1.0:
             print(states.max(), "state out of bounds")
+            states = states / 255.0  # <--- Add this line to actually fix it
+
         # Correctly capture dimensions for padding
         # Unpack the 4 dimensions: sequence, channels, height, width
         _, c, h, w = states.shape 
@@ -72,7 +75,7 @@ class MiniGridTrajectoryDataset(Dataset):
         # Actions: Long for CrossEntropy
         actions = torch.tensor(np.array(a), dtype=torch.long).flatten()
         if pad_len > 0:
-            actions = torch.cat([actions, torch.zeros((pad_len,), dtype=torch.long)], dim=0)
+            actions = torch.cat([actions, torch.full((pad_len,), NULL_ACTION, dtype=torch.long)], dim=0)
             
         # RTGs: Shape (curr_len, 1)
         returns = torch.tensor(np.array(rtg), dtype=torch.float32).reshape(-1, 1)
@@ -114,16 +117,8 @@ def train_step(actor, optimizer, batch, device):
     # 'reduction=none' allows us to zero out the padding loss before averaging
     loss = F.cross_entropy(logits, targets, reduction='none')
 
-    # 3a. Apply a "Reward Weight" 
-    # This makes the model learn more from steps that have a high RTG
-    # We take the RTG at each step and use it as a multiplier
-    reward_weights = rtgs.view(-1) 
-    
-    # 3b. We add 0.1 so that even 0-reward samples have a tiny bit of influence
-    weighted_loss = loss * (reward_weights + 0.1)
-
     # 4. Apply the mask
-    masked_loss = (weighted_loss * mask.view(-1)).sum() / mask.sum()
+    masked_loss = (loss * mask.view(-1)).sum() / mask.sum()
     
     # 5. Backward pass
     optimizer.zero_grad()
@@ -160,12 +155,13 @@ optimizer = torch.optim.AdamW(
 
 num_epochs = 500  # Start with this for MiniGrid-Memory
 best_loss = float('inf')
-
 repeat_counter = 0
+
+
 for epoch in range(num_epochs):
     epoch_loss = 0
     actor.train() # Set to training mode
-    
+
     for batch in dataloader:
         loss_val = train_step(actor, optimizer, batch, device)
         epoch_loss += loss_val
@@ -181,7 +177,7 @@ for epoch in range(num_epochs):
     else:
         repeat_counter += 1
 
-    if repeat_counter == 50:
+    if repeat_counter == 15:
         print("repeat_counter limit reached.")
         break
 

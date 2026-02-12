@@ -6,7 +6,7 @@ def load_dataset(file_name):
         dataset = pickle.load(f)
     return dataset
 
-d = load_dataset("MiniGrid-MemoryS9-v0_S9_PRE.pickle")
+d = load_dataset("dataset_S9_80%.pickle")
 #env = gym.make("MiniGrid-MemoryS13Random-v0", render_mode=None)
 # ######################################### env.env.env.env.max_steps
 # def get_decaying_rtg(rewards, max_steps=405): #FIXED MAX_STEPS FOR MiniGrid-MemoryS13Random-v0
@@ -39,5 +39,5 @@ for i, traj in enumerate(d):
     traj["rtg"] = rtg
     d[i] = traj
 
-with open("rtg+S9_dataset.pickle", "wb+") as f:
+with open("dataset_rtg_S9_80%.pickle", "wb+") as f:
     pickle.dump(d, f)

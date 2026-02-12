@@ -12,8 +12,8 @@ CONTEXT_LEN=20
 
 
 
-LOSS_ACHIEVED = "0.04095631358637051"
-index = 11
+LOSS_ACHIEVED = "0.04000510455701839"
+index = 12
 FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
 FOLDER_PATH.mkdir(parents=True, exist_ok=True)
 actor = create_actor(device)
@@ -43,9 +43,10 @@ done = False
 # 2. Initialize sequence buffers
 # Shape: (Batch=1, Seq=1, C=3, H=84, W=84)
 states = torch.from_numpy(obs).float().unsqueeze(0).unsqueeze(0).to(device)
-actions = torch.zeros((1, 1), dtype=torch.long).to(device)
+NULL_ACTION = 6 
+actions = torch.full((1, 1), NULL_ACTION, dtype=torch.long).to(device)
 
-target_return = 1.0 # The "Expert" goal
+target_return = 0.96 # The "Expert" goal
 rtgs = torch.tensor([target_return]).float().reshape(1, 1, 1).to(device)
 
 done = False
@@ -58,12 +59,16 @@ while not done:
         # model expects (B, L, C, H, W) for states
         # logits shape: (B, L, act_dim)
         logits = actor(states, actions, rtgs)
-        print(logits)
         # Take the action from the very last timestep
-        action = torch.argmax(logits[:, -1, :], dim=-1).item()
+        temperature = 1.0
+
+        probabilities = torch.softmax(logits[:, -1, :] / temperature, dim=-1)
+        action = torch.multinomial(probabilities, num_samples=1).item()
+
+        print(probabilities, action)
 
     obs, reward, done, info = env.step([action])
-    print(obs, obs.shape, reward, [action])
+    # print(obs, obs.shape, reward, [action])
 
     # --- CRITICAL FIX START ---
     # Update the buffer: The action we just used to transition FROM the current state
@@ -78,7 +83,7 @@ while not done:
     
     # Fix RTG: Keep it constant! (Remove the -= decay line)
     cur_rtg = torch.tensor([target_return]).float().reshape(1, 1, 1).to(device)
-    
+
     # Create a new placeholder for the NEXT action (initialized to 0)
     next_action_placeholder = torch.zeros((1, 1), dtype=torch.long).to(device)
 
