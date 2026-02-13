@@ -1,0 +1,13 @@
+cuda
+<torch.utils.data.dataloader.DataLoader object at 0x7f6b19980490>
+Epoch 1/10 - Loss: 0.2136
+Epoch 2/10 - Loss: 0.0695
+Epoch 3/10 - Loss: 0.0658
+Epoch 4/10 - Loss: 0.0640
+Epoch 5/10 - Loss: 0.0633
+Epoch 6/10 - Loss: 0.0627
+Epoch 7/10 - Loss: 0.0624
+Epoch 8/10 - Loss: 0.0622
+Epoch 9/10 - Loss: 0.0620
+Epoch 10/10 - Loss: 0.0619
+SAVING IN runs/17_0.061872881311920376
