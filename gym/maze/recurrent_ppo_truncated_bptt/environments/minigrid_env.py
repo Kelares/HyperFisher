@@ -43,7 +43,7 @@ class Minigrid:
         return obs
 
     def step(self, action):
-        obs, reward, done, truncated, info = self._env.step(action[0])
+        obs, reward, done, truncated, info = self._env.step(action)
         self._rewards.append(reward)
         obs = obs.astype(np.float32) / 255.
         if done or truncated:

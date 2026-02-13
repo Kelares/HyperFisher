@@ -20,7 +20,7 @@ def load_dataset(file_name):
         dataset = pickle.load(f)
     return dataset
 
-dataset = load_dataset("dataset_rtg_S9_80%.pickle")
+dataset = load_dataset("dataset_big.pickle")
 
 class MiniGridTrajectoryDataset(Dataset):
     def __init__(self, trajectories, context_len=20):
@@ -46,12 +46,25 @@ class MiniGridTrajectoryDataset(Dataset):
         end_step = start_step + self.context_len
         traj_total_len = len(traj['observations'])
         
-        # Slice the data (seq_len, 3, 84, 84)
+        # Slice the data
         real_end = min(end_step, traj_total_len)
         s = traj['observations'][start_step:real_end]
-        a = traj['actions'][start_step:real_end]
         r = traj['rewards'][start_step:real_end]
         rtg = traj['rtg'][start_step:real_end]
+        
+        # --- THE LIST-OF-LISTS FIX ---
+        # 1. This is what the model MUST PREDICT (Safely flattened)
+        target_a = np.array(traj['actions'][start_step:real_end]).flatten()
+        
+        # 2. THE SHIFT LOGIC (What the model SEES)
+        if start_step == 0:
+            # Flatten the past actions first, then prepend NULL_ACTION
+            past_a = np.array(traj['actions'][0 : real_end - 1]).flatten()
+            input_a = np.concatenate(([NULL_ACTION], past_a))
+        else:
+            # Just flatten the shifted slice
+            input_a = np.array(traj['actions'][start_step - 1 : real_end - 1]).flatten()
+        # -----------------------------
         
         # 1. Padding Logic
         curr_len = len(s)
@@ -60,22 +73,23 @@ class MiniGridTrajectoryDataset(Dataset):
         # Observations: Shape (curr_len, 3, 84, 84)
         states = torch.tensor(np.array(s), dtype=torch.float32)
         if states.max() > 1.0:
-            print(states.max(), "state out of bounds")
-            states = states / 255.0  # <--- Add this line to actually fix it
+            states = states / 255.0
 
-        # Correctly capture dimensions for padding
-        # Unpack the 4 dimensions: sequence, channels, height, width
         _, c, h, w = states.shape 
         
         if pad_len > 0:
-            # Create padding with the same spatial dimensions
             padding = torch.zeros((pad_len, c, h, w), dtype=torch.float32)
             states = torch.cat([states, padding], dim=0)        
 
-        # Actions: Long for CrossEntropy
-        actions = torch.tensor(np.array(a), dtype=torch.long).flatten()
+        # Target Actions Padding
+        target_actions = torch.tensor(target_a, dtype=torch.long)
         if pad_len > 0:
-            actions = torch.cat([actions, torch.full((pad_len,), NULL_ACTION, dtype=torch.long)], dim=0)
+            target_actions = torch.cat([target_actions, torch.full((pad_len,), 0, dtype=torch.long)], dim=0)
+            
+        # Input Actions Padding 
+        input_actions = torch.tensor(input_a, dtype=torch.long)
+        if pad_len > 0:
+            input_actions = torch.cat([input_actions, torch.full((pad_len,), NULL_ACTION, dtype=torch.long)], dim=0)
             
         # RTGs: Shape (curr_len, 1)
         returns = torch.tensor(np.array(rtg), dtype=torch.float32).reshape(-1, 1)
@@ -86,10 +100,11 @@ class MiniGridTrajectoryDataset(Dataset):
         mask = torch.cat([torch.ones(curr_len), torch.zeros(pad_len)], dim=0)
         
         return {
-            'states': states,    # (context_len, 3, 84, 84)
-            'actions': actions,  # (context_len,)
-            'rtgs': returns,     # (context_len, 1)
-            'mask': mask         # (context_len,)
+            'states': states,               # (context_len, 3, 84, 84)
+            'input_actions': input_actions, # (context_len,)  <- SHIFTED
+            'target_actions': target_actions, # (context_len,) <- TRUE LABELS
+            'rtgs': returns,                # (context_len, 1)
+            'mask': mask                    # (context_len,)
         }
 
 # --- How to use with DataLoader ---
@@ -98,23 +113,29 @@ dataloader = DataLoader(trajectory_dataset, batch_size=64, shuffle=True)
 print(dataloader)
 
 def train_step(actor, optimizer, batch, device):
-    # Unpack batch
-    states = batch['states'].to(device)    # (B, T, 147)
-    actions = batch['actions'].to(device)  # (B, T) - Long integers
-    rtgs = batch['rtgs'].to(device)        # (B, T, 1)
-    mask = batch['mask'].to(device)        # (B, T) - 1s for data, 0s for padding
+    # Unpack batch with new dual-action setup
+    states = batch['states'].to(device)    
+    input_actions = batch['input_actions'].to(device)   
+    target_actions = batch['target_actions'].to(device) 
+    rtgs = batch['rtgs'].to(device)        
+    mask = batch['mask'].to(device)        
 
-    # 1. Forward pass
-    # actor returns logits: (B, T, 7)
-    logits = actor(states, actions, rtgs)
+    # --- Optional Debug ---
+    # print("\n=== TRAINING INPUT DEBUG ===")
+    # print(f"State Range: {states.min().item():.4f} to {states.max().item():.4f}")
+    # print(f"Input Actions: {torch.unique(input_actions).tolist()}")
+    # print(f"Target Actions: {torch.unique(target_actions).tolist()}")
+    # print("============================\n")
+    
+    # 1. Forward pass using SHIFTED actions
+    logits = actor(states, input_actions, rtgs)
     
     # 2. Reshape for CrossEntropy
-    # Flatten B and T dimensions
-    logits = logits.view(-1, ACT_DIM)      # (B*T, 7)
-    targets = actions.view(-1)             # (B*T)
+    logits = logits.view(-1, ACT_DIM)      
+    # Compare against TARGET actions
+    targets = target_actions.view(-1)             
     
     # 3. Compute Loss with Manual Masking
-    # 'reduction=none' allows us to zero out the padding loss before averaging
     loss = F.cross_entropy(logits, targets, reduction='none')
 
     # 4. Apply the mask
@@ -128,8 +149,6 @@ def train_step(actor, optimizer, batch, device):
     return masked_loss.item()
 
 
-actor = create_actor(device)
-
 ################################################################
 # LOSS_ACHIEVED = "0.1336"
 # index = 9
@@ -142,6 +161,8 @@ actor = create_actor(device)
 
 
 
+actor = create_actor(device)
+
 # Define learning rate - 1e-4 is a safe starting point for Mamba/DT
 learning_rate = 1e-4
 weight_decay = 0.1
@@ -153,7 +174,7 @@ optimizer = torch.optim.AdamW(
     weight_decay=weight_decay
 )
 
-num_epochs = 500  # Start with this for MiniGrid-Memory
+num_epochs = 10  # Note: You probably want to increase this back up to 10-20
 best_loss = float('inf')
 repeat_counter = 0
 
@@ -162,10 +183,11 @@ for epoch in range(num_epochs):
     epoch_loss = 0
     actor.train() # Set to training mode
 
+    # NOTE: I removed the `break` here so it actually trains on the full dataset!
     for batch in dataloader:
         loss_val = train_step(actor, optimizer, batch, device)
         epoch_loss += loss_val
-        
+
     avg_loss = epoch_loss / len(dataloader)
     print(f"Epoch {epoch+1}/{num_epochs} - Loss: {avg_loss:.4f}")
         
@@ -191,7 +213,6 @@ def get_dynamic_session_id(path="./runs"):
     folders = [f for f in os.listdir(path) if re.match(r'^(\d+)_', f)]
     if not folders:
         return 1
-    print(folders)
     # Extract numbers and find the max
     ids = [int(f.split('_')[0]) for f in folders]
     return max(ids) + 1
@@ -200,9 +221,8 @@ def get_dynamic_session_id(path="./runs"):
 
 folder_name = f"{get_dynamic_session_id()}_{best_loss}"
 
-run_dir = "runs" / Path(folder_name) 
+run_dir = Path("runs") / folder_name 
 run_dir.mkdir(parents=True, exist_ok=True)
 
 print(f"SAVING IN {run_dir}")
 torch.save(actor.state_dict(), f"{run_dir}/agent.pt")
-

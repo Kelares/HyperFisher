@@ -1,15 +1,9 @@
-import gymnasium as gym
-from minigrid.wrappers import FlatObsWrapper, OneHotPartialObsWrapper, ImgObsWrapper
 import numpy as np
 import pickle
 
 from model import ActorCriticModel
-import pickle
-import gymnasium as gym
-from minigrid.wrappers import ImgObsWrapper
 import torch 
 from utils import create_env
-import numpy as np
 
 device = "cpu"
 torch.set_default_tensor_type("torch.FloatTensor")
@@ -80,7 +74,7 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
                 action = expert_action
             
             # --- 3. EXECUTE ---
-            obs, reward, done, info = env.step(action)
+            obs, reward, done, info = env.step(action[0])
             
             # Record current state
             episode_data['observations'].append(obs)
@@ -92,10 +86,10 @@ def generate_minigrid_dataset(env_id, num_episodes=1000):
         if (ep + 1) % 5 == 0:
             print(f"Collected {ep + 1}/{num_episodes} episodes")
 
-    save_path = f"{env_id}_S9_PRE.pickle"
+    save_path = f"{env_id}_S9_BIG.pickle"
     with open(save_path, 'wb') as f:
         pickle.dump(dataset, f)
     print(f"Noisy Expert Dataset saved to {save_path}")
 
 # Run it
-generate_minigrid_dataset("MiniGrid-MemoryS9-v0")
+generate_minigrid_dataset("MiniGrid-MemoryS9-v0", num_episodes=10000)
