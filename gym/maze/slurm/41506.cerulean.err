@@ -1,0 +1,4 @@
+  File "/home/u253954/SSM_benchmark/gym/maze/train.py", line 231
+    print(f"Finished in: {time.time() - start)} seconds"
+         ^
+SyntaxError: '(' was never closed

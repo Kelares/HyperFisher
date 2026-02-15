@@ -9,7 +9,9 @@ import torch.nn.functional as F
 import re
 import os
 from pathlib import Path
+import time
 
+start = time.time()
 NULL_ACTION = 6 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -23,7 +25,7 @@ def load_dataset(file_name):
 dataset = load_dataset("dataset_big.pickle")
 
 class MiniGridTrajectoryDataset(Dataset):
-    def __init__(self, trajectories, context_len=20):
+    def __init__(self, trajectories, context_len=60):
         self.trajectories = trajectories
         self.context_len = context_len
         
@@ -174,7 +176,7 @@ optimizer = torch.optim.AdamW(
     weight_decay=weight_decay
 )
 
-num_epochs = 10  # Note: You probably want to increase this back up to 10-20
+num_epochs = 5  # Note: You probably want to increase this back up to 10-20
 best_loss = float('inf')
 repeat_counter = 0
 
@@ -226,3 +228,4 @@ run_dir.mkdir(parents=True, exist_ok=True)
 
 print(f"SAVING IN {run_dir}")
 torch.save(actor.state_dict(), f"{run_dir}/agent.pt")
+print(f"Finished in: {time.time() - start} seconds")
