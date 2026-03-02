@@ -8,11 +8,11 @@ from pathlib import Path
 import pickle
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-CONTEXT_LEN=20
+CONTEXT_LEN=60
 import torch.nn.functional as F
 
-LOSS_ACHIEVED = "0.05603680570431529"
-index = 13
+LOSS_ACHIEVED = "0.04815532325569252"
+index = 18
 FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
 FOLDER_PATH.mkdir(parents=True, exist_ok=True)
 actor = create_actor(device)
@@ -76,10 +76,10 @@ while not done:
         action = torch.argmax(logits[:, -1, :], dim=-1).item()
 
     obs, reward, done, info = env.step(action)
-    print(obs, action)
+    # print(obs, action)
 
-    print(obs, obs.shape, reward, action, actions.shape)
-    print(f"Action Unique Values: {torch.unique(actions).tolist()}")
+    # print(obs, obs.shape, reward, action, actions.shape)
+    # print(f"Action Unique Values: {torch.unique(actions).tolist()}")
 
     # --- CRITICAL FIX START ---
     # Update the buffer: The action we just used to transition FROM the current state

@@ -11,15 +11,15 @@ import numpy as np
 from utils import create_env 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-CONTEXT_LEN = 20
+CONTEXT_LEN = 60
 
-LOSS_ACHIEVED = "0.05603680570431529"
-index = 13
+LOSS_ACHIEVED = "0.061872881311920376"
+index = 17
 FOLDER_PATH = Path(f"runs/{index}_{LOSS_ACHIEVED}")
 FOLDER_PATH.mkdir(parents=True, exist_ok=True)
 actor = create_actor(device)
 
-actor.load_state_dict(torch.load(f"runs/big/agent.pt", map_location=device)) # Note: Fixed path to use FOLDER_PATH
+actor.load_state_dict(torch.load(f"{FOLDER_PATH}/agent.pt", map_location=device)) # Note: Fixed path to use FOLDER_PATH
 actor.eval()
 
 # --- INITIALIZE ENVIRONMENT EXACTLY LIKE TRAINING ---
@@ -27,7 +27,7 @@ state_dict, config = pickle.load(open("./minigrid.nn", "rb"))
 config["environment"]["name"] = "MiniGrid-MemoryS9-v0"
 
 # This guarantees the images are the right way up!
-env = create_env(config["environment"], render=True)
+env = create_env(config["environment"], render=False)
 
 random_seed = random.randint(0, 1_000_000)
 
