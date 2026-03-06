@@ -1,0 +1,13 @@
+asdfghjkl==0.1a5
+torch==2.8.0
+torch-optimizer==0.3.0
+torchao==0.14.0
+torchaudio==2.8.0
+torchdata==0.11.0
+torchmetrics==1.8.2
+torchtune==0.6.1
+torchvision==0.23.0
+tqdm==4.67.1
+traitlets==5.14.3
+transformers==4.57.0
+vit-pytorch==1.12.4
