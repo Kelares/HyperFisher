@@ -89,12 +89,12 @@ def _build_A_inv(
     F_new: Tensor,  
     lam: float,
 ) -> Tensor:
-    F_new_inv = 1.0 / (F_new + lam)
+    F_new_inv = 1.0 / (F_new + 1e-3)
     scale     = (F_old ** 2) * F_new_inv
     scaled_G  = scale.unsqueeze(1) * G
     A         = G.t() @ scaled_G
-    A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
-    return torch.linalg.pinv(A)
+    # A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+    return torch.linalg.pinv(A, rcond=1e-4)
 
 
 def _fopng_update(
@@ -107,6 +107,7 @@ def _fopng_update(
     lam: float,
     eps: float = 1e-8,
 ) -> tuple[Tensor, float]:
+    fisher_eps = 1e-3
     # ── projection ────────────────────────────────────────────────────
     F_old_g  = F_old * g
     GtFg     = G.t() @ F_old_g
@@ -115,10 +116,10 @@ def _fopng_update(
 
     g_norm = torch.norm(g)
     Pg_norm = torch.norm(Pg)
-    rho = (Pg_norm / (g_norm + 1e-8)).item()
+    rho = (Pg_norm / (g_norm + eps)).item()
 
     # ── unit natural gradient ──────────────────────────────────────────
-    F_new_inv    = 1.0 / (F_new + lam)
+    F_new_inv    = 1.0 / (F_new + fisher_eps)
     F_new_inv_Pg = F_new_inv * Pg
     fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
     
@@ -351,6 +352,27 @@ def train_fopng(
             
         wandb.log(eval_metrics)
 
+    tasks_completed = sorted(list(results.keys())) # [1, 2, 3]
+    num_eval_tasks = len(test_loaders)
+
+    fopng_lines = []
+    keys = []
+
+    # Format the data for W&B's line_series
+    for i in range(num_eval_tasks):
+        fopng_lines.append([results[t][i] for t in tasks_completed])
+        keys.append(f"Task {i+1} Acc")
+
+    # 1. Log the overlapping FOPNG chart
+    wandb.log({
+        "FOPNG Overlapping Accuracies": wandb.plot.line_series(
+            xs=tasks_completed,
+            ys=fopng_lines,
+            keys=keys,
+            title="FOPNG: All Tasks",
+            xname="task_completed"
+        )
+    })
     return fopng
 
 
@@ -375,6 +397,11 @@ if __name__ == "__main__":
         }
     )
     config = wandb.config
+
+    # Tell W&B to use 'task_completed' as the x-axis for all eval metrics
+    wandb.define_metric("task_completed")
+    wandb.define_metric("fopng/eval/*", step_metric="task_completed")
+    wandb.define_metric("baseline/eval/*", step_metric="task_completed")
 
     torch.manual_seed(0)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -470,53 +497,78 @@ if __name__ == "__main__":
     )
 
     print("\n" + "=" * 60)
-    print("SGD COMPARISON")
+    print("baseline COMPARISON")
     print("=" * 60)
 
     # Simplified Baseline Model (No hypernetwork, just direct parameters)
-    model_sgd = nn.Sequential(
+    model_baseline = nn.Sequential(
         nn.Linear(config.input_dim, 100), nn.ReLU(),
         nn.Linear(100, config.num_classes),
     ).to(device)
     
-    sgd = torch.optim.Adam(model_sgd.parameters(), lr=config.lr)
-    results_sgd = {}
-    global_epoch_sgd = 0
+    baseline = torch.optim.Adam(model_baseline.parameters(), lr=config.lr)
+    results_baseline = {}
+    global_epoch_baseline = 0
     
     for t, loader in enumerate(train_loaders):
         for epoch in range(config.epochs):
             total_loss = 0.0
-            model_sgd.train()
+            model_baseline.train()
             for x, y in loader:
                 x, y = x.to(device), y.to(device)
-                sgd.zero_grad()
-                loss = criterion(model_sgd(x), y)
+                baseline.zero_grad()
+                loss = criterion(model_baseline(x), y)
                 loss.backward()
-                sgd.step()
+                baseline.step()
                 total_loss += loss.item()
 
             avg_loss = total_loss/len(loader)
-            wandb.log({"baseline/train/loss": avg_loss, "baseline/global_epoch": global_epoch_sgd, "task": t+1})
-            global_epoch_sgd += 1
+            wandb.log({"baseline/train/loss": avg_loss, "baseline/global_epoch": global_epoch_baseline, "task": t+1})
+            global_epoch_baseline += 1
             print(f"  epoch {epoch+1}/{config.epochs}  loss={avg_loss:.4f}")
 
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
-        results_sgd[t+1] = []
-        eval_metrics_sgd = {"task_completed": t+1}
+        results_baseline[t+1] = []
+        eval_metrics_baseline = {"task_completed": t+1}
         
         # CHANGED: Iterate over every single task, seen or unseen!
         for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
-            acc = evaluate_accuracy(model_sgd, test_loaders[i], eval_task_id)
-            results_sgd[t+1].append(acc)
-            eval_metrics_sgd[f"baseline/eval/acc_task_{i+1}"] = acc
+            acc = evaluate_accuracy(model_baseline, test_loaders[i], eval_task_id)
+            results_baseline[t+1].append(acc)
+            eval_metrics_baseline[f"baseline/eval/acc_task_{i+1}"] = acc
             print(f"  Task {i+1}: {acc*100:.1f}%")
             
         if t != 0:
-            bwt_sgd = calc_bwt(results_sgd)
-            eval_metrics_sgd["baseline/eval/bwt"] = bwt_sgd
-            print(f"BWT for task {t+1}: {bwt_sgd:.4f}")
+            bwt_baseline = calc_bwt(results_baseline)
+            eval_metrics_baseline["baseline/eval/bwt"] = bwt_baseline
+            print(f"BWT for task {t+1}: {bwt_baseline:.4f}")
             
-        wandb.log(eval_metrics_sgd)
+        wandb.log(eval_metrics_baseline)
+
+    # ─────────────────────────────────────────────────────────────────────────────
+    # Force W&B to generate overlapping Custom Charts
+    # ─────────────────────────────────────────────────────────────────────────────
+    tasks_completed = sorted(list(results_baseline.keys())) # [1, 2, 3]
+    num_eval_tasks = len(test_loaders)
+
+    baseline_lines = []
+    keys = []
+
+    # Format the data for W&B's line_series
+    for i in range(num_eval_tasks):
+        baseline_lines.append([results_baseline[t][i] for t in tasks_completed])
+        keys.append(f"Task {i+1} Acc")
+
+    # 1. Log the overlapping Baseline chart
+    wandb.log({
+        "Baseline Overlapping Accuracies": wandb.plot.line_series(
+            xs=tasks_completed,
+            ys=baseline_lines,
+            keys=keys,
+            title="Baseline (Adam): All Tasks",
+            xname="task_completed"
+        )
+    })
 
     wandb.finish()
