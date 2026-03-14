@@ -57,16 +57,17 @@ def compute_fisher_diag(
     D = sum(p.numel() for p in hyper_network.parameters())
     fisher = torch.zeros(D, device=device)
     n_seen = 0
-    hyper_network.spawn(task_id)
 
     with torch.enable_grad():
         for x, y in loader:
             x, y = x.to(device), y.to(device)
             hyper_network.zero_grad()
+            
+            hyper_network.spawn(task_id)
             output = hyper_network(x)
 
             loss = criterion(output, y)
-            loss.backward(retain_graph=True)
+            loss.backward()
             g = _flat_grad(hyper_network)
             fisher.add_(g.pow(2))
             n_seen += x.size(0)
@@ -200,7 +201,6 @@ class FOPNG:
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
         grads: List[Tensor] = []
         hyper_network.eval()
-        hyper_network.spawn(task_id)
 
         with torch.enable_grad():
             for x, y in loader:
@@ -208,9 +208,11 @@ class FOPNG:
                     break
                 x, y = x.to(self._device), y.to(self._device)
                 hyper_network.zero_grad()
+                hyper_network.spawn(task_id)
+
                 output = hyper_network(x)
                 loss = criterion(output, y)
-                loss.backward(retain_graph=True)
+                loss.backward()
                 grads.append(_flat_grad(hyper_network).clone())
         hyper_network.zero_grad()
         hyper_network.train()
