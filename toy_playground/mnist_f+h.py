@@ -330,11 +330,12 @@ def train_fopng(
                 if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f} rho={avg_rho:.4f}")
             fopng.after_task(hyper_network, task_id, loader, criterion)
                 
-        # ── Evaluate on seen tasks using TEST loaders ───────────────────
+        # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results[t+1] = []
         eval_metrics = {"task_completed": t+1}
         
-        for i in range(t + 1):
+        # CHANGED: Iterate over every single task, seen or unseen!
+        for i in range(len(test_loaders)): 
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
             acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id)
             results[t+1].append(acc)
@@ -497,12 +498,14 @@ if __name__ == "__main__":
             global_epoch_sgd += 1
             print(f"  epoch {epoch+1}/{config.epochs}  loss={avg_loss:.4f}")
 
-        # ── Evaluate on seen tasks using TEST loaders ───────────────────
+        # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results_sgd[t+1] = []
         eval_metrics_sgd = {"task_completed": t+1}
         
-        for i in range(t + 1):
-            acc = evaluate_accuracy(model_sgd, test_loaders[i], torch.tensor([i], dtype=torch.long, device=device))
+        # CHANGED: Iterate over every single task, seen or unseen!
+        for i in range(len(test_loaders)):
+            eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+            acc = evaluate_accuracy(model_sgd, test_loaders[i], eval_task_id)
             results_sgd[t+1].append(acc)
             eval_metrics_sgd[f"baseline/eval/acc_task_{i+1}"] = acc
             print(f"  Task {i+1}: {acc*100:.1f}%")
