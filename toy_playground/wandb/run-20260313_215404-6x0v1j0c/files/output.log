@@ -1,0 +1,11 @@
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 478, in <module>
+    fopng = train_fopng(
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 284, in train_fopng
+    hyper_network.spawn(task_id)
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 433, in spawn
+    self.target_params = self.get_params_dict(target_params).to(device)
+AttributeError: 'dict' object has no attribute 'to'

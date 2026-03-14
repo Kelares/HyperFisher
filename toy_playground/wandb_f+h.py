@@ -1,0 +1,517 @@
+"""
+FOPNG: Fisher-Orthogonal Projected Natural Gradient Descent
+============================================================
+Garg, Kolhe, Peng, Gopalam — UC Berkeley (ICML 2026)
+"""
+from __future__ import annotations
+
+from typing import Callable, List, Optional
+
+import torch
+import torch.nn as nn
+from torch import Tensor
+from torch.utils.data import DataLoader
+from torch.func import functional_call
+import wandb
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Low-level utilities
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _flat_grad(model: nn.Module) -> Tensor:
+    """Flatten all parameter .grad fields into a single vector [D]."""
+    parts = []
+    for p in model.parameters():
+        if p.grad is not None:
+            parts.append(p.grad.detach().view(-1))
+        else:
+            parts.append(p.data.new_zeros(p.numel()))
+    return torch.cat(parts)
+
+
+def _apply_flat_update(model: nn.Module, update: Tensor) -> None:
+    """Add a flat update vector to model parameters in-place: θ ← θ + update."""
+    offset = 0
+    for p in model.parameters():
+        n = p.numel()
+        p.data.add_(update[offset: offset + n].view_as(p))
+        offset += n
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Diagonal Fisher estimation
+# ─────────────────────────────────────────────────────────────────────────────
+
+def compute_fisher_diag(
+    hyper_network: nn.Module,
+    task_id, 
+    loader: DataLoader,
+    criterion: Callable,
+    device: torch.device,
+    max_samples: int = 1024,
+) -> Tensor:
+    hyper_network.eval()
+    D = sum(p.numel() for p in hyper_network.parameters())
+    fisher = torch.zeros(D, device=device)
+    n_seen = 0
+    hyper_network.spawn(task_id)
+
+    with torch.enable_grad():
+        for x, y in loader:
+            x, y = x.to(device), y.to(device)
+            hyper_network.zero_grad()
+            output = hyper_network(x)
+
+            loss = criterion(output, y)
+            loss.backward(retain_graph=True)
+            g = _flat_grad(hyper_network)
+            fisher.add_(g.pow(2))
+            n_seen += x.size(0)
+            if n_seen >= max_samples:
+                break
+
+    hyper_network.zero_grad()
+    hyper_network.train()
+    return fisher / max(n_seen, 1)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Core math
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _build_A_inv(
+    G: Tensor,      
+    F_old: Tensor,  
+    F_new: Tensor,  
+    lam: float,
+) -> Tensor:
+    F_new_inv = 1.0 / (F_new + lam)
+    scale     = (F_old ** 2) * F_new_inv
+    scaled_G  = scale.unsqueeze(1) * G
+    A         = G.t() @ scaled_G
+    A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+    return torch.linalg.pinv(A)
+
+
+def _fopng_update(
+    g: Tensor,
+    G: Tensor,
+    F_old: Tensor,
+    F_new: Tensor,
+    A_inv: Tensor,
+    lr: float,
+    lam: float,
+    eps: float = 1e-8,
+) -> tuple[Tensor, float]:
+    F_old_g  = F_old * g
+    GtFg     = G.t() @ F_old_g
+    coeff    = A_inv @ GtFg
+    Pg       = g - F_old * (G @ coeff)
+
+    g_norm = torch.norm(g)
+    Pg_norm = torch.norm(Pg)
+    rho = (Pg_norm / (g_norm + 1e-8)).item()
+
+    F_new_inv    = 1.0 / (F_new + lam)
+    F_new_inv_Pg = F_new_inv * Pg
+    fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
+
+    return -lr * F_new_inv_Pg / fisher_norm, rho
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FOPNG Class
+# ─────────────────────────────────────────────────────────────────────────────
+
+class FOPNG:
+    def __init__(
+        self,
+        lr: float = 1e-3,
+        lam: float = 1e-3,
+        alpha: float = 0.5,
+        grads_per_task: int = 80,
+        max_directions: int = 400,
+        fisher_samples: int = 1024,
+    ):
+        self.lr            = lr
+        self.lam           = lam
+        self.alpha         = alpha
+        self.grads_per_task = grads_per_task
+        self.max_directions = max_directions
+        self.fisher_samples = fisher_samples
+
+        self.F_old: Optional[Tensor] = None
+        self.G:     Optional[Tensor] = None
+        self._F_new: Optional[Tensor] = None
+        self._A_inv: Optional[Tensor] = None
+        self._device: Optional[torch.device] = None
+
+    def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
+        return compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
+
+    def prepare_epoch(self, F_new: Tensor) -> None:
+        assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
+        self._F_new = F_new
+        self._A_inv = _build_A_inv(self.G, self.F_old, F_new, self.lam)
+
+    def step(self, model: nn.Module) -> float:
+        assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
+        g = _flat_grad(model)
+        v_star, rho = _fopng_update(
+            g=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
+            A_inv=self._A_inv, lr=self.lr, lam=self.lam,
+        )
+        _apply_flat_update(model, v_star)
+        model.zero_grad()
+        return rho
+
+    def after_task(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
+        device = next(hyper_network.parameters()).device
+        self._device = device
+
+        F_new = compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+        if self.F_old is None:
+            self.F_old = F_new.clone()
+        else:
+            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
+
+        new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
+        self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
+
+        if self.G.shape[1] > self.max_directions:
+            self.G = self.G[:, -self.max_directions:]
+            
+        wandb.log({
+            "fopng/fisher/min": self.F_old.min().item(),
+            "fopng/fisher/max": self.F_old.max().item(),
+            "fopng/fisher/mean": self.F_old.mean().item(),
+            "fopng/memory/G_cols": self.G.shape[1],
+            "task_completed": task_id.item() + 1
+        })
+
+    def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
+        grads: List[Tensor] = []
+        hyper_network.eval()
+        hyper_network.spawn(task_id)
+
+        with torch.enable_grad():
+            for x, y in loader:
+                if len(grads) >= self.grads_per_task:
+                    break
+                x, y = x.to(self._device), y.to(self._device)
+                hyper_network.zero_grad()
+                output = hyper_network(x)
+                loss = criterion(output, y)
+                loss.backward(retain_graph=True)
+                grads.append(_flat_grad(hyper_network).clone())
+        hyper_network.zero_grad()
+        hyper_network.train()
+        return torch.stack(grads, dim=1)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Convenience utilities
+# ─────────────────────────────────────────────────────────────────────────────
+
+def calc_bwt(results: dict):
+    bwt = 0
+    T = len(results)
+    if T <= 1: return 0.0
+    for i in range(1, T):
+        bwt += (results[T][i-1] - results[i][i-1])
+    return bwt / (T - 1)
+
+def evaluate_accuracy(model: nn.Module, loader, task_id) -> float:
+    model.eval()
+    correct, total = 0, 0
+    device = next(model.parameters()).device
+    
+    if hasattr(model, 'spawn'):
+        model.spawn(task_id)
+
+    with torch.no_grad():
+        for x, y in loader:
+            x, y = x.to(device), y.to(device)
+            preds = model(x).argmax(dim=1)
+            correct += (preds == y).sum().item()
+            total   += y.size(0)
+    
+    model.train() # Make sure to flip back to train mode
+    return correct / total
+
+
+def train_fopng(
+    hyper_network: nn.Module,
+    task_loaders: List[DataLoader],
+    criterion: Callable,
+    *,
+    lr: float = 1e-3,
+    lam: float = 1e-3,
+    alpha: float = 0.5,
+    grads_per_task: int = 80,
+    max_directions: int = 400,
+    fisher_samples: int = 1024,
+    epochs: int = 5,
+    first_task_optimizer_cls=torch.optim.Adam,
+    verbose: bool = True,
+) -> FOPNG:
+    device = next(hyper_network.parameters()).device
+    fopng = FOPNG(
+        lr=lr, lam=lam, alpha=alpha,
+        grads_per_task=grads_per_task,
+        max_directions=max_directions,
+        fisher_samples=fisher_samples,
+    )
+    results = {}
+    global_epoch = 0
+
+    for t, loader in enumerate(task_loaders):
+        task_id = torch.tensor([t], dtype=torch.long, device=device)
+        
+        # ── Task 1: standard optimizer ────────────────────────────────
+        if t == 0:
+            if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
+            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
+            for epoch in range(epochs):
+                total_loss = 0.0
+                hyper_network.train()
+                for x, y in loader:
+                    x, y = x.to(device), y.to(device)
+                    opt.zero_grad()
+                    hyper_network.spawn(task_id)
+                    output = hyper_network(x)
+                    loss = criterion(output, y)
+                    loss.backward()
+                    opt.step()
+                    total_loss += loss.item()
+                
+                avg_loss = total_loss / len(loader)
+                
+                # --- NEW: Evaluate all tasks during training ---
+                epoch_metrics = {
+                    "fopng/train/loss": avg_loss,
+                    "fopng/global_epoch": global_epoch,
+                    "task": t+1
+                }
+                for i, eval_loader in enumerate(task_loaders):
+                    eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+                    acc = evaluate_accuracy(hyper_network, eval_loader, eval_task_id)
+                    epoch_metrics[f"fopng/eval_during_train/acc_task_{i+1}"] = acc
+
+                wandb.log(epoch_metrics)
+                global_epoch += 1
+                if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
+                
+            fopng.after_task(hyper_network, task_id, loader, criterion)
+
+        # ── Tasks 2+: FOPNG ───────────────────────────────────────────
+        else:
+            if verbose: print(f"\n[FOPNG] Task {t+1}")
+            for epoch in range(epochs):
+                F_new = compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+                fopng.prepare_epoch(F_new)
+                total_loss, total_rho = 0.0, 0.0
+                hyper_network.train()
+                
+                for x, y in loader:
+                    x, y = x.to(device), y.to(device)
+                    hyper_network.spawn(task_id)
+                    output = hyper_network(x)
+                    loss = criterion(output, y)
+                    loss.backward()
+                    total_loss += loss.item()
+                    
+                    rho = fopng.step(hyper_network)
+                    total_rho += rho
+                    
+                avg_loss = total_loss / len(loader)
+                avg_rho = total_rho / len(loader)
+                
+                # --- NEW: Evaluate all tasks during training ---
+                epoch_metrics = {
+                    "fopng/train/loss": avg_loss, 
+                    "fopng/train/rho_avg": avg_rho,
+                    "fopng/global_epoch": global_epoch, 
+                    "task": t+1
+                }
+                for i, eval_loader in enumerate(task_loaders):
+                    eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+                    acc = evaluate_accuracy(hyper_network, eval_loader, eval_task_id)
+                    epoch_metrics[f"fopng/eval_during_train/acc_task_{i+1}"] = acc
+
+                wandb.log(epoch_metrics)
+                global_epoch += 1
+                
+                if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f} rho={avg_rho:.4f}")
+            fopng.after_task(hyper_network, task_id, loader, criterion)
+                
+        # ── End of Task Evaluation ─────────────────────────────────
+        results[t+1] = []
+        eval_metrics = {"task_completed": t+1}
+        
+        for i, eval_loader in enumerate(task_loaders):
+            eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+            acc = evaluate_accuracy(hyper_network, eval_loader, eval_task_id)
+            results[t+1].append(acc)
+            eval_metrics[f"fopng/eval/final_acc_task_{i+1}"] = acc
+            
+        if t != 0:
+            bwt = calc_bwt(results)
+            eval_metrics["fopng/eval/bwt"] = bwt
+            if verbose: print(f"BWT for task {t+1}: {bwt:.4f}")
+            
+        wandb.log(eval_metrics)
+
+    return fopng
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Smoke-test & Main Execution
+# ─────────────────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    from torch.utils.data import TensorDataset
+
+    # Initialize W&B
+    wandb.init(
+        project="FOPNG-Experiments",
+        config={
+            "lr": 1e-2,
+            "lam": 1e-2,
+            "alpha": 0.5,
+            "grads_per_task": 80,
+            "max_directions": 400,
+            "epochs": 10,
+            "num_tasks": 3,
+            "input_dim": 20,
+            "embedding_dim": 4,
+            "num_classes": 5
+        }
+    )
+    config = wandb.config
+
+    torch.manual_seed(0)
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device(DEVICE)
+
+    class HyperNetwork(nn.Module):
+        def __init__(self, device, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.layers = nn.Sequential(
+                nn.Embedding(num_embeddings=config.num_tasks, embedding_dim=config.embedding_dim),
+                nn.ReLU(),
+                nn.Linear(config.embedding_dim, 16),
+                nn.ReLU(),
+                nn.Linear(16, 837)
+            ).to(device)
+
+            self.target_network = nn.Sequential(
+                nn.Linear(config.input_dim, 32), nn.ReLU(),
+                nn.Linear(32, config.num_classes),
+            ).to(device)
+
+            for param in self.target_network.parameters():
+                param.requires_grad = False
+            self.target_params = None
+
+        def spawn(self, task_id):
+            target_params = self.layers(task_id).squeeze()
+            self.target_params = self.get_params_dict(target_params)
+
+        def forward(self, x):
+            return functional_call(self.target_network, self.target_params, x)
+
+        def get_params_dict(self, flat_params):
+            param_dict = {}
+            pointer = 0
+            for name, param in self.target_network.named_parameters():
+                num_param = param.numel()
+                param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
+                pointer += num_param
+            return param_dict
+        
+    hyper_network = HyperNetwork(device)
+    criterion = nn.CrossEntropyLoss()
+
+    def make_task(n=800, task_id=0, seed=0):
+        rng = torch.Generator()
+        rng.manual_seed(seed)
+        X = torch.zeros(n, config.input_dim)
+        start_idx = task_id * 6
+        end_idx = start_idx + 6
+        X[:, start_idx:end_idx] = torch.randn(n, 6, generator=rng)
+        W = torch.randn(config.num_classes, 6, generator=rng)
+        y = (X[:, start_idx:end_idx] @ W.t()).argmax(dim=1)
+        return DataLoader(TensorDataset(X, y), batch_size=10, shuffle=True)
+
+    loaders = [make_task(n=800, task_id=t, seed=t) for t in range(config.num_tasks)]
+
+    print("\n--- Starting FOPNG Training ---")
+    fopng = train_fopng(
+        hyper_network, loaders, criterion,
+        lr=config.lr, lam=config.lam, alpha=config.alpha,
+        grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+        epochs=config.epochs, verbose=True,
+    )
+
+    print("\n" + "=" * 60)
+    print("SGD COMPARISON")
+    print("=" * 60)
+
+    model_sgd = nn.Sequential(
+        nn.Linear(config.input_dim, 32), nn.ReLU(),
+        nn.Linear(32, config.num_classes),
+    ).to(device)
+    sgd = torch.optim.Adam(model_sgd.parameters(), lr=config.lr)
+    
+    results_sgd = {}
+    global_epoch_sgd = 0
+    
+    for t, loader in enumerate(loaders):
+        for epoch in range(config.epochs):
+            total_loss = 0.0
+            model_sgd.train()
+            for x, y in loader:
+                x, y = x.to(device), y.to(device)
+                sgd.zero_grad()
+                loss = criterion(model_sgd(x), y)
+                loss.backward()
+                sgd.step()
+                total_loss += loss.item()
+
+            avg_loss = total_loss/len(loader)
+            
+            # --- NEW: Evaluate all tasks during training ---
+            epoch_metrics_sgd = {
+                "baseline/train/loss": avg_loss, 
+                "baseline/global_epoch": global_epoch_sgd, 
+                "task": t+1
+            }
+            for i, eval_loader in enumerate(loaders):
+                eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+                acc = evaluate_accuracy(model_sgd, eval_loader, eval_task_id)
+                epoch_metrics_sgd[f"baseline/eval_during_train/acc_task_{i+1}"] = acc
+
+            wandb.log(epoch_metrics_sgd)
+            global_epoch_sgd += 1
+            print(f"  epoch {epoch+1}/{config.epochs}  loss={avg_loss:.4f}")
+
+        # ── End of Task Evaluation ─────────────────────────────────
+        results_sgd[t+1] = []
+        eval_metrics_sgd = {"task_completed": t+1}
+        
+        for i, eval_loader in enumerate(loaders):
+            acc = evaluate_accuracy(model_sgd, eval_loader, torch.tensor([i], dtype=torch.long, device=device))
+            results_sgd[t+1].append(acc)
+            eval_metrics_sgd[f"baseline/eval/final_acc_task_{i+1}"] = acc
+            print(f"  Task {i+1}: {acc*100:.1f}%")
+            
+        if t != 0:
+            bwt_sgd = calc_bwt(results_sgd)
+            eval_metrics_sgd["baseline/eval/bwt"] = bwt_sgd
+            print(f"BWT for task {t+1}: {bwt_sgd:.4f}")
+            
+        wandb.log(eval_metrics_sgd)
+
+    wandb.finish()

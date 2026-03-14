@@ -1,0 +1,31 @@
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 480, in <module>
+    fopng = train_fopng(
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 285, in train_fopng
+    output = hyper_network(x)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py", line 439, in forward
+    return functional_call(self.target_network, self.target_params, x)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_functorch/functional_call.py", line 153, in functional_call
+    return nn.utils.stateless._functional_call(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/utils/stateless.py", line 279, in _functional_call
+    return module(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 134, in forward
+    return F.linear(input, self.weight, self.bias)
+RuntimeError: Expected all tensors to be on the same device, but got mat1 is on cpu, different from other tensors on cuda:0 (when checking argument in method wrapper_CUDA_addmm)

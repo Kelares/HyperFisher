@@ -1,0 +1,84 @@
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/10 loss=0.4930
+  epoch 2/10 loss=0.2249
+  epoch 3/10 loss=0.2210
+  epoch 4/10 loss=0.1797
+  epoch 5/10 loss=0.1363
+  epoch 6/10 loss=0.1214
+  epoch 7/10 loss=0.1370
+  epoch 8/10 loss=0.1191
+  epoch 9/10 loss=0.0830
+  epoch 10/10 loss=0.1126
+
+[FOPNG] Task 2
+  epoch 1/10 loss=0.6990 rho=1.0000
+  epoch 2/10 loss=0.2237 rho=1.0000
+  epoch 3/10 loss=0.1728 rho=1.0000
+  epoch 4/10 loss=0.1496 rho=1.0000
+  epoch 5/10 loss=0.1692 rho=1.0000
+  epoch 6/10 loss=0.1682 rho=1.0000
+  epoch 7/10 loss=0.1786 rho=0.9999
+  epoch 8/10 loss=0.1390 rho=0.9988
+  epoch 9/10 loss=0.1976 rho=0.9877
+  epoch 10/10 loss=0.1803 rho=0.9492
+BWT for task 2: -0.0575
+
+[FOPNG] Task 3
+  epoch 1/10 loss=0.7941 rho=0.9986
+  epoch 2/10 loss=0.2757 rho=0.9992
+  epoch 3/10 loss=0.1919 rho=0.9989
+  epoch 4/10 loss=0.1777 rho=0.9989
+  epoch 5/10 loss=0.1655 rho=0.9985
+  epoch 6/10 loss=0.1822 rho=0.9986
+  epoch 7/10 loss=0.1250 rho=0.9982
+  epoch 8/10 loss=0.1190 rho=0.9864
+  epoch 9/10 loss=0.1498 rho=0.9977
+  epoch 10/10 loss=0.1583 rho=0.9977
+BWT for task 3: -0.0725
+
+============================================================
+SGD COMPARISON
+============================================================
+  epoch 1/10  loss=0.7311
+  epoch 2/10  loss=0.2203
+  epoch 3/10  loss=0.1568
+  epoch 4/10  loss=0.1212
+  epoch 5/10  loss=0.1186
+  epoch 6/10  loss=0.0979
+  epoch 7/10  loss=0.0876
+  epoch 8/10  loss=0.0821
+  epoch 9/10  loss=0.0793
+  epoch 10/10  loss=0.0709
+  Task 1: 98.9%
+  Task 2: 13.2%
+  Task 3: 22.5%
+  epoch 1/10  loss=0.4177
+  epoch 2/10  loss=0.1829
+  epoch 3/10  loss=0.1515
+  epoch 4/10  loss=0.1031
+  epoch 5/10  loss=0.1088
+  epoch 6/10  loss=0.0773
+  epoch 7/10  loss=0.0835
+  epoch 8/10  loss=0.0814
+  epoch 9/10  loss=0.0659
+  epoch 10/10  loss=0.0644
+  Task 1: 84.5%
+  Task 2: 97.4%
+  Task 3: 31.8%
+BWT for task 2: -0.1438
+  epoch 1/10  loss=0.4253
+  epoch 2/10  loss=0.1701
+  epoch 3/10  loss=0.1331
+  epoch 4/10  loss=0.1029
+  epoch 5/10  loss=0.0855
+  epoch 6/10  loss=0.0816
+  epoch 7/10  loss=0.0723
+  epoch 8/10  loss=0.0639
+  epoch 9/10  loss=0.0803
+  epoch 10/10  loss=0.0588
+  Task 1: 84.1%
+  Task 2: 93.5%
+  Task 3: 98.9%
+BWT for task 3: -0.0931

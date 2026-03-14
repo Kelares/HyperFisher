@@ -1,0 +1,70 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            v9bgxgdkjtyzn7jnevda94mnevabbvl3:
+                codePath: toy_playground/wandb_f+h.py
+                codePathLocal: wandb_f+h.py
+                cpu_count: 14
+                cpu_count_logical: 20
+                cudaVersion: "13.1"
+                disk:
+                    /:
+                        total: "427605082112"
+                        used: "343882170368"
+                email: michalowski.jb@gmail.com
+                executable: /home/kelares/Desktop/thesis/venv_f_h/bin/python
+                git:
+                    commit: 591eb2d066d032d8c3bd26b8850448684dfd3345
+                    remote: https://github.com/Kelares/SSM_benchmark.git
+                gpu: NVIDIA GeForce RTX 3060 Laptop GPU
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 3840
+                      memoryTotal: "6442450944"
+                      name: NVIDIA GeForce RTX 3060 Laptop GPU
+                      uuid: GPU-fe4c318c-118b-9415-a588-d3deb521d1b8
+                host: PAM
+                memory:
+                    total: "41724051456"
+                os: Linux-6.18.4-arch1-1-x86_64-with-glibc2.42
+                program: /home/kelares/Desktop/thesis/toy_playground/wandb_f+h.py
+                python: CPython 3.10.19
+                root: /home/kelares/Desktop/thesis/toy_playground
+                startedAt: "2026-03-13T20:41:37.373944Z"
+                writerId: v9bgxgdkjtyzn7jnevda94mnevabbvl3
+        m: []
+        python_version: 3.10.19
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+                - 41
+            "3":
+                - 16
+            "4": 3.10.19
+            "5": 0.25.0
+            "12": 0.25.0
+            "13": linux-x86_64
+alpha:
+    value: 0.5
+embedding_dim:
+    value: 4
+epochs:
+    value: 10
+grads_per_task:
+    value: 80
+input_dim:
+    value: 784
+lam:
+    value: 0.01
+lr:
+    value: 0.01
+max_directions:
+    value: 400
+num_classes:
+    value: 10
+num_tasks:
+    value: 3
