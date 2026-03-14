@@ -89,12 +89,12 @@ def _build_A_inv(
     F_new: Tensor,  
     lam: float,
 ) -> Tensor:
-    F_new_inv = 1.0 / (F_new + 1e-3)
+    F_new_inv = 1.0 / (F_new + lam)
     scale     = (F_old ** 2) * F_new_inv
     scaled_G  = scale.unsqueeze(1) * G
     A         = G.t() @ scaled_G
-    # A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
-    return torch.linalg.pinv(A, rcond=1e-4)
+    A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+    return torch.linalg.pinv(A)
 
 
 def _fopng_update(
@@ -107,7 +107,6 @@ def _fopng_update(
     lam: float,
     eps: float = 1e-8,
 ) -> tuple[Tensor, float]:
-    fisher_eps = 1e-3
     # ── projection ────────────────────────────────────────────────────
     F_old_g  = F_old * g
     GtFg     = G.t() @ F_old_g
@@ -119,13 +118,10 @@ def _fopng_update(
     rho = (Pg_norm / (g_norm + eps)).item()
 
     # ── unit natural gradient ──────────────────────────────────────────
-    F_new_inv    = 1.0 / (F_new + fisher_eps)
+    F_new_inv    = 1.0 / (F_new + lam)
     F_new_inv_Pg = F_new_inv * Pg
     fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
     
-    # CRITICAL FIX: Clamp denominator to prevent explosion on converged gradients
-    fisher_norm = torch.clamp(fisher_norm, min=1.0)
-
     return -lr * F_new_inv_Pg / fisher_norm, rho
 
 
