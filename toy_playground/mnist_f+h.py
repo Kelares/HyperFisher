@@ -198,7 +198,7 @@ class FOPNG:
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
         g = _flat_grad(model)
         v_star, rho = _fopng_update(
-            g=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
+            gradient=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
         )
         _apply_flat_update(model, v_star)
