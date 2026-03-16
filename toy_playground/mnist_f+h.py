@@ -218,7 +218,54 @@ class FOPNG:
         return torch.linalg.pinv(A)                      # [m, m]
 
 
+# -------------------------------
+# HYPERNETWORK
 
+class HyperNetwork(nn.Module):
+    def __init__(self, device, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.target_network = nn.Sequential(
+            nn.Linear(config.input_dim, 100), 
+            nn.ReLU(),
+            nn.Linear(100, config.num_classes),
+        ).to(device)
+
+        for param in self.target_network.parameters():
+            param.requires_grad = False
+            
+        num_target_params = sum(p.numel() for p in self.target_network.parameters())
+
+        self.task_emb = nn.Embedding(num_embeddings=config.num_tasks, embedding_dim=config.embedding_dim).to(device)
+
+        hyper_input_dim = config.embedding_dim
+        self.layers = nn.Sequential(
+            nn.Linear(hyper_input_dim, 16),
+            nn.ReLU(),
+            nn.Linear(16, num_target_params)
+        ).to(device)
+
+        with torch.no_grad():
+            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.01)
+            torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.1)
+
+        self.target_params = None
+
+    def spawn(self, task_id):
+        t_vec = self.task_emb(task_id).to(device)
+        target_params = self.layers(t_vec).squeeze().to(device)
+        self.target_params = self.get_params_dict(target_params)
+
+    def forward(self, x):
+        return functional_call(self.target_network, self.target_params, x)
+
+    def get_params_dict(self, flat_params):
+        param_dict = {}
+        pointer = 0
+        for name, param in self.target_network.named_parameters():
+            num_param = param.numel()
+            param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
+            pointer += num_param
+        return param_dict
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Low-level utilities
@@ -431,55 +478,7 @@ if __name__ == "__main__":
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(DEVICE)
 
-    class HyperNetwork(nn.Module):
-        def __init__(self, device, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.target_network = nn.Sequential(
-                nn.Linear(config.input_dim, 100), 
-                nn.ReLU(),
-                nn.Linear(100, config.num_classes),
-            ).to(device)
 
-            for param in self.target_network.parameters():
-                param.requires_grad = False
-                
-            num_target_params = sum(p.numel() for p in self.target_network.parameters())
-
-            self.task_emb = nn.Embedding(num_embeddings=config.num_tasks, embedding_dim=config.embedding_dim).to(device)
-            shared_dim = 32
-            self.shared_context = nn.Parameter(torch.randn(1, shared_dim)).to(device)
-
-            hyper_input_dim = config.embedding_dim + shared_dim
-            self.layers = nn.Sequential(
-                nn.Linear(hyper_input_dim, 16),
-                nn.ReLU(),
-                nn.Linear(16, num_target_params)
-            ).to(device)
-
-            with torch.no_grad():
-                torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.01)
-                torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.1)
-
-            self.target_params = None
-
-        def spawn(self, task_id):
-            t_vec = self.task_emb(task_id).to(device)
-            shared = self.shared_context.expand(t_vec.shape[0], -1).to(device)
-            x = torch.cat([t_vec, shared], dim=1).to(device)
-            target_params = self.layers(x).squeeze().to(device)
-            self.target_params = self.get_params_dict(target_params)
-
-        def forward(self, x):
-            return functional_call(self.target_network, self.target_params, x)
-
-        def get_params_dict(self, flat_params):
-            param_dict = {}
-            pointer = 0
-            for name, param in self.target_network.named_parameters():
-                num_param = param.numel()
-                param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
-                pointer += num_param
-            return param_dict
         
     hyper_network = HyperNetwork(device)
     criterion = nn.CrossEntropyLoss()
