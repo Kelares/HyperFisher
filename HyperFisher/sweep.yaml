@@ -1,0 +1,33 @@
+program: main.py
+method: bayes
+metric:
+  name: fopng/eval/average_accuracy  # Or optimize for "fopng/eval/bwt" if you prefer!
+  goal: maximize
+parameters:
+  # 1. Target Task
+  task:
+    value: "permuted_mnist"
+    
+  # 2. Learning Specifics
+  lr:
+    min: 0.0001
+    max: 0.005
+  lam:
+    values: [1e-6, 1e-5, 1e-4, 1e-3]
+  alpha:
+    values: [0.1, 0.25, 0.5, 0.75]
+  fisher_samples:
+    values: [512, 1024]
+  grads_per_task:
+    values: [20, 40, 80]
+    
+  # 3. Model Specifics
+  hyper_hidden_dim:
+    values: [8, 16, 32]
+    
+# This tells W&B how to pass the arguments to your Python script
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}

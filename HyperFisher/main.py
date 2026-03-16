@@ -79,25 +79,10 @@ if __name__ == "__main__":
     device = torch.device(DEVICE)
     wandb.init(
         project="HyperFisher",
-        config={
-            "task": task, 
-            "methods": methods,
-            "device": DEVICE,
-            "lr": lr,           # Adjusted to safe natural gradient range
-            "lam": lam,          # Reverted to safe paper default
-            "alpha": alpha,
-            "grads_per_task": grads_per_task if grads_per_task else task_config.grads_per_task,
-            "max_directions": max_directions if max_directions else task_config.max_directions,
-            "fisher_samples": fisher_samples,
-            
-            "epochs": epochs,
-            "num_tasks": 10,
-            "input_dim": task_config.input_dim,
-            "embedding_dim": embedding_dim,
-            "num_classes": task_config.num_classes
-        }
+        config=vars(args)
     )
     config = wandb.config
+    config.update({"max_directions": config.grads_per_task * 2}, allow_val_change=True)
 
     # Unpack the returned tuples into separate lists
     datasets = [Task.generate(task_id=t) for t in range(10)]
@@ -119,14 +104,20 @@ if __name__ == "__main__":
                     config=config
                 )
                 print("\n--- Starting FOPNG Training ---")
-                train_fopng(
+                results = train_fopng(
                     hyper_network, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
                     fisher_samples=config.fisher_samples
                 )
-            
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"fopng/eval/average_accuracy": average_accuracy})
+
+                
             case "adam":
                 print("\n" + "=" * 60)
                 print("BASELINE COMPARISON (Hypernetwork + Adam)")

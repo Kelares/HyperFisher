@@ -343,3 +343,4 @@ def train_fopng(
     wandb.log({"FOPNG Overlapping Accuracies (Colored)": wandb.Image(plt)})
     plt.close()
 
+    return results
