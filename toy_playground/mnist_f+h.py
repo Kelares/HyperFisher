@@ -108,33 +108,29 @@ def _fopng_update(
     g: Tensor, G: Tensor, F_old: Tensor, F_new: Tensor,
     A_inv: Tensor, lr: float, lam: float, eps: float = 1e-8,
 ) -> tuple[Tensor, float]:
-    fisher_eps = 1e-3  
-
-    # <--- NEW: Cast inputs to Float64 for the projection
-    g_64 = g.to(torch.float64)
-    G_64 = G.to(torch.float64)
-    F_old_64 = F_old.to(torch.float64)
-    A_inv_64 = A_inv.to(torch.float64)
-
-    # ── projection ──
-    F_old_g  = F_old_64 * g_64
-    GtFg     = G_64.t() @ F_old_g
-    coeff    = A_inv_64 @ GtFg
-    Pg_64    = g_64 - F_old_64 * (G_64 @ coeff)
     
-    Pg = Pg_64.to(g.dtype) # <--- Convert back
+    # ── 1. The Projection (Keep this exactly the same!) ──
+    F_old_g  = F_old * g
+    GtFg     = G.t() @ F_old_g
+    coeff    = A_inv @ GtFg
+    Pg       = g - F_old * (G @ coeff)
 
     g_norm = torch.norm(g)
     Pg_norm = torch.norm(Pg)
     rho = (Pg_norm / (g_norm + eps)).item()
 
-    # ── unit natural gradient ──
-    F_new_inv    = 1.0 / (F_new + fisher_eps)
-    F_new_inv_Pg = F_new_inv * Pg
-    fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
-    fisher_norm  = torch.clamp(fisher_norm, min=1.0)
+    # ── 2. The Step (THE FIX) ──
+    # Instead of Natural Gradient (which amplifies sparse zeros), 
+    # we just take a standard step in the safe Projected direction!
+    
+    # Optional: Normalize the projected gradient so the learning rate is strict
+    Pg_length = torch.clamp(Pg_norm, min=eps)
+    v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
+    
+    # OR, if you want standard SGD scaling:
+    # v_star = -lr * Pg 
 
-    return -lr * F_new_inv_Pg / fisher_norm, rho
+    return v_star, rho
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -373,7 +369,7 @@ def train_fopng(
 
     # 1. Log the overlapping FOPNG chart
     wandb.log({
-        "FOPNG Overlapping Accuracies": wandb.plot.line(
+        "FOPNG Overlapping Accuracies": wandb.plot.line_series(
             xs=tasks_completed,
             ys=fopng_lines,
             keys=keys,
