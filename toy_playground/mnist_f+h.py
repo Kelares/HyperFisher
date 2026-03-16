@@ -19,125 +19,8 @@ import matplotlib.pyplot as plt
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Low-level utilities
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _flat_grad(model: nn.Module) -> Tensor:
-    """Flatten all parameter .grad fields into a single vector [D]."""
-    parts = []
-    for p in model.parameters():
-        if p.grad is not None:
-            parts.append(p.grad.detach().view(-1))
-        else:
-            parts.append(p.data.new_zeros(p.numel()))
-    return torch.cat(parts)
-
-
-def _apply_flat_update(model: nn.Module, update: Tensor) -> None:
-    """Add a flat update vector to model parameters in-place: θ ← θ + update."""
-    offset = 0
-    for p in model.parameters():
-        n = p.numel()
-        p.data.add_(update[offset: offset + n].view_as(p))
-        offset += n
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Diagonal Fisher estimation
-# ─────────────────────────────────────────────────────────────────────────────
-
-def compute_fisher_diag(
-    hyper_network: nn.Module,
-    task_id, 
-    loader: DataLoader,
-    criterion: Callable,
-    device: torch.device,
-    max_samples: int = 1024,
-) -> Tensor:
-    hyper_network.eval()
-    D = sum(p.numel() for p in hyper_network.parameters())
-    fisher = torch.zeros(D, device=device)
-    n_seen = 0
-    n_batches = 0 # <--- NEW: Track batches
-
-    with torch.enable_grad():
-        for x, y in loader:
-            x, y = x.to(device), y.to(device)
-            hyper_network.zero_grad()
-            
-            hyper_network.spawn(task_id)
-            output = hyper_network(x)
-
-            loss = criterion(output, y)
-            loss.backward()
-
-            g = _flat_grad(hyper_network)
-            fisher.add_(g.pow(2))
-
-            n_seen += x.size(0)
-            n_batches += 1
-            if n_seen >= max_samples:
-                break
-
-    hyper_network.zero_grad()
-    hyper_network.train()
-    return fisher / max(n_batches, 1)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Core math
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _build_A_inv(
-    G: Tensor, F_old: Tensor, F_new: Tensor, lam: float,
-) -> Tensor:
-    # <--- NEW: Cast to Float64 to prevent catastrophic underflow!
-    G_64 = G.to(torch.float64)
-    F_old_64 = F_old.to(torch.float64)
-    F_new_64 = F_new.to(torch.float64)
-    
-    fisher_eps = 1e-3  
-    F_new_inv = 1.0 / (F_new_64 + fisher_eps)
-    scale     = (F_old_64 ** 2) * F_new_inv
-    scaled_G  = scale.unsqueeze(1) * G_64
-    A         = G_64.t() @ scaled_G
-    
-    A_inv = torch.linalg.pinv(A, rcond=1e-4)
-    return A_inv.to(G.dtype) # <--- Cast back to Float32
-
-def _fopng_update(
-    gradient: Tensor, G: Tensor, F_old: Tensor, F_new: Tensor,
-    A_inv: Tensor, lr: float, lam: float, eps: float = 1e-8,
-) -> tuple[Tensor, float]:
-    
-    # ── 1. The Projection (Keep this exactly the same!) ──
-    F_old_g  = F_old * gradient
-    GtFg     = G.t() @ F_old_g
-    coeff    = A_inv @ GtFg
-    Pg       = gradient - F_old * (G @ coeff)
-
-    g_norm = torch.norm(gradient)
-    Pg_norm = torch.norm(Pg)
-    rho = (Pg_norm / (g_norm + eps)).item()
-
-    # ── 2. The Step (THE FIX) ──
-    # Instead of Natural Gradient (which amplifies sparse zeros), 
-    # we just take a standard step in the safe Projected direction!
-    
-    # Optional: Normalize the projected gradient so the learning rate is strict
-    Pg_length = torch.clamp(Pg_norm, min=eps)
-    v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
-    
-    
-    # OR, if you want standard SGD scaling:
-    # v_star = -lr * Pg 
-    return v_star, rho
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # FOPNG Class
 # ─────────────────────────────────────────────────────────────────────────────
-
 class FOPNG:
     def __init__(
         self,
@@ -162,18 +45,56 @@ class FOPNG:
         self._device: Optional[torch.device] = None
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
-        return compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
+        return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
+    
+    def compute_fisher_diag(
+        self,
+        hyper_network: nn.Module,
+        task_id, 
+        loader: DataLoader,
+        criterion: Callable,
+        device: torch.device,
+        max_samples: int = 1024,
+    ) -> Tensor:
+        hyper_network.eval()
+        D = sum(p.numel() for p in hyper_network.parameters())
+        fisher = torch.zeros(D, device=device)
+        n_seen = 0
+        n_batches = 0 # <--- NEW: Track batches
 
+        with torch.enable_grad():
+            for x, y in loader:
+                x, y = x.to(device), y.to(device)
+                hyper_network.zero_grad()
+                
+                hyper_network.spawn(task_id)
+                output = hyper_network(x)
+
+                loss = criterion(output, y)
+                loss.backward()
+
+                g = _flat_grad(hyper_network)
+                fisher.add_(g.pow(2))
+
+                n_seen += x.size(0)
+                n_batches += 1
+                if n_seen >= max_samples:
+                    break
+
+        hyper_network.zero_grad()
+        hyper_network.train()
+        return fisher / max(n_batches, 1)
+    
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
         self._F_new = F_new
-        self._A_inv = _build_A_inv(self.G, self.F_old, F_new, self.lam)
+        self._A_inv = self._build_A_inv(self.G, self.F_old, F_new, self.lam)
 
     def step(self, model: nn.Module) -> float:
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
         g = _flat_grad(model)
-        v_star, rho = _fopng_update(
-            gradient=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
+        v_star, rho = self._fopng_update(
+            g=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
         )
         _apply_flat_update(model, v_star)
@@ -184,7 +105,7 @@ class FOPNG:
         device = next(hyper_network.parameters()).device
         self._device = device
 
-        F_new = compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+        F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
         if self.F_old is None:
             self.F_old = F_new.clone()
         else:
@@ -224,10 +145,104 @@ class FOPNG:
         hyper_network.train()
         return torch.stack(grads, dim=1)
 
+    def _fopng_update(
+        self,
+        g: Tensor,      # [D]   current task gradient
+        G: Tensor,      # [D, m] gradient memory
+        F_old: Tensor,  # [D]
+        F_new: Tensor,  # [D]
+        A_inv: Tensor,  # [m, m]
+        lr: float,
+        lam: float,
+        eps: float = 1e-8,
+    ) -> Tensor:
+        """
+        Compute v*  (Theorem 1, eq. 5).
+
+        Step 1 — project g:
+            Pg = g  −  F_old G A⁻¹ Gᵀ F_old g
+
+        Step 2 — unit natural gradient *descent* step in F_new metric:
+            v* = -η · F_new⁻¹ Pg / sqrt( Pgᵀ F_new⁻¹ Pg )
+
+        The minus sign is required because g points uphill (gradient of the loss),
+        so F_new⁻¹ Pg also points uphill.  We negate to descend.
+        Applied as  θ ← θ + v*  (i.e. θ ← θ - η · normalised_natural_grad).
+        """
+        # ── projection ────────────────────────────────────────────────────
+        F_old_g  = F_old * g                          # [D]    F_old · g
+        GtFg     = G.t() @ F_old_g                    # [m]    Gᵀ F_old g
+        coeff    = A_inv @ GtFg                        # [m]    A⁻¹ Gᵀ F_old g
+        Pg       = g - F_old * (G @ coeff)             # [D]    Pg = g − F_old G A⁻¹ Gᵀ F_old g
+
+        # Calculate norms
+        g_norm = torch.norm(g)
+        Pg_norm = torch.norm(Pg)
+
+        # Calculate ratio (add epsilon to avoid division by zero)
+        rho = (Pg_norm / (g_norm + 1e-8)).item()
+
+        # ── unit natural gradient ──────────────────────────────────────────
+        F_new_inv    = 1.0 / (F_new + lam)            # [D]
+        F_new_inv_Pg = F_new_inv * Pg                  # [D]    F_new⁻¹ Pg
+        fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)   # scalar
+
+        return -lr * F_new_inv_Pg / fisher_norm, rho      # [D]  negative = descent
+
+    def _build_A_inv(
+        self,
+        G: Tensor,      # [D, m]
+        F_old: Tensor,  # [D]
+        F_new: Tensor,  # [D]
+        lam: float,
+    ) -> Tensor:
+                
+        # ─────────────────────────────────────────────────────────────────────────────
+        # Core math
+        # ─────────────────────────────────────────────────────────────────────────────
+
+        """
+        A  = Gᵀ F_old F_new⁻¹ F_old G  +  λ I      [m × m]
+
+        With diagonal Fishers, row i of (F_old F_new⁻¹ F_old G) is:
+
+            F_old[i]² / F_new[i]  ×  G[i, :]
+
+        Precomputed once per epoch.  Returns A⁻¹  [m × m].
+        """
+        F_new_inv = 1.0 / (F_new + lam)                 # [D]
+        scale     = (F_old ** 2) * F_new_inv             # [D]   F_old² / F_new
+        scaled_G  = scale.unsqueeze(1) * G               # [D, m]
+        A         = G.t() @ scaled_G                     # [m, m]
+        A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+        return torch.linalg.pinv(A)                      # [m, m]
+
+
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Convenience utilities
+# Low-level utilities
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _flat_grad(model: nn.Module) -> Tensor:
+    """Flatten all parameter .grad fields into a single vector [D]."""
+    parts = []
+    for p in model.parameters():
+        if p.grad is not None:
+            parts.append(p.grad.detach().view(-1))
+        else:
+            parts.append(p.data.new_zeros(p.numel()))
+    return torch.cat(parts)
+
+
+def _apply_flat_update(model: nn.Module, update: Tensor) -> None:
+    """Add a flat update vector to model parameters in-place: θ ← θ + update."""
+    offset = 0
+    for p in model.parameters():
+        n = p.numel()
+        p.data.add_(update[offset: offset + n].view_as(p))
+        offset += n
+
 
 def calc_bwt(results: dict):
     bwt = 0
@@ -308,7 +323,7 @@ def train_fopng(
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
             for epoch in range(epochs):
-                F_new = compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+                F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss, total_rho = 0.0, 0.0
                 hyper_network.train()
@@ -395,11 +410,11 @@ if __name__ == "__main__":
         config={
             "lr": 1e-3,           # Adjusted to safe natural gradient range
             "lam": 1e-3,          # Reverted to safe paper default
-            "alpha": 0.1,
+            "alpha": 0.5,
             "grads_per_task": 200, # Shrunk to fit VRAM
             "max_directions": 600,
-            "epochs": 5,
-            "num_tasks": 3,
+            "epochs": 10,
+            "num_tasks": 10,
             "input_dim": 784,
             "embedding_dim": 4,
             "num_classes": 10
