@@ -42,7 +42,6 @@ for lr in "${LR_VALUES[@]}"; do
             # 3. Launch the experiment
             python main.py \
               --task permuted_mnist \
-              --methods fopng \
               --lr $lr \
               --lam $lam \
               --alpha $alpha \

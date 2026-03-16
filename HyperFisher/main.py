@@ -100,7 +100,7 @@ if __name__ == "__main__":
     config = wandb.config
 
     # Unpack the returned tuples into separate lists
-    datasets = [next(Task.generate()) for _ in range(10)]
+    datasets = [Task.generate(task_id=t) for t in range(10)]
 
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
