@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 93, in <module>
+    datasets = [next(Task.generate()) for _ in range(10)]
+  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 93, in <listcomp>
+    datasets = [next(Task.generate()) for _ in range(10)]
+  File "/home/kelares/Desktop/thesis/HyperFisher/tasks/permuted_mnist.py", line 46, in generate
+    train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torchvision/datasets/mnist.py", line 105, in __init__
+    self.data, self.targets = self._load_data()
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torchvision/datasets/mnist.py", line 124, in _load_data
+    data = read_image_file(os.path.join(self.raw_folder, image_file))
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torchvision/datasets/mnist.py", line 555, in read_image_file
+    x = read_sn3_pascalvincent_tensor(path, strict=False)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torchvision/datasets/mnist.py", line 514, in read_sn3_pascalvincent_tensor
+    data = f.read()
+KeyboardInterrupt

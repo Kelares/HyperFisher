@@ -1,0 +1,21 @@
+{
+  "os":  "Linux-6.18.4-arch1-1-x86_64-with-glibc2.42",
+  "python":  "CPython 3.10.19",
+  "startedAt":  "2026-03-16T19:59:32.164201Z",
+  "args":  [
+    "--task",
+    "permuted_mnist"
+  ],
+  "program":  "/home/kelares/Desktop/thesis/HyperFisher/main.py",
+  "codePath":  "HyperFisher/main.py",
+  "codePathLocal":  "main.py",
+  "git":  {
+    "remote":  "https://github.com/Kelares/SSM_benchmark.git",
+    "commit":  "143c67596511de4634bbe0dc82ac270edaa2861f"
+  },
+  "email":  "michalowski.jb@gmail.com",
+  "root":  "/home/kelares/Desktop/thesis/HyperFisher",
+  "host":  "PAM",
+  "executable":  "/home/kelares/Desktop/thesis/venv_f_h/bin/python",
+  "writerId":  "5a07cf03n5ig9ozz4zunxpk03cyupw3d"
+}

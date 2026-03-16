@@ -1,0 +1,92 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            v2vkfd8rjdfubstqcuxx323pxwi7nb34:
+                args:
+                    - --task
+                    - permuted_mnist
+                codePath: HyperFisher/main.py
+                codePathLocal: main.py
+                cpu_count: 14
+                cpu_count_logical: 20
+                cudaVersion: "13.1"
+                disk:
+                    /:
+                        total: "427605082112"
+                        used: "344166985728"
+                email: michalowski.jb@gmail.com
+                executable: /home/kelares/Desktop/thesis/venv_f_h/bin/python
+                git:
+                    commit: 143c67596511de4634bbe0dc82ac270edaa2861f
+                    remote: https://github.com/Kelares/SSM_benchmark.git
+                gpu: NVIDIA GeForce RTX 3060 Laptop GPU
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 3840
+                      memoryTotal: "6442450944"
+                      name: NVIDIA GeForce RTX 3060 Laptop GPU
+                      uuid: GPU-fe4c318c-118b-9415-a588-d3deb521d1b8
+                host: PAM
+                memory:
+                    total: "41724047360"
+                os: Linux-6.18.4-arch1-1-x86_64-with-glibc2.42
+                program: /home/kelares/Desktop/thesis/HyperFisher/main.py
+                python: CPython 3.10.19
+                root: /home/kelares/Desktop/thesis/HyperFisher
+                startedAt: "2026-03-16T20:13:45.332596Z"
+                writerId: v2vkfd8rjdfubstqcuxx323pxwi7nb34
+        m:
+            - "1": task_completed
+              "6":
+                - 3
+              "7": []
+            - "2": fopng/eval/*
+              "5": 1
+              "6":
+                - 1
+              "7": []
+        python_version: 3.10.19
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 7
+                - 16
+            "4": 3.10.19
+            "5": 0.25.0
+            "12": 0.25.0
+            "13": linux-x86_64
+alpha:
+    value: 0.5
+device:
+    value: cuda
+embedding_dim:
+    value: 4
+epochs:
+    value: 10
+grads_per_task:
+    value: 40
+input_dim:
+    value: 784
+lam:
+    value: 0.001
+lr:
+    value: 0.001
+max_directions:
+    value: 80
+methods:
+    value:
+        - fopng
+        - adam
+num_classes:
+    value: 10
+num_tasks:
+    value: 10
+task:
+    value: permuted_mnist

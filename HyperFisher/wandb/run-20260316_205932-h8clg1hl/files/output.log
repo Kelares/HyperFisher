@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 81, in <module>
+    train_loaders = [d[0] for d in datasets]
+  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 81, in <listcomp>
+    train_loaders = [d[0] for d in datasets]
+TypeError: 'generator' object is not subscriptable

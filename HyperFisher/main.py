@@ -1,0 +1,143 @@
+import argparse
+import wandb
+from hyper_network import HyperNetwork
+
+
+import torch
+import torch.nn as nn
+import wandb
+from optimizers.fopng import train_fopng
+from optimizers.adam import train_adam
+import importlib
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Continual Learning Experiments CLI")
+    
+    
+    # ------------------------------
+    # Core parameters
+    # ------------------------------
+
+    # TASK SPECIFIC
+    parser.add_argument("--task", type=str, required=True,
+                        choices=["permuted_mnist"]) #, "rotated_mnist", "split_mnist", "split_cifar10", "split_cifar100"
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--epochs", type=int, default=10)
+    # ------------------------------
+
+    parser.add_argument("--methods", type=str, required=False,
+                        choices=["fopng", "adam"])
+
+    # LEARNING SPECIFIC
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lam", type=float, default=1e-3)
+    parser.add_argument("--alpha", type=float, default=0.5)
+    parser.add_argument("--fisher_samples", type=float, default=1024)
+    parser.add_argument("--grads_per_task", type=int, default=40)
+    parser.add_argument("--max_directions", type=int, default=80)
+    # ------------------------------
+    
+    # MODEL SPECIFIC
+    parser.add_argument("--hyper_hidden_dim", type=int, default=16)
+    parser.add_argument("--embedding_dim", type=int, default=4)
+    # ------------------------------
+
+
+    args = parser.parse_args()
+
+    task = args.task
+    methods = args.methods
+    epochs = args.epochs
+
+    lr = args.lr
+    lam = args.lam
+    alpha = args.alpha
+    fisher_samples = args.fisher_samples
+    embedding_dim = args.embedding_dim
+
+    seed = args.seed
+    grads_per_task = args.grads_per_task
+    max_directions = args.max_directions
+
+    hyper_hidden_dim = args.hyper_hidden_dim
+
+    # Task specific configs
+    task_module = importlib.import_module(f"tasks.{task}")
+    Task = task_module.TaskGenerator
+    task_config = Task.config
+    criterion = nn.CrossEntropyLoss() if task_config.criterion is None else task_config.criterion
+    target_network_shape = Task.target_network
+    ########################
+
+    if methods is None:
+        methods = ["fopng", "adam"]
+
+
+    torch.manual_seed(0)
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device(DEVICE)
+    wandb.init(
+        project="HyperFisher",
+        config={
+            "task": task, 
+            "methods": methods,
+            "device": DEVICE,
+            "lr": lr,           # Adjusted to safe natural gradient range
+            "lam": lam,          # Reverted to safe paper default
+            "alpha": alpha,
+            "grads_per_task": grads_per_task if grads_per_task else task_config.grads_per_task,
+            "max_directions": max_directions if max_directions else task_config.max_directions,
+            "fisher_samples": fisher_samples,
+            
+            "epochs": epochs,
+            "num_tasks": 10,
+            "input_dim": task_config.input_dim,
+            "embedding_dim": embedding_dim,
+            "num_classes": task_config.num_classes
+        }
+    )
+    config = wandb.config
+
+    # Unpack the returned tuples into separate lists
+    datasets = [next(Task.generate()) for _ in range(10)]
+
+    train_loaders = [d[0] for d in datasets]
+    test_loaders = [d[1] for d in datasets]
+
+
+    # Tell W&B to use 'task_completed' as the x-axis for all eval metrics
+    wandb.define_metric("task_completed")
+    for method in methods:
+        wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
+            
+        match method:
+            case "fopng":
+                hyper_network = HyperNetwork(
+                    target_network_template=target_network_shape, 
+                    device=device, 
+                    config=config
+                )
+                print("\n--- Starting FOPNG Training ---")
+                train_fopng(
+                    hyper_network, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
+                    fisher_samples=config.fisher_samples
+                )
+            
+            case "adam":
+                print("\n" + "=" * 60)
+                print("BASELINE COMPARISON (Hypernetwork + Adam)")
+                print("=" * 60)
+
+                hyper_network = HyperNetwork(
+                    target_network_template=target_network_shape, 
+                    device=device, 
+                    config=config
+                )
+                train_adam(
+                    hyper_network, train_loaders, test_loaders, criterion,
+                    lr=config.lr, epochs=config.epochs  
+                )
