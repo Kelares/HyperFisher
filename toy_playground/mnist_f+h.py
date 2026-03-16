@@ -109,7 +109,7 @@ def _fopng_update(
     A_inv: Tensor, lr: float, lam: float, eps: float = 1e-8,
 ) -> tuple[Tensor, float]:
     
-    # # ── 1. The Projection (Keep this exactly the same!) ──
+    # ── 1. The Projection (Keep this exactly the same!) ──
     # F_old_g  = F_old * g
     # GtFg     = G.t() @ F_old_g
     # coeff    = A_inv @ GtFg
@@ -127,13 +127,16 @@ def _fopng_update(
     # Pg_length = torch.clamp(Pg_norm, min=eps)
     # v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
     
+    
     # OR, if you want standard SGD scaling:
     # v_star = -lr * Pg 
 
+
+
     F_old_sqrt = torch.sqrt(F_old + 1e-10)
-    g_fisher = F_old_sqrt * gradient
+    # g_fisher = F_old_sqrt * gradient
     
-    F_new_inv_diag = 1.0 / (F_new + lam)
+    # F_new_inv_diag = 1.0 / (F_new + lam)
     
     # Original projection logic
     F_old_g = F_old * gradient
@@ -145,10 +148,13 @@ def _fopng_update(
     g_norm = torch.norm(gradient)
     Pg_norm = torch.norm(P_g)
     rho = (Pg_norm / (g_norm + eps)).item()
-    
-    F_new_inv_P_g = P_g * F_new_inv_diag
-    denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
-    v_star = -lr * F_new_inv_P_g / (denom + 1e-8)
+    Pg_length = torch.clamp(Pg_norm, min=eps)
+
+    v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
+
+    # F_new_inv_P_g = P_g * F_new_inv_diag
+    # denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
+    # v_star = -lr * F_new_inv_P_g / (denom + 1e-8)
 
     return v_star, rho
 
