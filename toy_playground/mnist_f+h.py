@@ -150,7 +150,7 @@ def _fopng_update(
     rho = (Pg_norm / (g_norm + eps)).item()
     Pg_length = torch.clamp(Pg_norm, min=eps)
 
-    v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
+    v_star = -lr * (P_g / Pg_length) # Takes a step of exactly size `lr`
 
     # F_new_inv_P_g = P_g * F_new_inv_diag
     # denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
