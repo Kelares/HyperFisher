@@ -391,8 +391,8 @@ if __name__ == "__main__":
             "lr": 1e-3,           # Adjusted to safe natural gradient range
             "lam": 1e-3,          # Reverted to safe paper default
             "alpha": 0.5,
-            "grads_per_task": 40, # Shrunk to fit VRAM
-            "max_directions": 120,
+            "grads_per_task": 200, # Shrunk to fit VRAM
+            "max_directions": 600,
             "epochs": 5,
             "num_tasks": 3,
             "input_dim": 784,
