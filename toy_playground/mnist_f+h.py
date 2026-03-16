@@ -501,29 +501,35 @@ if __name__ == "__main__":
     )
 
     print("\n" + "=" * 60)
-    print("baseline COMPARISON")
+    print("BASELINE COMPARISON (Hypernetwork + Adam)")
     print("=" * 60)
 
-    # Simplified Baseline Model (No hypernetwork, just direct parameters)
-    model_baseline = nn.Sequential(
-        nn.Linear(config.input_dim, 100), nn.ReLU(),
-        nn.Linear(100, config.num_classes),
-    ).to(device)
+    # 1. FIXED: Initialize a completely fresh Hypernetwork for a fair comparison
+    baseline_hyper_network = HyperNetwork(device)
+    baseline_opt = torch.optim.Adam(baseline_hyper_network.parameters(), lr=config.lr)
     
-    baseline = torch.optim.Adam(model_baseline.parameters(), lr=config.lr)
     results_baseline = {}
     global_epoch_baseline = 0
     
     for t, loader in enumerate(train_loaders):
+        # 2. FIXED: Create the task_id tensor for the baseline
+        task_id = torch.tensor([t], dtype=torch.long, device=device)
+        
         for epoch in range(config.epochs):
             total_loss = 0.0
-            model_baseline.train()
+            baseline_hyper_network.train()
+            
             for x, y in loader:
                 x, y = x.to(device), y.to(device)
-                baseline.zero_grad()
-                loss = criterion(model_baseline(x), y)
+                baseline_opt.zero_grad()
+                
+                # 3. FIXED: Spawn the target parameters
+                baseline_hyper_network.spawn(task_id)
+                output = baseline_hyper_network(x)
+                
+                loss = criterion(output, y)
                 loss.backward()
-                baseline.step()
+                baseline_opt.step()
                 total_loss += loss.item()
 
             avg_loss = total_loss/len(loader)
@@ -535,10 +541,10 @@ if __name__ == "__main__":
         results_baseline[t+1] = []
         eval_metrics_baseline = {"task_completed": t+1}
         
-        # CHANGED: Iterate over every single task, seen or unseen!
         for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
-            acc = evaluate_accuracy(model_baseline, test_loaders[i], eval_task_id)
+            # 4. FIXED: Evaluate the baseline hypernetwork, not the MLP
+            acc = evaluate_accuracy(baseline_hyper_network, test_loaders[i], eval_task_id)
             results_baseline[t+1].append(acc)
             eval_metrics_baseline[f"baseline/eval/acc_task_{i+1}"] = acc
             print(f"  Task {i+1}: {acc*100:.1f}%")
@@ -551,28 +557,34 @@ if __name__ == "__main__":
         wandb.log(eval_metrics_baseline)
 
     # ─────────────────────────────────────────────────────────────────────────────
-    # Force W&B to generate overlapping Custom Charts
+    # Force W&B to generate overlapping Custom Charts with SOLID COLORS
     # ─────────────────────────────────────────────────────────────────────────────
-    tasks_completed = sorted(list(results_baseline.keys())) # [1, 2, 3]
+    import matplotlib.pyplot as plt
+    
+    tasks_completed = sorted(list(results_baseline.keys())) 
     num_eval_tasks = len(test_loaders)
 
-    baseline_lines = []
-    keys = []
-
-    # Format the data for W&B's line_series
+    # 5. FIXED: Use matplotlib to strictly enforce colored solid lines
+    plt.figure(figsize=(10, 6))
+    
+    # Define a clean, distinct color palette
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+    
     for i in range(num_eval_tasks):
-        baseline_lines.append([results_baseline[t][i] for t in tasks_completed])
-        keys.append(f"Task {i+1} Acc")
+        accs = [results_baseline[t][i] for t in tasks_completed]
+        # Force solid line (linestyle='-') and cycle through colors
+        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5, 
+                 color=colors[i % len(colors)], label=f"Task {i+1}")
 
-    # 1. Log the overlapping Baseline chart
-    wandb.log({
-        "Baseline Overlapping Accuracies": wandb.plot.line_series(
-            xs=tasks_completed,
-            ys=baseline_lines,
-            keys=keys,
-            title="Baseline (Adam): All Tasks",
-            xname="task_completed"
-        )
-    })
+    plt.title("Baseline (Adam Hypernetwork): All Tasks", fontsize=14, fontweight='bold')
+    plt.xlabel("Tasks Completed", fontsize=12)
+    plt.ylabel("Test Accuracy", fontsize=12)
+    plt.xticks(tasks_completed)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend(title="Evaluated Task", loc="lower left")
+    
+    # Log the cleanly colored plot directly to W&B
+    wandb.log({"Baseline Overlapping Accuracies (Colored)": wandb.Image(plt)})
+    plt.close()
 
     wandb.finish()
