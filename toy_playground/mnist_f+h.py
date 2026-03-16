@@ -57,6 +57,7 @@ def compute_fisher_diag(
     D = sum(p.numel() for p in hyper_network.parameters())
     fisher = torch.zeros(D, device=device)
     n_seen = 0
+    n_batches = 0 # <--- NEW: Track batches
 
     with torch.enable_grad():
         for x, y in loader:
@@ -68,15 +69,18 @@ def compute_fisher_diag(
 
             loss = criterion(output, y)
             loss.backward()
+
             g = _flat_grad(hyper_network)
             fisher.add_(g.pow(2))
+
             n_seen += x.size(0)
+            n_batches += 1
             if n_seen >= max_samples:
                 break
 
     hyper_network.zero_grad()
     hyper_network.train()
-    return fisher / max(n_seen, 1)
+    return fisher / max(n_batches, 1)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -84,44 +88,52 @@ def compute_fisher_diag(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_A_inv(
-    G: Tensor,      
-    F_old: Tensor,  
-    F_new: Tensor,  
-    lam: float,
+    G: Tensor, F_old: Tensor, F_new: Tensor, lam: float,
 ) -> Tensor:
-    F_new_inv = 1.0 / (F_new + lam)
-    scale     = (F_old ** 2) * F_new_inv
-    scaled_G  = scale.unsqueeze(1) * G
-    A         = G.t() @ scaled_G
-    A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
-    return torch.linalg.pinv(A)
-
+    # <--- NEW: Cast to Float64 to prevent catastrophic underflow!
+    G_64 = G.to(torch.float64)
+    F_old_64 = F_old.to(torch.float64)
+    F_new_64 = F_new.to(torch.float64)
+    
+    fisher_eps = 1e-3  
+    F_new_inv = 1.0 / (F_new_64 + fisher_eps)
+    scale     = (F_old_64 ** 2) * F_new_inv
+    scaled_G  = scale.unsqueeze(1) * G_64
+    A         = G_64.t() @ scaled_G
+    
+    A_inv = torch.linalg.pinv(A, rcond=1e-4)
+    return A_inv.to(G.dtype) # <--- Cast back to Float32
 
 def _fopng_update(
-    g: Tensor,
-    G: Tensor,
-    F_old: Tensor,
-    F_new: Tensor,
-    A_inv: Tensor,
-    lr: float,
-    lam: float,
-    eps: float = 1e-8,
+    g: Tensor, G: Tensor, F_old: Tensor, F_new: Tensor,
+    A_inv: Tensor, lr: float, lam: float, eps: float = 1e-8,
 ) -> tuple[Tensor, float]:
-    # ── projection ────────────────────────────────────────────────────
-    F_old_g  = F_old * g
-    GtFg     = G.t() @ F_old_g
-    coeff    = A_inv @ GtFg
-    Pg       = g - F_old * (G @ coeff)
+    fisher_eps = 1e-3  
+
+    # <--- NEW: Cast inputs to Float64 for the projection
+    g_64 = g.to(torch.float64)
+    G_64 = G.to(torch.float64)
+    F_old_64 = F_old.to(torch.float64)
+    A_inv_64 = A_inv.to(torch.float64)
+
+    # ── projection ──
+    F_old_g  = F_old_64 * g_64
+    GtFg     = G_64.t() @ F_old_g
+    coeff    = A_inv_64 @ GtFg
+    Pg_64    = g_64 - F_old_64 * (G_64 @ coeff)
+    
+    Pg = Pg_64.to(g.dtype) # <--- Convert back
 
     g_norm = torch.norm(g)
     Pg_norm = torch.norm(Pg)
     rho = (Pg_norm / (g_norm + eps)).item()
 
-    # ── unit natural gradient ──────────────────────────────────────────
-    F_new_inv    = 1.0 / (F_new + lam)
+    # ── unit natural gradient ──
+    F_new_inv    = 1.0 / (F_new + fisher_eps)
     F_new_inv_Pg = F_new_inv * Pg
     fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
-    
+    fisher_norm  = torch.clamp(fisher_norm, min=1.0)
+
     return -lr * F_new_inv_Pg / fisher_norm, rho
 
 
@@ -361,7 +373,7 @@ def train_fopng(
 
     # 1. Log the overlapping FOPNG chart
     wandb.log({
-        "FOPNG Overlapping Accuracies": wandb.plot.line_series(
+        "FOPNG Overlapping Accuracies": wandb.plot.line(
             xs=tasks_completed,
             ys=fopng_lines,
             keys=keys,
