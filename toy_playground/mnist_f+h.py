@@ -15,6 +15,7 @@ from torch.func import functional_call
 import torchvision
 from torchvision import transforms
 import wandb
+import matplotlib.pyplot as plt
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -110,52 +111,26 @@ def _fopng_update(
 ) -> tuple[Tensor, float]:
     
     # ── 1. The Projection (Keep this exactly the same!) ──
-    # F_old_g  = F_old * g
-    # GtFg     = G.t() @ F_old_g
-    # coeff    = A_inv @ GtFg
-    # Pg       = g - F_old * (G @ coeff)
+    F_old_g  = F_old * gradient
+    GtFg     = G.t() @ F_old_g
+    coeff    = A_inv @ GtFg
+    Pg       = gradient - F_old * (G @ coeff)
 
-    # g_norm = torch.norm(g)
-    # Pg_norm = torch.norm(Pg)
-    # rho = (Pg_norm / (g_norm + eps)).item()
+    g_norm = torch.norm(gradient)
+    Pg_norm = torch.norm(Pg)
+    rho = (Pg_norm / (g_norm + eps)).item()
 
-    # # ── 2. The Step (THE FIX) ──
-    # # Instead of Natural Gradient (which amplifies sparse zeros), 
-    # # we just take a standard step in the safe Projected direction!
+    # ── 2. The Step (THE FIX) ──
+    # Instead of Natural Gradient (which amplifies sparse zeros), 
+    # we just take a standard step in the safe Projected direction!
     
-    # # Optional: Normalize the projected gradient so the learning rate is strict
-    # Pg_length = torch.clamp(Pg_norm, min=eps)
-    # v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
+    # Optional: Normalize the projected gradient so the learning rate is strict
+    Pg_length = torch.clamp(Pg_norm, min=eps)
+    v_star = -lr * (Pg / Pg_length) # Takes a step of exactly size `lr`
     
     
     # OR, if you want standard SGD scaling:
     # v_star = -lr * Pg 
-
-
-
-    F_old_sqrt = torch.sqrt(F_old + 1e-10)
-    # g_fisher = F_old_sqrt * gradient
-    
-    # F_new_inv_diag = 1.0 / (F_new + lam)
-    
-    # Original projection logic
-    F_old_g = F_old * gradient
-    G_T_F_old_g = G.T @ F_old_g
-    A_inv_G_T_F_old_g = A_inv @ G_T_F_old_g
-    correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old.squeeze()
-    P_g = gradient - correction
-
-    g_norm = torch.norm(gradient)
-    Pg_norm = torch.norm(P_g)
-    rho = (Pg_norm / (g_norm + eps)).item()
-    Pg_length = torch.clamp(Pg_norm, min=eps)
-
-    v_star = -lr * (P_g / Pg_length) # Takes a step of exactly size `lr`
-
-    # F_new_inv_P_g = P_g * F_new_inv_diag
-    # denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
-    # v_star = -lr * F_new_inv_P_g / (denom + 1e-8)
-
     return v_star, rho
 
 
@@ -385,24 +360,28 @@ def train_fopng(
     tasks_completed = sorted(list(results.keys())) # [1, 2, 3]
     num_eval_tasks = len(test_loaders)
 
-    fopng_lines = []
-    keys = []
-
-    # Format the data for W&B's line_series
-    for i in range(num_eval_tasks):
-        fopng_lines.append([results[t][i] for t in tasks_completed])
-        keys.append(f"Task {i+1} Acc")
-
     # 1. Log the overlapping FOPNG chart
-    wandb.log({
-        "FOPNG Overlapping Accuracies": wandb.plot.line_series(
-            xs=tasks_completed,
-            ys=fopng_lines,
-            keys=keys,
-            title="FOPNG: All Tasks",
-            xname="task_completed"
-        )
-    })
+    plt.figure(figsize=(10, 6))
+    
+    # Define a clean, distinct color palette
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+    
+    for i in range(num_eval_tasks):
+        accs = [results[t][i] for t in tasks_completed]
+        # Force solid line (linestyle='-') and cycle through colors
+        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5, 
+                 color=colors[i % len(colors)], label=f"Task {i+1}")
+
+    plt.title("FOPNG Hypernetwork: All Tasks", fontsize=14, fontweight='bold')
+    plt.xlabel("Tasks Completed", fontsize=12)
+    plt.ylabel("Test Accuracy", fontsize=12)
+    plt.xticks(tasks_completed)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend(title="Evaluated Task", loc="lower left")
+    
+    # Log the cleanly colored plot directly to W&B
+    wandb.log({"FOPNG Overlapping Accuracies (Colored)": wandb.Image(plt)})
+    plt.close()
     return fopng
 
 
@@ -416,7 +395,7 @@ if __name__ == "__main__":
         config={
             "lr": 1e-3,           # Adjusted to safe natural gradient range
             "lam": 1e-3,          # Reverted to safe paper default
-            "alpha": 0.5,
+            "alpha": 0.1,
             "grads_per_task": 200, # Shrunk to fit VRAM
             "max_directions": 600,
             "epochs": 5,
@@ -585,7 +564,6 @@ if __name__ == "__main__":
     # ─────────────────────────────────────────────────────────────────────────────
     # Force W&B to generate overlapping Custom Charts with SOLID COLORS
     # ─────────────────────────────────────────────────────────────────────────────
-    import matplotlib.pyplot as plt
     
     tasks_completed = sorted(list(results_baseline.keys())) 
     num_eval_tasks = len(test_loaders)
