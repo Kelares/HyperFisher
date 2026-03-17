@@ -56,16 +56,18 @@ class FOPNG:
         n_seen = 0
         n_batches = 0 # <--- NEW: Track batches
 
+        hyper_network.eval()
+        hyper_network.spawn(task_id)
+
         with torch.enable_grad():
             for x, y in loader:
                 x, y = x.to(device), y.to(device)
                 hyper_network.zero_grad()
                 
-                hyper_network.spawn(task_id)
                 output = hyper_network(x)
 
                 loss = criterion(output, y)
-                loss.backward()
+                loss.backward(retain_graph=True)
 
                 g = _flat_grad(hyper_network)
                 fisher.add_(g.pow(2))
@@ -122,6 +124,7 @@ class FOPNG:
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
         grads: List[Tensor] = []
         hyper_network.eval()
+        hyper_network.spawn(task_id)
 
         with torch.enable_grad():
             for x, y in loader:
@@ -129,11 +132,10 @@ class FOPNG:
                     break
                 x, y = x.to(self._device), y.to(self._device)
                 hyper_network.zero_grad()
-                hyper_network.spawn(task_id)
 
                 output = hyper_network(x)
                 loss = criterion(output, y)
-                loss.backward()
+                loss.backward(retain_graph=True)
                 grads.append(_flat_grad(hyper_network).clone())
         hyper_network.zero_grad()
         hyper_network.train()
