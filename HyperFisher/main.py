@@ -24,6 +24,8 @@ if __name__ == "__main__":
                         choices=["permuted_mnist"]) #, "rotated_mnist", "split_mnist", "split_cifar10", "split_cifar100"
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--number_of_tasks", type=int, default=10)
+
     # ------------------------------
 
     parser.add_argument("--methods", type=str, required=False,
@@ -85,7 +87,7 @@ if __name__ == "__main__":
     config.update({"max_directions": config.grads_per_task * 2}, allow_val_change=True)
 
     # Unpack the returned tuples into separate lists
-    datasets = [Task.generate(task_id=t) for t in range(10)]
+    datasets = [Task.generate(task_id=t) for t in range(config.number_of_tasks)]
 
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
