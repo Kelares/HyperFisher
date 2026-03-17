@@ -87,7 +87,7 @@ if __name__ == "__main__":
     config.update({"max_directions": config.grads_per_task * 2}, allow_val_change=True)
 
     # Unpack the returned tuples into separate lists
-    datasets = [Task.generate(task_id=t) for t in range(config.number_of_tasks)]
+    datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]
 
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
