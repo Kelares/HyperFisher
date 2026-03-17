@@ -24,7 +24,6 @@ if __name__ == "__main__":
                         choices=["permuted_mnist"]) #, "rotated_mnist", "split_mnist", "split_cifar10", "split_cifar100"
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--num_tasks", type=int, default=80)
 
     # ------------------------------
 
@@ -85,6 +84,7 @@ if __name__ == "__main__":
     )
     config = wandb.config
     config.update({"max_directions": config.grads_per_task * 2}, allow_val_change=True)
+    config.update({"num_tasks": task_config.num_tasks})
 
     # Unpack the returned tuples into separate lists
     datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]

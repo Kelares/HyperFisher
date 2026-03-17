@@ -23,7 +23,8 @@ class TaskGenerator:
         "num_classes": 10,
         "grads_per_task": 80,
         "max_directions": 400,
-        "criterion": nn.CrossEntropyLoss()
+        "criterion": nn.CrossEntropyLoss(),
+        "num_tasks": 10
     }
     config = SimpleNamespace(**config)
 
