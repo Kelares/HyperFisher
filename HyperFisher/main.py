@@ -27,9 +27,13 @@ if __name__ == "__main__":
 
     # ------------------------------
 
-    parser.add_argument("--methods", type=str, required=False,
-                        choices=["fopng", "adam"])
-
+    parser.add_argument(
+        "--methods", 
+        nargs='+', 
+        required=False,
+        default=["fopng", "adam"],
+        choices=["sgd", "adam", "ogd", "fopng", "fopng_prefisher", "fng", "ewc"],
+    )
     # LEARNING SPECIFIC
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--lam", type=float, default=1e-3)
@@ -95,6 +99,7 @@ if __name__ == "__main__":
 
     # Tell W&B to use 'task_completed' as the x-axis for all eval metrics
     wandb.define_metric("task_completed")
+    print(methods)
     for method in methods:
         wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
             
