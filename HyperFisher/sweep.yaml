@@ -1,31 +1,60 @@
 program: main.py
 method: bayes
 metric:
-  name: fopng/eval/average_accuracy  # Or optimize for "fopng/eval/bwt" if you prefer!
+  name: fopng/eval/average_accuracy  # Optimize for retention, not speed!
   goal: maximize
 parameters:
-  # 1. Target Task
+  # --- CONSTANTS (Keep these locked for a fair comparison) ---
   task:
     value: "permuted_mnist"
-    
-  # 2. Learning Specifics
-  lr:
-    min: 0.0001
-    max: 0.005
-  lam:
-    values: [1e-6, 1e-5, 1e-4, 1e-3]
-  alpha:
-    values: [0.1, 0.25, 0.5, 0.75]
-  fisher_samples:
-    values: [512, 1024]
-  grads_per_task:
-    values: [20, 40, 80]
-    
-  # 3. Model Specifics
+  methods:
+    value: "fopng"
+  num_tasks:
+    value: 10
+  seed:
+    value: 1234
+
+  # --- MODEL ARCHITECTURE ---
   hyper_hidden_dim:
-    values: [8, 16, 32]
-    
-# This tells W&B how to pass the arguments to your Python script
+    distribution: int_uniform
+    min: 4
+    max: 64
+  embedding_dim:
+    distribution: int_uniform
+    min: 2
+    max: 8
+
+  # --- FOPNG MEMORY ---
+  grads_per_task:
+    distribution: int_uniform
+    min: 10
+    max: 160
+    # Note: max_directions is intentionally removed. 
+    # Ensure main.py sets: config.max_directions = config.grads_per_task * 2
+  fisher_samples:
+    distribution: int_uniform
+    min: 256
+    max: 2048
+  alpha:
+    distribution: uniform
+    min: 0.05
+    max: 1.0
+
+  # --- OPTIMIZATION (Using log_uniform for orders of magnitude) ---
+  lam:
+    distribution: log_uniform_values
+    min: 5e-06
+    max: 0.002
+  lr:
+    distribution: log_uniform_values
+    min: 0.00038
+    max: 0.0085
+  epochs:
+    distribution: int_uniform
+    min: 5
+    max: 20
+
+# Command formatting to safely pass args to main.py
 command:
   - ${env}
   - python
