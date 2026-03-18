@@ -88,7 +88,6 @@ if __name__ == "__main__":
         config=vars(args)
     )
     config = wandb.config
-    config.update({"max_directions": config.grads_per_task * 2}, allow_val_change=True)
     config.update({"num_tasks": task_config.num_tasks})
 
     # Unpack the returned tuples into separate lists
