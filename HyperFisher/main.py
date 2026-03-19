@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # LEARNING SPECIFIC
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--lam", type=float, default=1e-3)
-    parser.add_argument("--alpha", type=float, default=0.5)
+    parser.add_argument("--alpha", type=float, default=0.3)
     parser.add_argument("--fisher_samples", type=float, default=1024)
     parser.add_argument("--grads_per_task", type=int, default=40)
     parser.add_argument("--max_directions", type=int, default=80)

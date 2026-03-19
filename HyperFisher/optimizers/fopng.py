@@ -38,6 +38,7 @@ class FOPNG:
         self._A_inv: Optional[Tensor] = None
         self._device: Optional[torch.device] = None
         self.debug = 1
+        self.all_fishers = []
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -103,10 +104,18 @@ class FOPNG:
         self._device = device
 
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+        
         if self.F_old is None:
             self.F_old = F_new.clone()
         else:
             self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
+            fisher_overlap = {
+                task_id+1: {
+                    "cosine: " : self._cosine_similarity(self.F_old, F_new)},
+                    "pearson" : np.corrcoef(self.F_old, F_new),
+                    "Top-K_IoU" : self._calculate_topk_iou(self.F_old, F_new)
+                }
+
 
         new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
         self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
@@ -134,6 +143,7 @@ class FOPNG:
             "fopng/fisher/max": self.F_old.max().item(),
             "fopng/fisher/mean": self.F_old.mean().item(),
             "fopng/memory/G_cols": self.G.shape[1],
+            "fopng/fisher/Fisher_Overlap": fisher_overlap,
             "task_completed": task_id.item() + 1
         })
 
@@ -228,8 +238,61 @@ class FOPNG:
         A         = G.t() @ scaled_G                     # [m, m]
         A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
         return torch.linalg.pinv(A)                      # [m, m]
+    
+    def _cosine_similarity(self, F_a, F_b):
+        # Even though Fisher Matrix would have a different norm form if I used a full matrix,
+        #  a diagonal one has the default euclidian form as it is just a vector.
+        #   F_a o F_B    /
+        #||F_a||||F_b||
+        return np.dot(F_a, F_b)/(torch.sqrt((F_a).sum()) * torch.sqrt((F_b).sum()))
+        
 
-
+    def _calculate_topk_iou(f_a, f_b, k_fraction=0.10):
+        """
+        Calculates the IoU of the top K important parameters between two Fisher matrices.
+        
+        Args:
+            f_a (torch.Tensor): 1D tensor of diagonal Fisher values for Task A.
+            f_b (torch.Tensor): 1D tensor of diagonal Fisher values for Task B.
+            k_fraction (float): The percentage of total parameters to consider as "Top K".
+                                Default is 0.10 (Top 10%).
+                                
+        Returns:
+            float: The Intersection over Union (IoU) score between 0.0 and 1.0.
+        """
+        # 1. Flatten tensors to 1D (assuming they are diagonal approximations)
+        f_a = f_a.view(-1)
+        f_b = f_b.view(-1)
+        
+        assert f_a.shape == f_b.shape, "Fisher vectors must have the same size."
+        
+        # 2. Determine K based on the total number of parameters
+        total_params = f_a.numel()
+        k = int(total_params * k_fraction)
+        
+        if k == 0:
+            return 0.0
+        
+        # 3. Get the indices of the Top K values for both tasks
+        # torch.topk returns a tuple of (values, indices). We only need the indices.
+        _, indices_a = torch.topk(f_a, k)
+        _, indices_b = torch.topk(f_b, k)
+        
+        # 4. Calculate Intersection using pure PyTorch (Fast on GPU)
+        # Concatenate the two index tensors
+        combined_indices = torch.cat((indices_a, indices_b))
+        
+        # Count how many times each index appears
+        # An index appearing 2 times means it exists in both Top-K sets (Intersection)
+        _, counts = combined_indices.unique(return_counts=True)
+        intersection_size = (counts > 1).sum().item()
+        
+        # 5. Calculate Union and IoU
+        union_size = (2 * k) - intersection_size
+        
+        iou = intersection_size / union_size
+        
+        return iou
 
 def train_fopng(
     hyper_network: nn.Module,
