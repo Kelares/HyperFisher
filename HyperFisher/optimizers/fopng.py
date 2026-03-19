@@ -107,13 +107,14 @@ class FOPNG:
         
         if self.F_old is None:
             self.F_old = F_new.clone()
+            fisher_overlap = None
         else:
             self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
             fisher_overlap = {
                 task_id+1: {
                     "cosine: " : self._cosine_similarity(self.F_old, F_new)},
-                    "pearson" : np.corrcoef(self.F_old, F_new),
-                    "Top-K_IoU" : self._calculate_topk_iou(self.F_old, F_new)
+                    "pearson: " : np.corrcoef(self.F_old, F_new),
+                    "Top-K_IoU: " : self._calculate_topk_iou(self.F_old, F_new)
                 }
 
 
