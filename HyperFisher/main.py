@@ -9,7 +9,7 @@ import wandb
 from optimizers.fopng import train_fopng
 from optimizers.adam import train_adam
 import importlib
-
+from utils import stress_test_fopng_memory
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Continual Learning Experiments CLI")
@@ -83,6 +83,8 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(DEVICE)
+
+    stress_test_fopng_memory()
     wandb.init(
         project="HyperFisher",
         config=vars(args)
