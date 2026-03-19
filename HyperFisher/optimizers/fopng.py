@@ -37,6 +37,7 @@ class FOPNG:
         self._F_new: Optional[Tensor] = None
         self._A_inv: Optional[Tensor] = None
         self._device: Optional[torch.device] = None
+        self.debug = 1
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -111,8 +112,14 @@ class FOPNG:
         self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
         if self.G.shape[1] > self.max_directions:
-            # Uniformly sample indices across the entire chronological history
-            # This ensures every task gets an equal slice of the max_directions budget
+            if self.debug:
+                print("MAX N OF G REACHED: ", self.G.shape[1], "\n ##########################  \n", self.G)
+                self.debug += 1
+                if self.debug == 3:
+                    self.debug = 0
+                    
+            # Uniformly sample indices across the entire chronological history. THE COLUMNS
+            # This ensures every task gets an equal slice of the max_directions budget. Because the order is chronological
             indices = torch.linspace(
                 0, self.G.shape[1] - 1, 
                 steps=self.max_directions, 
