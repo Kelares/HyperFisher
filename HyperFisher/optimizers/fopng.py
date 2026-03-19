@@ -111,11 +111,15 @@ class FOPNG:
         self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
         if self.G.shape[1] > self.max_directions:
-             
-            U, S, V = torch.linalg.svd(self.G, full_matrices=False)
-                
-            # Keep the top 'max_directions' principal components
-            self.G = U[:, :self.max_directions]          
+            # Uniformly sample indices across the entire chronological history
+            # This ensures every task gets an equal slice of the max_directions budget
+            indices = torch.linspace(
+                0, self.G.shape[1] - 1, 
+                steps=self.max_directions, 
+                dtype=torch.long, 
+                device=self._device
+            )
+            self.G = self.G[:, indices]
 
 
         wandb.log({
