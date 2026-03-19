@@ -84,13 +84,14 @@ if __name__ == "__main__":
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(DEVICE)
 
-    stress_test_fopng_memory()
     wandb.init(
         project="HyperFisher",
         config=vars(args)
     )
+
     config = wandb.config
     config.update({"num_tasks": task_config.num_tasks})
+    stress_test_fopng_memory()
 
     # Unpack the returned tuples into separate lists
     datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]
