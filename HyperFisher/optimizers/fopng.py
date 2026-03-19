@@ -113,7 +113,7 @@ class FOPNG:
             fisher_overlap = {
                 task_id+1: {
                     "cosine: " : self._cosine_similarity(self.F_old, F_new)},
-                    "pearson: " : np.corrcoef(self.F_old, F_new),
+                    "pearson: " : self._pearson_correlation(self.F_old, F_new),
                     "Top-K_IoU: " : self._calculate_topk_iou(self.F_old, F_new)
                 }
 
@@ -253,7 +253,35 @@ class FOPNG:
         norm_b = torch.norm(F_b_flat, p=2)
         
         return (dot_product / (norm_a * norm_b)).item()
+    
+
+    def _pearson_correlation(self, F_a, F_b):
+        """
+        Calculates the Pearson correlation coefficient between two tensors on the GPU.
+        Pure PyTorch implementation
+        """
+        # 1. Flatten the tensors
+        F_a_flat = F_a.view(-1)
+        F_b_flat = F_b.view(-1)
         
+        # 2. Calculate the means
+        mean_a = torch.mean(F_a_flat)
+        mean_b = torch.mean(F_b_flat)
+        
+        # 3. Mean-center the tensors
+        A_centered = F_a_flat - mean_a
+        B_centered = F_b_flat - mean_b
+        
+        # 4. Calculate covariance (numerator) and variances (denominator components)
+        covariance = torch.sum(A_centered * B_centered)
+        var_a = torch.sum(A_centered ** 2)
+        var_b = torch.sum(B_centered ** 2)
+        
+        # 5. Calculate final coefficient (adding 1e-8 to avoid division by zero)
+        pearson_r = covariance / (torch.sqrt(var_a * var_b) + 1e-8)
+        
+        # Return as a standard Python float
+        return pearson_r.item()
 
     def _calculate_topk_iou(f_a, f_b, k_fraction=0.10):
         """
