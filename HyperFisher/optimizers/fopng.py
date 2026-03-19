@@ -111,7 +111,7 @@ class FOPNG:
         else:
             self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
             fisher_overlap = {
-                task_id+1: {
+                int(task_id)+1: {
                     "cosine: " : self._cosine_similarity(self.F_old, F_new)},
                     "pearson: " : self._pearson_correlation(self.F_old, F_new),
                     "Top-K_IoU: " : self._calculate_topk_iou(self.F_old, F_new)
