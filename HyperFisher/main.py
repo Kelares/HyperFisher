@@ -49,6 +49,8 @@ if __name__ == "__main__":
     parser.add_argument("--embedding_dim", type=int, default=4)
     # ------------------------------
 
+    parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)
+
 
     args = parser.parse_args()
 
@@ -91,7 +93,8 @@ if __name__ == "__main__":
 
     config = wandb.config
     config.update({"num_tasks": task_config.num_tasks})
-    stress_test_fopng_memory()
+    if config.check_vram:
+        stress_test_fopng_memory()
 
     # Unpack the returned tuples into separate lists
     datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]
