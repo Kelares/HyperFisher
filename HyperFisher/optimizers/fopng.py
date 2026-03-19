@@ -245,7 +245,14 @@ class FOPNG:
         #  a diagonal one has the default euclidian form as it is just a vector.
         #   F_a o F_B    /
         #||F_a||||F_b||
-        return np.dot(F_a, F_b)/(torch.sqrt((F_a).sum()) * torch.sqrt((F_b).sum()))
+        F_a_flat = F_a.view(-1)
+        F_b_flat = F_b.view(-1)
+        
+        dot_product = torch.dot(F_a_flat, F_b_flat)
+        norm_a = torch.norm(F_a_flat, p=2)
+        norm_b = torch.norm(F_b_flat, p=2)
+        
+        return (dot_product / (norm_a * norm_b)).item()
         
 
     def _calculate_topk_iou(f_a, f_b, k_fraction=0.10):
