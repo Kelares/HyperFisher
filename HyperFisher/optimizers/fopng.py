@@ -328,7 +328,7 @@ def train_fopng(
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
             
         if t != 0:
-            bwt = calc_bwt(results)
+            bwt = calc_bwt(results, task_id=t)
             eval_metrics["fopng/eval/bwt"] = bwt
             if verbose: print(f"BWT for task {t+1}: {bwt:.4f}")
             

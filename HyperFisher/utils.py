@@ -25,13 +25,17 @@ def _apply_flat_update(model: nn.Module, update: Tensor) -> None:
         p.data.add_(update[offset: offset + n].view_as(p))
         offset += n
 
-def calc_bwt(results: dict):
-    bwt = 0
-    T = len(results)
-    if T <= 1: return 0.0
-    for i in range(1, T):
-        bwt += (results[T][i-1] - results[i][i-1])
-    return bwt / (T - 1)
+def calc_bwt(results: dict, task_id: int):
+    # If task_id is 0 (the first task), return 0.0 to prevent division by zero
+    if task_id <= 0: return 0.0
+    
+    bwt = 0.0
+    for i in range(0, task_id):
+        # results[current_task][past_task] - results[past_task][past_task]
+        bwt += (results[task_id][i] - results[i][i])
+        
+    # Divide by the number of past tasks (which is exactly task_id when 0-indexed)
+    return bwt / task_id
 
 def evaluate_accuracy(model: nn.Module, loader, task_id) -> float:
     model.eval()
