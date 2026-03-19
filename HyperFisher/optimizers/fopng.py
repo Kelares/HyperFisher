@@ -283,13 +283,13 @@ class FOPNG:
         # Return as a standard Python float
         return pearson_r.item()
 
-    def _calculate_topk_iou(f_a, f_b, k_fraction=0.10):
+    def _calculate_topk_iou(self, F_a, F_b, k_fraction=0.10):
         """
         Calculates the IoU of the top K important parameters between two Fisher matrices.
         
         Args:
-            f_a (torch.Tensor): 1D tensor of diagonal Fisher values for Task A.
-            f_b (torch.Tensor): 1D tensor of diagonal Fisher values for Task B.
+            F_a (torch.Tensor): 1D tensor of diagonal Fisher values for Task A.
+            F_b (torch.Tensor): 1D tensor of diagonal Fisher values for Task B.
             k_fraction (float): The percentage of total parameters to consider as "Top K".
                                 Default is 0.10 (Top 10%).
                                 
@@ -297,13 +297,13 @@ class FOPNG:
             float: The Intersection over Union (IoU) score between 0.0 and 1.0.
         """
         # 1. Flatten tensors to 1D (assuming they are diagonal approximations)
-        f_a = f_a.view(-1)
-        f_b = f_b.view(-1)
+        F_a = F_a.view(-1)
+        F_b = F_b.view(-1)
         
-        assert f_a.shape == f_b.shape, "Fisher vectors must have the same size."
+        assert F_a.shape == F_b.shape, "Fisher vectors must have the same size."
         
         # 2. Determine K based on the total number of parameters
-        total_params = f_a.numel()
+        total_params = F_a.numel()
         k = int(total_params * k_fraction)
         
         if k == 0:
@@ -311,8 +311,8 @@ class FOPNG:
         
         # 3. Get the indices of the Top K values for both tasks
         # torch.topk returns a tuple of (values, indices). We only need the indices.
-        _, indices_a = torch.topk(f_a, k)
-        _, indices_b = torch.topk(f_b, k)
+        _, indices_a = torch.topk(F_a, k)
+        _, indices_b = torch.topk(F_b, k)
         
         # 4. Calculate Intersection using pure PyTorch (Fast on GPU)
         # Concatenate the two index tensors
