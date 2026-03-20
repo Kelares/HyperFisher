@@ -8,6 +8,8 @@ import torch.nn as nn
 import wandb
 from optimizers.fopng import train_fopng
 from optimizers.adam import train_adam
+from optimizers.ewc import train_ewc
+
 import importlib
 from utils import stress_test_fopng_memory
 
@@ -130,7 +132,26 @@ if __name__ == "__main__":
                 
                 wandb.log({"fopng/eval/average_accuracy": average_accuracy})
 
+            case "ewc":
+                hyper_network = HyperNetwork(
+                    target_network_template=target_network_shape, 
+                    device=device, 
+                    config=config
+                )
+                print("\n--- Starting EWC Training ---")
+                results = train_ewc(
+                    hyper_network, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
+                    fisher_samples=config.fisher_samples
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
                 
+                wandb.log({"fopng/eval/average_accuracy": average_accuracy})
+
             case "adam":
                 print("\n" + "=" * 60)
                 print("BASELINE COMPARISON (Hypernetwork + Adam)")
