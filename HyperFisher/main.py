@@ -120,7 +120,7 @@ if __name__ == "__main__":
                     target_network_template=target_network, 
                     device=device, 
                     config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network)
+                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
                 print("\n--- Starting FOPNG Training ---")
                 results = train_fopng(
                     hyper_network, train_loaders, test_loaders, criterion,
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                     target_network_template=target_network, 
                     device=device, 
                     config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network)
+                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
                 print("\n--- Starting EWC Training ---")
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                     target_network_template=target_network, 
                     device=device, 
                     config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network)
+                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
                 train_adam(
                     hyper_network, train_loaders, test_loaders, criterion,
                     lr=config.lr, epochs=config.epochs  
