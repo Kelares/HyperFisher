@@ -104,18 +104,23 @@ class FOPNG:
         self._device = device
 
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
-        
+        # 1. CALCULATE OVERLAP BEFORE UPDATING F_OLD
+        # At task 0, F_old is None, so we log 1.0 (perfect correlation with itself) or 0.0
+        if self.F_old is not None:
+            cosine_sim = self._cosine_similarity(self.F_old, F_new)
+            pearson_corr = self._pearson_correlation(self.F_old, F_new)
+            topk_iou = self._calculate_topk_iou(self.F_old, F_new)
+        else:
+            cosine_sim = 1.0
+            pearson_corr = 1.0
+            topk_iou = 1.0
+
         if self.F_old is None:
             self.F_old = F_new.clone()
             fisher_overlap = None
         else:
             self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
-            fisher_overlap = {
-                int(task_id)+1: {
-                    "cosine: " : self._cosine_similarity(self.F_old, F_new),
-                    "pearson: " : self._pearson_correlation(self.F_old, F_new),
-                    "Top-K_IoU: " : self._calculate_topk_iou(self.F_old, F_new)
-                }}
+
 
 
         new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
@@ -144,7 +149,9 @@ class FOPNG:
             "fopng/fisher/max": self.F_old.max().item(),
             "fopng/fisher/mean": self.F_old.mean().item(),
             "fopng/memory/G_cols": self.G.shape[1],
-            "fopng/fisher/Fisher_Overlap": fisher_overlap,
+            "fopng/fisher_overlap/cosine": cosine_sim,
+            "fopng/fisher_overlap/pearson": pearson_corr,
+            "fopng/fisher_overlap/topk_iou": topk_iou,
             "task_completed": task_id.item() + 1
         })
 
