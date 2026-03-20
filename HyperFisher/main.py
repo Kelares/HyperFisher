@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Core parameters
     # ------------------------------
     parser.add_argument("--model", type=str, default="HyperNetwork", 
-                        choices=["HyperNetwork, MLP"])
+                        choices=["HyperNetwork", "MLP"])
 
     # TASK SPECIFIC
     parser.add_argument("--task", type=str, required=True,
