@@ -12,6 +12,7 @@ import numpy as np
 
 from utils import _flat_grad, _apply_flat_update, calc_bwt, evaluate_accuracy
 
+import torch.nn.functional as F
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EWC Class  —  drop-in replacement / comparison baseline for FOPNG
