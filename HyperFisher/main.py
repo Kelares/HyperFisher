@@ -142,7 +142,6 @@ if __name__ == "__main__":
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
-                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
                     fisher_samples=config.fisher_samples
                 )
