@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 print("\n--- Starting EWC Training ---")
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    lr=config.lr, lam=1e-6, alpha=config.alpha,
                     epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
                     fisher_samples=config.fisher_samples
                 )

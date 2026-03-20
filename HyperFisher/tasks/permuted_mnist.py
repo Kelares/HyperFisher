@@ -28,12 +28,19 @@ class TaskGenerator:
     }
     config = SimpleNamespace(**config)
 
-    target_network = nn.Sequential(
-        nn.Linear(config.input_dim, 100), 
-        nn.ReLU(),
-        nn.Linear(100, config.num_classes),
-    )
+    # target_network = nn.Sequential(
+    #     nn.Linear(config.input_dim, 100), 
+    #     nn.ReLU(),
+    #     nn.Linear(100, config.num_classes),
+    # )
     
+    target_network = nn.Sequential(
+        nn.Linear(784, 400),
+        nn.ReLU(),
+        nn.Linear(400, 400),
+        nn.ReLU(),
+        nn.Linear(400, 10),
+    )
     def generate(task_id, batch_size=64):
         transform = transforms.Compose([
             transforms.ToTensor(),
