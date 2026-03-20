@@ -61,7 +61,7 @@ def train_adam(
             print(f"  Task {i+1}: {acc*100:.1f}%")
             
         if t != 0:
-            bwt_baseline = calc_bwt(results_baseline)
+            bwt_baseline = calc_bwt(results_baseline, task_id=t+1)
             eval_metrics_baseline["baseline/eval/bwt"] = bwt_baseline
             print(f"BWT for task {t+1}: {bwt_baseline:.4f}")
             
