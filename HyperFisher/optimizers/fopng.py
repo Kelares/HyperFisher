@@ -81,7 +81,7 @@ class FOPNG:
 
         hyper_network.zero_grad()
         hyper_network.train()
-        return fisher / max(n_batches, 1)
+        return fisher / max(n_seen, 1)
     
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
