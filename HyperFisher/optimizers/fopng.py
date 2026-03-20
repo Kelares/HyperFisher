@@ -117,7 +117,6 @@ class FOPNG:
 
         if self.F_old is None:
             self.F_old = F_new.clone()
-            fisher_overlap = None
         else:
             self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
 
@@ -143,8 +142,7 @@ class FOPNG:
             )
             self.G = self.G[:, indices]
 
-
-        wandb.log({
+        logs = {
             "fopng/fisher/min": self.F_old.min().item(),
             "fopng/fisher/max": self.F_old.max().item(),
             "fopng/fisher/mean": self.F_old.mean().item(),
@@ -153,7 +151,10 @@ class FOPNG:
             "fopng/fisher_overlap/pearson": pearson_corr,
             "fopng/fisher_overlap/topk_iou": topk_iou,
             "task_completed": task_id.item() + 1
-        })
+        }
+        print(logs)
+
+        wandb.log(logs)
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
         grads: List[Tensor] = []
