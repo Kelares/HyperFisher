@@ -80,20 +80,16 @@ class EWC:
         self._opt = self.optimizer_cls(model.parameters(), lr=self.lr)
         return self._opt
 
-    def penalty(self, model: nn.Module) -> Tensor:
-        """
-        EWC quadratic penalty:
-            Ω = (λ/2) Σ_i F_i (θ_i − θ*_i)²
 
-        Returns a scalar tensor. Returns 0 before the first `after_task` call.
-        """
-        if self.F_accum is None or self.theta_star is None:
-            device = next(model.parameters()).device
-            return torch.tensor(0.0, device=device)
-
+    def penalty(self, model):
+        if not self.fishers:
+            return torch.tensor(0.0)
         theta = self._get_flat_params(model)
-        diff  = theta - self.theta_star
-        return (self.lam / 2.0) * (self.F_accum * diff.pow(2)).sum()
+        loss = 0.0
+        for tid in self.fishers:
+            diff = theta - self.anchors[tid]
+            loss += (self.fishers[tid] * diff.pow(2)).sum()
+        return (self.lam / 2) * loss
 
     def step(self, model: nn.Module) -> None:
         """
@@ -136,13 +132,13 @@ class EWC:
             cosine_sim = pearson_corr = topk_iou = 1.0
 
         # ── Accumulate Fisher (EMA, same formula as FOPNG) ────────────────
-        if self.F_accum is None:
-            self.F_accum = F_new.clone()
-        else:
-            self.F_accum = (1.0 - self.alpha) * self.F_accum + self.alpha * F_new
+        # Store per-task instead of accumulating
+        tid = task_id.item()
+        self.fishers[tid] = F_new
 
         # ── Save parameter anchor ─────────────────────────────────────────
         self.theta_star = self._get_flat_params(hyper_network).detach().clone()
+        self.anchors[tid] = self.theta_star
 
         # ── Logging ───────────────────────────────────────────────────────
         tid = task_id.item() if isinstance(task_id, Tensor) else int(task_id)
