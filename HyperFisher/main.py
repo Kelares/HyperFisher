@@ -1,6 +1,7 @@
 import argparse
 import wandb
 from hyper_network import HyperNetwork
+from mlp_base import MLP
 
 
 import torch
@@ -20,6 +21,8 @@ if __name__ == "__main__":
     # ------------------------------
     # Core parameters
     # ------------------------------
+    parser.add_argument("--model", type=str, default="HyperNetwork", 
+                        choices=["HyperNetwork, MLP"])
 
     # TASK SPECIFIC
     parser.add_argument("--task", type=str, required=True,
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     Task = task_module.TaskGenerator
     task_config = Task.config
     criterion = nn.CrossEntropyLoss() if task_config.criterion is None else task_config.criterion
-    target_network_shape = Task.target_network
+    target_network = Task.target_network
     ########################
 
     if methods is None:
@@ -114,10 +117,10 @@ if __name__ == "__main__":
         match method:
             case "fopng":
                 hyper_network = HyperNetwork(
-                    target_network_template=target_network_shape, 
+                    target_network_template=target_network, 
                     device=device, 
                     config=config
-                )
+                ) if config.model =="HyperNetwork" else MLP(target_network)
                 print("\n--- Starting FOPNG Training ---")
                 results = train_fopng(
                     hyper_network, train_loaders, test_loaders, criterion,
@@ -134,10 +137,10 @@ if __name__ == "__main__":
 
             case "ewc":
                 hyper_network = HyperNetwork(
-                    target_network_template=target_network_shape, 
+                    target_network_template=target_network, 
                     device=device, 
                     config=config
-                )
+                ) if config.model =="HyperNetwork" else MLP(target_network)
                 print("\n--- Starting EWC Training ---")
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
@@ -157,10 +160,10 @@ if __name__ == "__main__":
                 print("=" * 60)
 
                 hyper_network = HyperNetwork(
-                    target_network_template=target_network_shape, 
+                    target_network_template=target_network, 
                     device=device, 
                     config=config
-                )
+                ) if config.model =="HyperNetwork" else MLP(target_network)
                 train_adam(
                     hyper_network, train_loaders, test_loaders, criterion,
                     lr=config.lr, epochs=config.epochs  
