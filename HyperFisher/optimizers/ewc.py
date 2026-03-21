@@ -14,6 +14,10 @@ import numpy as np
 from utils import calc_bwt, evaluate_accuracy
 
 
+def _is_hypernetwork(model: nn.Module) -> bool:
+    return hasattr(model, "spawn") and hasattr(model, "task_emb") and hasattr(model, "layers")
+
+
 class EWC:
     def __init__(
         self,
@@ -27,29 +31,72 @@ class EWC:
         self.fisher_samples = fisher_samples
         self.optimizer_cls  = optimizer_cls
 
-        self.fishers: Dict[int, Tensor] = {}  # task_id -> diagonal Fisher [D]
-        self.anchors: Dict[int, Tensor] = {}  # task_id -> flat theta* [D]
+        self.fishers:  Dict[int, Tensor] = {}  # task_id -> diagonal Fisher [D]
+        self.anchors:  Dict[int, Tensor] = {}  # task_id -> flat params / generated weights
+        self._tid_tensors: Dict[int, Tensor] = {}  # task_id -> task_id tensor (hypernetwork only)
         self._opt: Optional[torch.optim.Optimizer] = None
 
     def build_optimizer(self, model: nn.Module) -> None:
         self._opt = self.optimizer_cls(model.parameters(), lr=self.lr)
 
+    # ── penalty ───────────────────────────────────────────────────────────────
+
     def penalty(self, model: nn.Module) -> Tensor:
         if not self.fishers:
             return torch.tensor(0.0, device=next(model.parameters()).device)
 
+        if _is_hypernetwork(model):
+            return self._penalty_hypernetwork(model)
+        else:
+            return self._penalty_mlp(model)
+
+    def _penalty_mlp(self, model: nn.Module) -> Tensor:
+        # θ space: compare current flat params vs saved anchors
         theta = torch.cat([p.view(-1) for p in model.parameters()])
         loss  = torch.tensor(0.0, device=theta.device)
         for tid in self.fishers:
             diff = theta - self.anchors[tid]
             loss = loss + (self.fishers[tid] * diff.pow(2)).sum()
-        return (self.lam / 2.0) * loss / len(self.fishers)  # ← divide by n tasks
+        return (self.lam / 2.0) * loss / len(self.fishers)
 
-    def after_task(self, model: nn.Module, task_id: int, loader: DataLoader) -> None:
+    def _penalty_hypernetwork(self, model: nn.Module) -> Tensor:
+        # Generated weight space: regenerate w for each past task and compare vs saved anchor
+        device = next(model.parameters()).device
+        loss   = torch.tensor(0.0, device=device)
+        for tid, task_id_tensor in self._tid_tensors.items():
+            # Regenerate current weights for this task — keep in graph so
+            # grad flows back through model.layers into θ
+            t_vec = model.task_emb(task_id_tensor)
+            w     = model.layers(t_vec).squeeze()          # [D_target], grad intact
+            diff  = w - self.anchors[tid]                  # anchor is detached
+            loss  = loss + (self.fishers[tid] * diff.pow(2)).sum()
+        return (self.lam / 2.0) * loss / len(self.fishers)
+
+    # ── after_task ────────────────────────────────────────────────────────────
+
+    def after_task(
+        self,
+        model: nn.Module,
+        task_id: int,
+        loader: DataLoader,
+        task_id_tensor: Optional[Tensor] = None,  # required for hypernetwork
+    ) -> None:
         device = next(model.parameters()).device
         model.eval()
         model.zero_grad(set_to_none=True)
 
+        if _is_hypernetwork(model):
+            assert task_id_tensor is not None, \
+                "task_id_tensor is required for HyperNetwork after_task"
+            self._after_task_hypernetwork(model, task_id, task_id_tensor, loader, device)
+        else:
+            self._after_task_mlp(model, task_id, loader, device)
+
+        model.train()
+
+    def _after_task_mlp(
+        self, model: nn.Module, task_id: int, loader: DataLoader, device: torch.device
+    ) -> None:
         D      = sum(p.numel() for p in model.parameters())
         fisher = torch.zeros(D, device=device)
         n_seen = 0
@@ -60,12 +107,12 @@ class EWC:
                 if n_seen >= self.fisher_samples:
                     break
 
-                # Pass 1: sample a label from the model's own distribution
+                # Pass 1: sample label from model's own distribution
                 with torch.no_grad():
                     logits = model(xi.unsqueeze(0))
                     y_hat  = torch.distributions.Categorical(logits=logits).sample()
 
-                # Pass 2: fresh forward + backward — independent graph each time
+                # Pass 2: independent graph for Fisher
                 model.zero_grad(set_to_none=True)
                 logits = model(xi.unsqueeze(0))
                 loss   = F.cross_entropy(logits, y_hat)
@@ -85,14 +132,75 @@ class EWC:
 
         fisher /= max(n_seen, 1)
         model.zero_grad(set_to_none=True)
-        model.train()
 
         self.fishers[task_id] = fisher
-        print(f"Fisher stats — min: {fisher.min():.2e}, max: {fisher.max():.2e}, mean: {fisher.mean():.2e}")
         self.anchors[task_id] = torch.cat(
             [p.data.detach().view(-1) for p in model.parameters()]
         )
+        print(f"[EWC/MLP] task {task_id} Fisher — "
+              f"min: {fisher.min():.2e}  max: {fisher.max():.2e}  mean: {fisher.mean():.2e}")
 
+    def _after_task_hypernetwork(
+        self,
+        model: nn.Module,
+        task_id: int,
+        task_id_tensor: Tensor,
+        loader: DataLoader,
+        device: torch.device,
+    ) -> None:
+        # Anchor = generated weight vector for this task, detached
+        with torch.no_grad():
+            t_vec  = model.task_emb(task_id_tensor)
+            anchor = model.layers(t_vec).squeeze().clone()
+        self.anchors[task_id]      = anchor
+        self._tid_tensors[task_id] = task_id_tensor
+
+        # Fisher in generated weight space via autograd.grad(loss, w)
+        D_target = anchor.numel()
+        fisher   = torch.zeros(D_target, device=device)
+        n_seen   = 0
+
+        for x, _ in loader:
+            x = x.to(device)
+            for xi in x:
+                if n_seen >= self.fisher_samples:
+                    break
+
+                # Pass 1: sample label
+                with torch.no_grad():
+                    model.spawn(task_id_tensor)
+                    logits = model(xi.unsqueeze(0))
+                    y_hat  = torch.distributions.Categorical(logits=logits).sample()
+
+                # Pass 2: fresh graph — w is the differentiable leaf we want Fisher for
+                from torch.func import functional_call
+                model.zero_grad(set_to_none=True)
+                t_vec  = model.task_emb(task_id_tensor)
+                w      = model.layers(t_vec).squeeze()          # [D_target], in graph
+                logits = functional_call(
+                    model.target_network,
+                    model.get_params_dict(w),
+                    xi.unsqueeze(0),
+                )
+                loss = F.cross_entropy(logits, y_hat)
+                (w_grad,) = torch.autograd.grad(loss, w)
+                fisher   += w_grad.detach().pow(2)
+                n_seen   += 1
+
+            if n_seen >= self.fisher_samples:
+                break
+
+        fisher /= max(n_seen, 1)
+        model.zero_grad(set_to_none=True)
+
+        self.fishers[task_id] = fisher
+        print(f"[EWC/HyperNet] task {task_id} Fisher — "
+              f"min: {fisher.min():.2e}  max: {fisher.max():.2e}  mean: {fisher.mean():.2e}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# train_ewc
+# ─────────────────────────────────────────────────────────────────────────────
 
 def train_ewc(
     model: nn.Module,
@@ -107,14 +215,16 @@ def train_ewc(
     optimizer_cls=torch.optim.Adam,
     verbose: bool = True,
 ) -> Dict:
-    device = next(model.parameters()).device
-    ewc    = EWC(lr=lr, lam=lam, fisher_samples=fisher_samples, optimizer_cls=optimizer_cls)
+    device   = next(model.parameters()).device
+    is_hyper = _is_hypernetwork(model)
+    ewc      = EWC(lr=lr, lam=lam, fisher_samples=fisher_samples, optimizer_cls=optimizer_cls)
     ewc.build_optimizer(model)
 
     results      = {}
     global_epoch = 0
 
     for t, loader in enumerate(train_loaders):
+        task_id_tensor = torch.tensor([t], dtype=torch.long, device=device)
         if verbose:
             print(f"\n[EWC] Task {t+1}")
 
@@ -126,6 +236,9 @@ def train_ewc(
             for x, y in loader:
                 x, y = x.to(device), y.to(device)
                 ewc._opt.zero_grad()
+
+                if is_hyper:
+                    model.spawn(task_id_tensor)
 
                 output      = model(x)
                 task_loss   = criterion(output, y)
@@ -150,14 +263,19 @@ def train_ewc(
             if verbose:
                 print(f"  epoch {epoch+1}/{epochs}  loss={avg_loss:.4f}  penalty={avg_penalty:.4f}")
 
-        ewc.after_task(model, t, loader)
+        # Register anchor and Fisher for this task
+        if is_hyper:
+            ewc.after_task(model, t, loader, task_id_tensor=task_id_tensor)
+        else:
+            ewc.after_task(model, t, loader)
 
         # ── Evaluate on all tasks ─────────────────────────────────────────
         results[t + 1] = []
         eval_metrics   = {"task_completed": t + 1}
 
         for i in range(len(test_loaders)):
-            acc = evaluate_accuracy(model, test_loaders[i], None)
+            eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+            acc = evaluate_accuracy(model, test_loaders[i], eval_task_id if is_hyper else None)
             results[t + 1].append(acc)
             eval_metrics[f"ewc/eval/acc_task_{i+1}"] = acc
             if verbose:
