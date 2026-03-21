@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     # TASK SPECIFIC
     parser.add_argument("--task", type=str, required=True,
-                        choices=["permuted_mnist"]) #, "rotated_mnist", "split_mnist", "split_cifar10", "split_cifar100"
+                        choices=["permuted_mnist", "split_mnist"]) #, "rotated_mnist", "", "split_cifar10", "split_cifar100"
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--num_tasks", type=int, default=10)
