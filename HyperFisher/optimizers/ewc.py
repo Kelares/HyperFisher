@@ -213,6 +213,7 @@ def train_ewc(
     fisher_samples: int = 1024,
     epochs: int = 5,
     optimizer_cls=torch.optim.Adam,
+    task_classes: Optional[list] = None,
     verbose: bool = True,
 ) -> Dict:
     device   = next(model.parameters()).device
@@ -275,7 +276,8 @@ def train_ewc(
 
         for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
-            acc = evaluate_accuracy(model, test_loaders[i], eval_task_id if is_hyper else None)
+            tc = task_classes[i] if task_classes is not None else None
+            acc = evaluate_accuracy(model, test_loaders[i], eval_task_id if is_hyper else None, task_classes=tc)
             results[t + 1].append(acc)
             eval_metrics[f"ewc/eval/acc_task_{i+1}"] = acc
             if verbose:

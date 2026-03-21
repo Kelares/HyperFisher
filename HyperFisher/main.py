@@ -127,7 +127,8 @@ if __name__ == "__main__":
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
-                    fisher_samples=config.fisher_samples
+                    fisher_samples=config.fisher_samples,
+                    task_classes = getattr(task_config, 'task_classes', None)
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
@@ -145,7 +146,8 @@ if __name__ == "__main__":
                 print(hyper_network)
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=400, epochs=config.epochs  
+                    lr=config.lr, lam=400, epochs=config.epochs,
+                    task_classes = getattr(task_config, 'task_classes', None)
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
@@ -166,5 +168,7 @@ if __name__ == "__main__":
                 print(hyper_network)
                 train_adam(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, epochs=config.epochs  
+                    lr=config.lr, epochs=config.epochs, 
+                    task_classes = getattr(task_config, 'task_classes', None)
+
                 )

@@ -352,6 +352,7 @@ def train_fopng(
     fisher_samples: int = 1024,
     epochs: int = 5,
     first_task_optimizer_cls=torch.optim.Adam,
+    task_classes: Optional[list] = None,
     verbose: bool = True,
 ) -> FOPNG:
     device = next(hyper_network.parameters()).device
@@ -429,7 +430,8 @@ def train_fopng(
         # CHANGED: Iterate over every single task, seen or unseen!
         for i in range(len(test_loaders)): 
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
-            acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id)
+            tc = task_classes[i] if task_classes is not None else None
+            acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id, task_classes=tc)
             results[t+1].append(acc)
             eval_metrics[f"fopng/eval/acc_task_{i+1}"] = acc
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")

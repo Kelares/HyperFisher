@@ -15,6 +15,7 @@ def train_adam(
     criterion,
     lr,
     epochs,
+    task_classes: Optional[list] = None,
 ):
     device = next(hyper_network.parameters()).device
     optimizer = torch.optim.Adam(hyper_network.parameters(), lr=lr)
@@ -54,8 +55,9 @@ def train_adam(
         
         for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+            tc = task_classes[i] if task_classes is not None else None
             # 4. FIXED: Evaluate the baseline hypernetwork, not the MLP
-            acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id)
+            acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id, task_classes=tc)
             results_baseline[t+1].append(acc)
             eval_metrics_baseline[f"baseline/eval/acc_task_{i+1}"] = acc
             print(f"  Task {i+1}: {acc*100:.1f}%")

@@ -33,22 +33,27 @@ def calc_bwt(results: dict, task_id: int):
         bwt += (results[task_id][i-1] - results[i][i-1])
     return bwt / (task_id - 1)
 
-def evaluate_accuracy(model: nn.Module, loader, task_id) -> float:
+
+def evaluate_accuracy(model: nn.Module, loader, task_id, task_classes=None) -> float:
     model.eval()
     correct, total = 0, 0
     device = next(model.parameters()).device
-    
     if hasattr(model, 'spawn'):
         model.spawn(task_id)
-
     with torch.no_grad():
         for x, y in loader:
             x, y = x.to(device), y.to(device)
-            preds = model(x).argmax(dim=1)
+            logits = model(x)
+            if task_classes is not None:
+                # restrict argmax to the two active output neurons
+                class_a, class_b = task_classes
+                active = torch.tensor([class_a, class_b], device=device)
+                preds = active[logits[:, active].argmax(dim=1)]
+            else:
+                preds = logits.argmax(dim=1)
             correct += (preds == y).sum().item()
             total   += y.size(0)
     return correct / total
-    
 
 import gc
 

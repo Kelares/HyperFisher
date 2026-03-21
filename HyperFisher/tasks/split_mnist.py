@@ -46,6 +46,7 @@ class TaskGenerator:
         criterion=nn.CrossEntropyLoss(),
         grads_per_task=80,
         max_directions=400,
+        task_classes=TASK_CLASSES,   # add this line
     )
 
     target_network = nn.Sequential(
