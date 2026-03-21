@@ -156,7 +156,7 @@ def train_ewc(
         eval_metrics   = {"task_completed": t + 1}
 
         for i in range(len(test_loaders)):
-            acc = evaluate_accuracy(model, test_loaders[i])
+            acc = evaluate_accuracy(model, test_loaders[i], None)
             results[t + 1].append(acc)
             eval_metrics[f"ewc/eval/acc_task_{i+1}"] = acc
             if verbose:
