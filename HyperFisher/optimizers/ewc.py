@@ -43,7 +43,7 @@ class EWC:
         for tid in self.fishers:
             diff = theta - self.anchors[tid]
             loss = loss + (self.fishers[tid] * diff.pow(2)).sum()
-        return (self.lam / 2.0) * loss
+        return (self.lam / 2.0) * loss / len(self.fishers)  # ← divide by n tasks
 
     def after_task(self, model: nn.Module, task_id: int, loader: DataLoader) -> None:
         device = next(model.parameters()).device

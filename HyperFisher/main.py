@@ -146,7 +146,7 @@ if __name__ == "__main__":
                 print(hyper_network)
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=1e5
+                    lr=config.lr, lam=1e5, epochs=config.epochs  
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
