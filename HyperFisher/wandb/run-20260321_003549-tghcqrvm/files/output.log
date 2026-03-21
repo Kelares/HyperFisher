@@ -1,0 +1,27 @@
+['ewc']
+
+--- Starting EWC Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (task_emb): Embedding(10, 4)
+  (layers): Sequential(
+    (0): Linear(in_features=4, out_features=16, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=16, out_features=478410, bias=True)
+  )
+)
+[EWC] Task 1 – Adam
+  epoch 1/10  loss=1.0549
+  epoch 2/10  loss=0.1597
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 147, in <module>
+    results = train_ewc(
+  File "/home/kelares/Desktop/thesis/HyperFisher/optimizers/ewc.py", line 288, in train_ewc
+    x, y = x.to(device), y.to(device)
+KeyboardInterrupt

@@ -4,6 +4,7 @@ from typing import Callable, Dict, List, Optional
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import Tensor
 from torch.utils.data import DataLoader
 import wandb
@@ -12,7 +13,6 @@ import numpy as np
 
 from utils import _flat_grad, _apply_flat_update, calc_bwt, evaluate_accuracy
 
-import torch.nn.functional as F
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EWC Class  —  drop-in replacement / comparison baseline for FOPNG
@@ -33,9 +33,23 @@ class EWC:
     • `step()` here expects the *total* loss (task + penalty) to already
       have been back-propped, and simply calls the inner Adam/SGD update.
 
+    Fisher computation
+    ──────────────────
+    Uses the true diagonal Fisher:
+        F_i = E_{x, y~p(y|x)} [(d log p(y|x) / d theta_i)^2]
+    Computed per-sample (not batch-mean) and normalised by n_samples.
+    criterion argument is kept for interface compatibility but not used
+    internally — NLL with model-sampled labels is used instead.
+
+    Penalty
+    ───────
+    Summed independently per task (not via EMA accumulation) to prevent
+    the penalty from growing unboundedly as more tasks are seen:
+        Ω = (λ/2) Σ_t Σ_i F^t_i (θ_i − θ*^t_i)²
+
     Usage
     ─────
-        ewc = EWC(lr=1e-3, lam=1e4)
+        ewc = EWC(lr=1e-3, lam=100)
 
         # Task 0 — standard training, then register anchor
         for epoch in ...:
@@ -53,8 +67,8 @@ class EWC:
     def __init__(
         self,
         lr: float = 1e-3,
-        lam: float = 1e4,           # EWC regularisation strength
-        alpha: float = 0.5,         # EMA weight for Fisher accumulation (matches FOPNG)
+        lam: float = 100.0,         # EWC regularisation strength
+        alpha: float = 0.5,         # EMA weight for Fisher (diagnostics only)
         fisher_samples: int = 1024,
         optimizer_cls=torch.optim.Adam,
     ):
@@ -64,11 +78,14 @@ class EWC:
         self.fisher_samples = fisher_samples
         self.optimizer_cls  = optimizer_cls
 
-        # Per-parameter anchors — stored as flat vectors to mirror FOPNG
-        self.F_accum: Optional[Tensor] = None   # accumulated diagonal Fisher [D]
-        self.theta_star: Optional[Tensor] = None # parameter anchor [D]
+        # Per-task Fisher and anchors — independent per task to avoid
+        # penalty snowballing with EMA accumulation
+        self.fishers: Dict[int, Tensor] = {}   # task_id -> diagonal Fisher [D]
+        self.anchors: Dict[int, Tensor] = {}   # task_id -> theta* [D]
 
-        # Diagnostics (same fields FOPNG exposes)
+        # EMA Fisher kept only for diagnostics / overlap logging (mirrors FOPNG)
+        self.F_accum: Optional[Tensor] = None
+
         self.all_fishers: List[Tensor] = []
         self._device: Optional[torch.device] = None
         self._opt: Optional[torch.optim.Optimizer] = None
@@ -80,16 +97,23 @@ class EWC:
         self._opt = self.optimizer_cls(model.parameters(), lr=self.lr)
         return self._opt
 
+    def penalty(self, model: nn.Module) -> Tensor:
+        """
+        EWC quadratic penalty — summed independently over all seen tasks:
+            Ω = (λ/2) Σ_t Σ_i F^t_i (θ_i − θ*^t_i)²
 
-    def penalty(self, model):
+        Returns a scalar tensor. Returns 0 before the first after_task call.
+        """
         if not self.fishers:
-            return torch.tensor(0.0)
+            device = next(model.parameters()).device
+            return torch.tensor(0.0, device=device)
+
         theta = self._get_flat_params(model)
-        loss = 0.0
+        loss  = torch.tensor(0.0, device=theta.device)
         for tid in self.fishers:
             diff = theta - self.anchors[tid]
-            loss += (self.fishers[tid] * diff.pow(2)).sum()
-        return (self.lam / 2) * loss
+            loss = loss + (self.fishers[tid] * diff.pow(2)).sum()
+        return (self.lam / 2.0) * loss
 
     def step(self, model: nn.Module) -> None:
         """
@@ -110,13 +134,17 @@ class EWC:
         criterion: Callable,
     ) -> None:
         """
-        Called once after a task finishes.  Computes/accumulates the diagonal
-        Fisher and saves the current parameters as the new anchor θ*.
+        Called once after a task finishes.  Computes the diagonal Fisher,
+        saves the current parameters as the new anchor θ*, and accumulates
+        the EMA Fisher for logging.
 
         Signature matches FOPNG.after_task() exactly.
         """
         device = next(hyper_network.parameters()).device
         self._device = device
+
+        # Fully sever any lingering computation graph from the training loop
+        hyper_network.zero_grad(set_to_none=True)
 
         F_new = self.compute_fisher_diag(
             hyper_network, task_id, loader, criterion, device
@@ -131,43 +159,57 @@ class EWC:
         else:
             cosine_sim = pearson_corr = topk_iou = 1.0
 
-        # ── Accumulate Fisher (EMA, same formula as FOPNG) ────────────────
-        # Store per-task instead of accumulating
-        tid = task_id.item()
-        self.fishers[tid] = F_new
+        # ── EMA Fisher for diagnostics only ───────────────────────────────
+        if self.F_accum is None:
+            self.F_accum = F_new.clone()
+        else:
+            self.F_accum = (1.0 - self.alpha) * self.F_accum + self.alpha * F_new
 
-        # ── Save parameter anchor ─────────────────────────────────────────
-        self.theta_star = self._get_flat_params(hyper_network).detach().clone()
-        self.anchors[tid] = self.theta_star
+        # ── Store per-task Fisher and anchor ──────────────────────────────
+        tid = task_id.item() if isinstance(task_id, Tensor) else int(task_id)
+        self.fishers[tid] = F_new.clone()
+        self.anchors[tid] = self._get_flat_params(hyper_network).detach().clone()
 
         # ── Logging ───────────────────────────────────────────────────────
-        tid = task_id.item() if isinstance(task_id, Tensor) else int(task_id)
         logs = {
-            "ewc/fisher/min":            self.F_accum.min().item(),
-            "ewc/fisher/max":            self.F_accum.max().item(),
-            "ewc/fisher/mean":           self.F_accum.mean().item(),
-            "ewc/fisher_overlap/cosine": cosine_sim,
-            "ewc/fisher_overlap/pearson": pearson_corr,
+            "ewc/fisher/min":              self.F_accum.min().item(),
+            "ewc/fisher/max":              self.F_accum.max().item(),
+            "ewc/fisher/mean":             self.F_accum.mean().item(),
+            "ewc/fisher_overlap/cosine":   cosine_sim,
+            "ewc/fisher_overlap/pearson":  pearson_corr,
             "ewc/fisher_overlap/topk_iou": topk_iou,
-            "task_completed":            tid + 1,
+            "task_completed":              tid + 1,
         }
         print(logs)
         wandb.log(logs)
 
     # ── Fisher computation ────────────────────────────────────────────────────
 
-
     def compute_fisher_diag(
         self,
         model: nn.Module,
         task_id,
         loader: DataLoader,
-        criterion: Callable,   # kept for signature compatibility, not used
+        criterion: Callable,    # kept for interface compatibility, not used
         device: torch.device,
         max_samples: Optional[int] = None,
     ) -> Tensor:
+        """
+        True diagonal Fisher via per-sample gradients:
+            F_i = E_{x, y~p(y|x)} [(d log p(y|x) / d theta_i)^2]
+
+        Two forward passes per sample:
+          1. torch.no_grad() pass to sample y_hat from model's distribution
+          2. Fresh grad-enabled pass to compute NLL loss and backprop
+
+        This guarantees each iteration has a fully independent computation
+        graph, avoiding the 'backward through graph a second time' error.
+        Normalised by n_samples (not n_batches).
+        """
         max_samples = max_samples or self.fisher_samples
         model.eval()
+        model.zero_grad(set_to_none=True)
+
         D      = sum(p.numel() for p in model.parameters())
         fisher = torch.zeros(D, device=device)
         n_seen = 0
@@ -175,53 +217,57 @@ class EWC:
         if hasattr(model, "spawn"):
             model.spawn(task_id)
 
-        with torch.enable_grad():
-            for x, y in loader:
-                x = x.to(device)
-                remaining = max_samples - n_seen
-                x = x[:remaining]              # don't overshoot
+        for x, _ in loader:
+            x = x.to(device)
+            # Don't overshoot max_samples
+            x = x[:max_samples - n_seen]
 
-                for xi in x:                   # iterate per-sample
-                    model.zero_grad()
-                    out      = model(xi.unsqueeze(0))          # [1, C]
-                    log_prob = F.log_softmax(out, dim=1)
+            for xi in x:
+                # ── Pass 1: sample label from model (no graph) ────────────
+                with torch.no_grad():
+                    logits_det = model(xi.unsqueeze(0))
+                    y_hat      = torch.distributions.Categorical(
+                                     logits=logits_det
+                                 ).sample()
 
-                    # Sample from model's predictive distribution
-                    y_hat = torch.distributions.Categorical(
-                        logits=out
-                    ).sample()
+                # ── Pass 2: independent forward + backward for Fisher ─────
+                # xi.detach().clone() gives this sample its own graph root
+                model.zero_grad(set_to_none=True)
+                logits = model(xi.detach().clone().unsqueeze(0))
+                loss   = F.nll_loss(F.log_softmax(logits, dim=1), y_hat)
+                loss.backward()
 
-                    loss = F.nll_loss(log_prob, y_hat)         # scalar, per-sample
-                    loss.backward()
+                g = _flat_grad(model)
+                fisher.add_(g.pow(2))
+                n_seen += 1
 
-                    g = _flat_grad(model)
-                    fisher.add_(g.pow(2))
-                    n_seen += 1
+            if n_seen >= max_samples:
+                break
 
-                if n_seen >= max_samples:
-                    break
-
-        model.zero_grad()
+        model.zero_grad(set_to_none=True)
         model.train()
-        return fisher / max(n_seen, 1)   # divide by n_samples, not n_batches──────────────────────────────────────
+        # Normalise by n_samples, not n_batches
+        return fisher / max(n_seen, 1)
+
+    # ── private helpers ───────────────────────────────────────────────────────
 
     @staticmethod
     def _get_flat_params(model: nn.Module) -> Tensor:
         return torch.cat([p.data.view(-1) for p in model.parameters()])
 
     def _cosine_similarity(self, F_a: Tensor, F_b: Tensor) -> float:
-        a, b     = F_a.view(-1), F_b.view(-1)
-        dot      = torch.dot(a, b)
-        norm_a   = torch.norm(a, p=2)
-        norm_b   = torch.norm(b, p=2)
+        a, b   = F_a.view(-1), F_b.view(-1)
+        dot    = torch.dot(a, b)
+        norm_a = torch.norm(a, p=2)
+        norm_b = torch.norm(b, p=2)
         return (dot / (norm_a * norm_b + 1e-8)).item()
 
     def _pearson_correlation(self, F_a: Tensor, F_b: Tensor) -> float:
-        a, b     = F_a.view(-1).float(), F_b.view(-1).float()
-        a_c      = a - a.mean()
-        b_c      = b - b.mean()
-        cov      = (a_c * b_c).sum()
-        denom    = torch.sqrt((a_c**2).sum() * (b_c**2).sum()) + 1e-8
+        a, b  = F_a.view(-1).float(), F_b.view(-1).float()
+        a_c   = a - a.mean()
+        b_c   = b - b.mean()
+        cov   = (a_c * b_c).sum()
+        denom = torch.sqrt((a_c**2).sum() * (b_c**2).sum()) + 1e-8
         return (cov / denom).item()
 
     def _calculate_topk_iou(
@@ -229,12 +275,12 @@ class EWC:
     ) -> float:
         a, b = F_a.view(-1), F_b.view(-1)
         k    = max(1, int(a.numel() * k_fraction))
-        _, ia = torch.topk(a, k)
-        _, ib = torch.topk(b, k)
-        combined = torch.cat([ia, ib])
+        _, ia     = torch.topk(a, k)
+        _, ib     = torch.topk(b, k)
+        combined  = torch.cat([ia, ib])
         _, counts = combined.unique(return_counts=True)
-        inter = (counts > 1).sum().item()
-        union = 2 * k - inter
+        inter     = (counts > 1).sum().item()
+        union     = 2 * k - inter
         return inter / union
 
 
@@ -248,7 +294,7 @@ def train_ewc(
     criterion: Callable,
     *,
     lr: float = 1e-3,
-    lam: float = 1e4,
+    lam: float = 100.0,
     alpha: float = 0.5,
     fisher_samples: int = 1024,
     epochs: int = 5,
@@ -322,10 +368,10 @@ def train_ewc(
                     if hasattr(hyper_network, "spawn"):
                         hyper_network.spawn(task_id)
 
-                    output       = hyper_network(x)
-                    task_loss    = criterion(output, y)
-                    ewc_penalty  = ewc.penalty(hyper_network)
-                    loss         = task_loss + ewc_penalty
+                    output      = hyper_network(x)
+                    task_loss   = criterion(output, y)
+                    ewc_penalty = ewc.penalty(hyper_network)
+                    loss        = task_loss + ewc_penalty
 
                     loss.backward()
                     ewc._opt.step()
@@ -352,7 +398,7 @@ def train_ewc(
 
             ewc.after_task(hyper_network, task_id, loader, criterion)
 
-        # ── Evaluate on ALL tasks (same structure as train_fopng) ────────
+        # ── Evaluate on ALL tasks (same structure as train_fopng) ─────────
         results[t + 1] = []
         eval_metrics   = {"task_completed": t + 1}
 
@@ -398,4 +444,3 @@ def train_ewc(
     plt.close()
 
     return results
-

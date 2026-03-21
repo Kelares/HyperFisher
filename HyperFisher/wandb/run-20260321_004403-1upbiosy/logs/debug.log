@@ -1,0 +1,22 @@
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_setup.py:_flush():81] Current SDK version is 0.25.0
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_setup.py:_flush():81] Configure stats pid to 398139
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_init.py:setup_run_log_directory():717] Logging user logs to /home/kelares/Desktop/thesis/HyperFisher/wandb/run-20260321_004403-1upbiosy/logs/debug.log
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_init.py:setup_run_log_directory():718] Logging internal logs to /home/kelares/Desktop/thesis/HyperFisher/wandb/run-20260321_004403-1upbiosy/logs/debug-internal.log
+2026-03-21 00:44:03,708 INFO    MainThread:398139 [wandb_init.py:init():844] calling init triggers
+2026-03-21 00:44:03,709 INFO    MainThread:398139 [wandb_init.py:init():849] wandb.init called with sweep_config: {}
+config: {'model': 'HyperNetwork', 'task': 'permuted_mnist', 'seed': 1234, 'epochs': 5, 'num_tasks': 10, 'methods': ['ewc'], 'lr': 0.001, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 40, 'max_directions': 80, 'hyper_hidden_dim': 16, 'embedding_dim': 4, 'check_vram': False, '_wandb': {}}
+2026-03-21 00:44:03,709 INFO    MainThread:398139 [wandb_init.py:init():892] starting backend
+2026-03-21 00:44:03,927 INFO    MainThread:398139 [wandb_init.py:init():895] sending inform_init request
+2026-03-21 00:44:03,933 INFO    MainThread:398139 [wandb_init.py:init():903] backend started and connected
+2026-03-21 00:44:03,947 INFO    MainThread:398139 [wandb_init.py:init():973] updated telemetry
+2026-03-21 00:44:03,950 INFO    MainThread:398139 [wandb_init.py:init():997] communicating run to backend with 90.0 second timeout
+2026-03-21 00:44:04,824 INFO    MainThread:398139 [wandb_init.py:init():1042] starting run threads in backend
+2026-03-21 00:44:04,862 INFO    MainThread:398139 [wandb_run.py:_console_start():2524] atexit reg
+2026-03-21 00:44:04,862 INFO    MainThread:398139 [wandb_run.py:_redirect():2373] redirect: wrap_raw
+2026-03-21 00:44:04,862 INFO    MainThread:398139 [wandb_run.py:_redirect():2442] Wrapping output streams.
+2026-03-21 00:44:04,862 INFO    MainThread:398139 [wandb_run.py:_redirect():2465] Redirects installed.
+2026-03-21 00:44:04,865 INFO    MainThread:398139 [wandb_init.py:init():1082] run started, returning control to user process
+2026-03-21 00:44:04,865 INFO    MainThread:398139 [wandb_run.py:_config_callback():1403] config_cb None None {'num_tasks': 10}
+2026-03-21 00:44:52,460 INFO    wandb-AsyncioManager-main:398139 [service_client.py:_forward_responses():134] Reached EOF.
+2026-03-21 00:44:52,460 INFO    wandb-AsyncioManager-main:398139 [mailbox.py:close():155] Closing mailbox, abandoning 1 handles.

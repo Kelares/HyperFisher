@@ -15,4 +15,4 @@ conda activate venv
 
 
 #if you want to run with single gpus, use the following command
-python main.py --task permuted_mnist
+python main.py --task permuted_mnist --methods ewc
