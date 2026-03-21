@@ -146,9 +146,7 @@ if __name__ == "__main__":
                 print(hyper_network)
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=100, alpha=config.alpha,
-                    epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
-                    fisher_samples=config.fisher_samples
+                    lr=config.lr, lam=1e5
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
