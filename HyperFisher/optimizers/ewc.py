@@ -88,6 +88,7 @@ class EWC:
         model.train()
 
         self.fishers[task_id] = fisher
+        print(f"Fisher stats — min: {fisher.min():.2e}, max: {fisher.max():.2e}, mean: {fisher.mean():.2e}")
         self.anchors[task_id] = torch.cat(
             [p.data.detach().view(-1) for p in model.parameters()]
         )

@@ -146,13 +146,13 @@ if __name__ == "__main__":
                 print(hyper_network)
                 results = train_ewc(
                     hyper_network, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=1e5, epochs=config.epochs  
+                    lr=config.lr, lam=400, epochs=config.epochs  
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
                 average_accuracy = sum(final_accuracies) / len(final_accuracies)
                 
-                wandb.log({"fopng/eval/average_accuracy": average_accuracy})
+                wandb.log({"ewc/eval/average_accuracy": average_accuracy})
 
             case "adam":
                 print("\n" + "=" * 60)
