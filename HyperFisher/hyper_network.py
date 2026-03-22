@@ -31,10 +31,10 @@ class HyperNetwork(nn.Module):
             nn.Linear(bottleneck_dim, num_target_params)
         ).to(self.device)
 
-        # # 4. Prevent variance explosion on the massive output layer
-        # with torch.no_grad():
-        #     torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.01)
-        #     torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.1)
+        # 4. Prevent variance explosion on the massive output layer
+        with torch.no_grad():
+            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.01)
+            torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.1)
 
         self.target_params = None
         
