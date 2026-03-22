@@ -1,0 +1,51 @@
+{
+  "os":  "Linux-6.18.4-arch1-1-x86_64-with-glibc2.42",
+  "python":  "CPython 3.10.19",
+  "startedAt":  "2026-03-22T13:50:50.338360Z",
+  "args":  [
+    "--task",
+    "permuted_mnist",
+    "--methods",
+    "ewc",
+    "fopng",
+    "adam",
+    "--epochs=7",
+    "--fisher_samples=5000",
+    "--model=MLP"
+  ],
+  "program":  "/home/kelares/Desktop/thesis/HyperFisher/main.py",
+  "codePath":  "HyperFisher/main.py",
+  "codePathLocal":  "main.py",
+  "git":  {
+    "remote":  "https://github.com/Kelares/SSM_benchmark.git",
+    "commit":  "2f396e143d8fcfa8c2b713610c4688af013825de"
+  },
+  "email":  "michalowski.jb@gmail.com",
+  "root":  "/home/kelares/Desktop/thesis/HyperFisher",
+  "host":  "PAM",
+  "executable":  "/home/kelares/Desktop/thesis/venv_f_h/bin/python",
+  "cpu_count":  14,
+  "cpu_count_logical":  20,
+  "gpu":  "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "427605082112",
+      "used":  "348512636928"
+    }
+  },
+  "memory":  {
+    "total":  "41724043264"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "memoryTotal":  "6442450944",
+      "cudaCores":  3840,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-fe4c318c-118b-9415-a588-d3deb521d1b8"
+    }
+  ],
+  "cudaVersion":  "13.1",
+  "writerId":  "qdn7ulywo2fcjtded4rwkeqf4d5fds5c"
+}
