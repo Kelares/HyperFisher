@@ -1,0 +1,139 @@
+# HyperFisher — Thesis Repository
+
+Fisher-Orthogonal Projected Natural Gradient Descent applied to Hypernetwork-based Continual Learning.
+
+**Jakub Michałowski** — Thesis, Department of Cognitive Science and Artificial Intelligence, Tilburg University
+
+---
+
+## Repository Structure
+```
+./
+├── HyperFisher/          # Main project (see below)
+├── gym/                  # Early-stage side project: benchmarking SSMs vs Transformers
+│                         # on memory/recall-intensive RL tasks
+├── misc/                 # Thesis writing, poster, proposal, and other residuals
+├── FOPNG/                # Reference implementation — FOPNG paper (Garg et al., 2026)
+├── fop/                  # Reference implementation — related paper
+├── hypercl/              # Reference implementation — Hypernetworks for CL (von Oswald et al.)
+├── toy_playground/       # Scratch experiments and prototyping
+└── .gitmodules           # Submodules for reference codebases
+```
+
+---
+
+## Main Project: `HyperFisher/`
+```
+HyperFisher/
+├── main.py               # Entry point — CLI for all training runs
+├── main.sh               # Example run scripts
+├── sweep.sh              # W&B sweep launcher
+├── sweep.yaml            # W&B sweep config (hyperparameter search)
+├── hyper_network.py      # HyperNetwork implementation
+├── mlp_base.py           # Plain MLP target network
+├── utils.py              # Shared utilities
+├── optimizers/           # Training loops
+│   ├── fopng.py          #   FOPNG — Fisher-Orthogonal Projected Natural Gradient
+│   ├── ewc.py            #   EWC — Elastic Weight Consolidation baseline
+│   └── adam.py           #   Adam baseline
+├── tasks/                # Task generators
+│   ├── split_mnist.py    #   Split-MNIST (5 binary tasks)
+│   ├── permuted_mnist.py #   Permuted-MNIST
+│   └── split_cifar10.py  #   Split-CIFAR-10
+├── visualizations/       # Plotting scripts (trajectory graphs etc.)
+├── data/                 # Downloaded datasets (auto-populated)
+└── wandb/                # W&B run logs (auto-populated)
+```
+
+### Method
+
+FOPNG combines two ideas:
+
+1. **Natural gradient descent** — preconditions updates with the inverse Fisher information matrix, respecting the true Riemannian geometry of parameter space rather than Euclidean distance.
+
+2. **Orthogonal projection** — after each task, stores the gradient in a memory matrix G. New updates are projected onto the Fisher-orthogonal complement of G, enforcing a hard constraint that prior task outputs cannot be disturbed.
+
+Applied to a **hypernetwork** (which generates task-specific weights from a small shared parameter set φ), this keeps both the Fisher matrix and gradient memory compact regardless of target network size.
+
+### Baselines
+
+| Method | Description |
+|--------|-------------|
+| Adam | Naive baseline, no forgetting protection |
+| EWC | Elastic Weight Consolidation — diagonal Fisher regularizer in Euclidean space |
+
+### Benchmarks
+
+| Benchmark | Tasks | Notes |
+|-----------|-------|-------|
+| Split-MNIST | 5 binary (0v1, 2v3, ...) | Entry-level sequential learning |
+| Permuted-MNIST | 10+ permutations | Long-horizon retention |
+| Split-CIFAR-10 | 5 tasks, natural images | Higher visual complexity |
+
+### Usage
+```bash
+# Split-MNIST with FOPNG + EWC + Adam
+python main.py \
+  --task split_mnist \
+  --methods fopng ewc adam \
+  --epochs 5 \
+  --lr 1e-3 \
+  --model HyperNetwork
+
+# Run a W&B hyperparameter sweep
+bash sweep.sh
+```
+
+**Key CLI arguments:**
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--task` | required | `split_mnist`, `permuted_mnist`, `split_cifar10` |
+| `--methods` | `fopng adam` | One or more of `fopng`, `ewc`, `adam`, `ogd`, `fng` |
+| `--model` | `HyperNetwork` | `HyperNetwork` or `MLP` |
+| `--epochs` | `10` | Epochs per task |
+| `--lr` | `1e-3` | Learning rate |
+| `--grads_per_task` | `40` | Gradient directions stored per task |
+| `--max_directions` | `80` | Cap on total memory matrix columns |
+| `--embedding_dim` | `4` | Task embedding dimension |
+
+Experiment tracking is handled via [Weights & Biases](https://wandb.ai). Runs are logged automatically on launch.
+
+---
+
+## Reference Codebases
+
+These are external repositories included for replication and reference — not my own work.
+
+| Folder | Paper |
+|--------|-------|
+| `FOPNG/` | Garg et al. (2026) — Fisher-Orthogonal Projected Natural Gradient Descent |
+| `hypercl/` | von Oswald et al. (2020) — Continual Learning with Hypernetworks |
+| `fop/` | Related paper (see submodules) |
+
+---
+
+## Other
+
+**`gym/`** — Early side project benchmarking SSMs vs Transformers on memory/recall-intensive reinforcement learning tasks. Largely inactive.
+
+**`misc/`** — Thesis proposal, poster, and writing residuals.
+
+---
+
+## Dependencies
+```bash
+pip install torch torchvision wandb
+```
+
+CUDA recommended. The code detects GPU automatically and falls back to CPU.
+
+---
+
+## Reference
+
+> Garg, I., Kolhe, N., Peng, A., & Gopalam, R. (2026). *Fisher-orthogonal projected natural gradient descent for continual learning.*
+>
+> von Oswald, J., Henning, C., Grewe, B. F., & Sacramento, J. (2020). *Continual learning with hypernetworks.*
+>
+> Kirkpatrick, J., et al. (2017). *Overcoming catastrophic forgetting in neural networks.* PNAS, 114(13), 3521–3526.
