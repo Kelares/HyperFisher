@@ -48,11 +48,9 @@ class TaskGenerator:
     )
 
     target_network = nn.Sequential(
-        nn.Linear(3072, 1024),
+        nn.Linear(3072, 10),
         nn.ReLU(),
-        nn.Linear(1024, 512),
-        nn.ReLU(),
-        nn.Linear(512, 10),
+        nn.Linear(10, 2),   # binary per task
     )
 
     _train_data: datasets.CIFAR10 | None = None
