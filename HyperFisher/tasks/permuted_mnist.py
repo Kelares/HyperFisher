@@ -5,13 +5,9 @@ Garg, Kolhe, Peng, Gopalam — UC Berkeley (ICML 2026)
 """
 from __future__ import annotations
 
-from typing import Callable, List, Optional
-
 import torch
 import torch.nn as nn
-from torch import Tensor
 from torch.utils.data import DataLoader
-from torch.func import functional_call
 import torchvision
 from torchvision import transforms
 from types import SimpleNamespace
@@ -41,6 +37,7 @@ class TaskGenerator:
         nn.ReLU(),
         nn.Linear(400, 10),
     )
+
     def generate(task_id, batch_size=64):
         transform = transforms.Compose([
             transforms.ToTensor(),

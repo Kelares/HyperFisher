@@ -2,3 +2,4 @@ venv*
 *.pickle
 *.pkl
 *pyc
+data/

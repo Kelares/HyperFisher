@@ -2,6 +2,8 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
+from torch.utils.data import Dataset
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Low-level utilities
 # ─────────────────────────────────────────────────────────────────────────────
@@ -99,3 +101,24 @@ def stress_test_fopng_memory(num_params=5_000_000, max_directions=1000):
         torch.cuda.empty_cache()
         gc.collect()
 
+
+class SubsetByClass(Dataset):
+    """Wrap a dataset and keep only samples with labels in allowed_classes."""
+    
+    def __init__(self, base_dataset, allowed_classes):
+        self.base_dataset = base_dataset
+        self.allowed_classes = set(allowed_classes)
+        self.class_to_new = {c: i for i, c in enumerate(sorted(allowed_classes))}
+        
+        self.indices = [
+            i for i, (_, label) in enumerate(base_dataset)
+            if int(label) in self.allowed_classes
+        ]
+    
+    def __len__(self):
+        return len(self.indices)
+    
+    def __getitem__(self, idx):
+        base_idx = self.indices[idx]
+        img, label = self.base_dataset[base_idx]
+        return img, self.class_to_new[int(label)]
