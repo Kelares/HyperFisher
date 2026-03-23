@@ -264,6 +264,15 @@ def train_ewc(
         else:
             ewc.after_task(model, t, loader)
 
+        # Normalise all Fishers to unit max so task 0 (which over-converges
+        # to near-zero gradients) is not swamped by later tasks whose Fishers
+        # are orders of magnitude larger.
+        for tid in ewc.fishers:
+            f = ewc.fishers[tid]
+            max_val = f.max()
+            if max_val > 0:
+                ewc.fishers[tid] = f / max_val
+
         # ── Evaluate on all tasks ─────────────────────────────────────────
         results[t + 1] = []
         eval_metrics   = {"task_completed": t + 1}
