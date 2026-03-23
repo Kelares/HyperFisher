@@ -15,4 +15,4 @@ conda activate venv
 
 
 #if you want to run with single gpus, use the following command
-python main.py --task spit_mnist --methods ewc fopng adam --embedding_dim=4 --epochs=5 --fisher_samples=4096 --grads_per_task=80 --max_directions=400 
+python main.py --task split_mnist --methods ewc fopng adam --embedding_dim=4 --epochs=5 --fisher_samples=4096 --grads_per_task=80 --max_directions=400 
