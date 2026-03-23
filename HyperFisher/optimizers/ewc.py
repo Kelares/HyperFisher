@@ -51,12 +51,13 @@ class EWC:
             return self._penalty_mlp(model)
 
     def _penalty_mlp(self, model: nn.Module) -> Tensor:
+        # θ space: compare current flat params vs saved anchors
         theta = torch.cat([p.view(-1) for p in model.parameters()])
         loss  = torch.tensor(0.0, device=theta.device)
         for tid in self.fishers:
             diff = theta - self.anchors[tid]
             loss = loss + (self.fishers[tid] * diff.pow(2)).sum()
-        return (self.lam / 2.0) * loss  # <-- removed / len(self.fishers)
+        return (self.lam / 2.0) * loss
 
     def _penalty_hypernetwork(self, model: nn.Module) -> Tensor:
         # Generated weight space: regenerate w for each past task and compare vs saved anchor
@@ -100,15 +101,15 @@ class EWC:
         fisher = torch.zeros(D, device=device)
         n_seen = 0
 
-        for x, y in loader:  # <-- unpack y (true labels)
+        for x, y in loader:
             x, y = x.to(device), y.to(device)
-            for xi, yi in zip(x, y):  # <-- iterate with true label
+            for xi, yi in zip(x, y):
                 if n_seen >= self.fisher_samples:
                     break
 
                 model.zero_grad(set_to_none=True)
                 logits = model(xi.unsqueeze(0))
-                loss   = F.cross_entropy(logits, yi.unsqueeze(0))  # <-- use true label
+                loss   = F.cross_entropy(logits, yi.unsqueeze(0))
                 loss.backward()
 
                 grads = []
@@ -130,7 +131,9 @@ class EWC:
         self.anchors[task_id] = torch.cat(
             [p.data.detach().view(-1) for p in model.parameters()]
         )
-        
+        print(f"[EWC/MLP] task {task_id} Fisher — "
+              f"min: {fisher.min():.2e}  max: {fisher.max():.2e}  mean: {fisher.mean():.2e}")
+
     def _after_task_hypernetwork(
         self,
         model: nn.Module,
