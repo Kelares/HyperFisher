@@ -18,23 +18,30 @@ class HyperNetwork(nn.Module):
         self.num_target_params = sum(p.numel() for p in self.target_network.parameters())
         print(self.num_target_params)
 
+        # CHUNKING
+        self.chunk_size = 1000
+        self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
+        self.chunk_emb = nn.Embedding(
+            num_embeddings=, 
+            embedding_dim=config.embedding_dim
+        ).to(self.device)
+        ##########
+
         # 2. Task Embeddings (No shared context)
         self.task_emb = nn.Embedding(
             num_embeddings=config.num_tasks, 
             embedding_dim=config.embedding_dim
         ).to(self.device)
         
+
+
         # 3. Modular Hypernetwork Generator
         # config.hyper_hidden_dim defines the bottleneck (e.g., 16)
         bottleneck_dim = getattr(config, 'hyper_hidden_dim', 16)
         
-        # CHUNKING
-        self.chunk_size = 1000
-        self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
-        ##########
 
         self.layers = nn.Sequential(
-            nn.Linear(config.embedding_dim, bottleneck_dim),
+            nn.Linear(config.embedding_dim * 2, bottleneck_dim), # * 2 because we concat 2 embedding layers
             nn.ReLU(),
             nn.Linear(bottleneck_dim, self.chunk_size)
         ).to(self.device)
@@ -48,11 +55,12 @@ class HyperNetwork(nn.Module):
         
     def spawn(self, task_id):
         t_vec = self.task_emb(task_id).to(self.device)
-        
+
         # COLLECT CHUNKS #
         chunks = []
         for chunk_id in range(self.num_of_chunks):
-            x = torch.concat(t_vec, chunk_id)
+            c_vec = self.task_emb(chunk_id).to(self.device)
+            x = torch.concat(t_vec, c_vec)
             chunks.append(self.layers(x).squeeze().to(self.device))
         self.target_params = self.get_params_dict(chunks)
         ##################
