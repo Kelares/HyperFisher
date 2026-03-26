@@ -16,7 +16,7 @@ class HyperNetwork(nn.Module):
             param.requires_grad = False
             
         self.num_target_params = sum(p.numel() for p in self.target_network.parameters())
-        print(num_target_params)
+        print(self.num_target_params)
 
         # 2. Task Embeddings (No shared context)
         self.task_emb = nn.Embedding(
