@@ -24,14 +24,14 @@ class HyperNetwork(nn.Module):
 
         self.chunk_emb = nn.Embedding(
             num_embeddings=self.num_of_chunks, 
-            embedding_dim=config.embedding_dim
+            embedding_dim=config.chunk_embedding_dim
         ).to(self.device)
         ##########
 
         # 2. Task Embeddings (No shared context)
         self.task_emb = nn.Embedding(
             num_embeddings=config.num_tasks, 
-            embedding_dim=config.embedding_dim
+            embedding_dim=config.task_embedding_dim
         ).to(self.device)
         
 
@@ -42,7 +42,7 @@ class HyperNetwork(nn.Module):
         
 
         self.layers = nn.Sequential(
-            nn.Linear(config.embedding_dim * 2, bottleneck_dim), # * 2 because we concat 2 embedding layers
+            nn.Linear(config.embedding_dim + config.chunk_embedding_dim, bottleneck_dim), # * 2 because we concat 2 embedding layers
             nn.ReLU(),
             nn.Linear(bottleneck_dim, self.chunk_size)
         ).to(self.device)

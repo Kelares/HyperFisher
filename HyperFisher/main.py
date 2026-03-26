@@ -50,7 +50,10 @@ if __name__ == "__main__":
     
     # MODEL SPECIFIC
     parser.add_argument("--hyper_hidden_dim", type=int, default=16)
-    parser.add_argument("--embedding_dim", type=int, default=4)
+    parser.add_argument("--task_embedding_dim", type=int, default=4)
+    parser.add_argument("--chunk_embedding_dim", type=int, default=10)
+
+    
     # ------------------------------
 
     parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)

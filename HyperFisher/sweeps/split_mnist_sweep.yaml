@@ -1,0 +1,61 @@
+program: main.py
+method: bayes
+metric:
+  name: fopng/eval/average_accuracy  # Optimize for retention
+  goal: maximize
+parameters:
+  # --- CONSTANTS (Locked to the 'good run' baseline) ---
+  task:
+    value: "split_mnist"
+  methods:
+    value: "fopng"
+  num_tasks:
+    value: 5
+  seed:
+    value: 1234
+  alpha:
+    value: 0.3
+
+  task_embedding_dim:
+    value: 4
+
+  fisher_samples:
+    value: 4096
+  lam:
+    value: 0.001
+  lr:
+    value: 0.005
+  epochs:
+    value: 5
+
+  # --- PRIMARY SWEEP VARIABLES ---
+  
+  # Sweeping around the successful value of 100
+  hyper_hidden_dim:
+    distribution: int_uniform
+    min: 10
+    max: 400
+    
+  # Sweeping subspace capacity. 
+  # With grads_per_task=100 and 10 tasks, 1000 is the theoretical max needed.
+  max_directions:
+    distribution: int_uniform
+    min: 80
+    max: 1500
+
+  grads_per_task:
+    distribution: int_uniform
+    min: 40
+    max: 250
+
+  chunk_embedding_dim:
+    distribution: int_uniform
+    min: 4
+    max: 100
+
+# Command formatting to safely pass args to main.py
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}
