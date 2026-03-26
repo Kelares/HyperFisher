@@ -63,9 +63,10 @@ class HyperNetwork(nn.Module):
             chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
 
             c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
-            x = torch.concat([t_vec, c_vec])
+            x = torch.concat([t_vec, c_vec], dim=1)
             chunks.append(self.layers(x).squeeze().to(self.device))
-        self.target_params = self.get_params_dict(chunks)
+        flat_params = torch.concat(chunks)[:self.num_target_params]  # trim padding
+        self.target_params = self.get_params_dict(flat_params)
         ##################
 
     def forward(self, x):
