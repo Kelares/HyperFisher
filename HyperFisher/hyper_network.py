@@ -15,7 +15,7 @@ class HyperNetwork(nn.Module):
         for param in self.target_network.parameters():
             param.requires_grad = False
             
-        num_target_params = sum(p.numel() for p in self.target_network.parameters())
+        self.num_target_params = sum(p.numel() for p in self.target_network.parameters())
         print(num_target_params)
 
         # 2. Task Embeddings (No shared context)
@@ -30,7 +30,7 @@ class HyperNetwork(nn.Module):
         
         # CHUNKING
         self.chunk_size = 1000
-        self.num_of_chunks = ceil( num_target_params / chunk_size )
+        self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
         ##########
 
         self.layers = nn.Sequential(
@@ -56,7 +56,7 @@ class HyperNetwork(nn.Module):
             chunks.append(self.layers(x).squeeze().to(self.device))
         self.target_params = self.get_params_dict(chunks)
         ##################
-        
+
     def forward(self, x):
         return functional_call(self.target_network, self.target_params, x)
 
