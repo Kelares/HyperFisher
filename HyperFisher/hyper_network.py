@@ -21,8 +21,9 @@ class HyperNetwork(nn.Module):
         # CHUNKING
         self.chunk_size = 1000
         self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
+        
         self.chunk_emb = nn.Embedding(
-            num_embeddings=, 
+            num_embeddings=self.num_of_chunks, 
             embedding_dim=config.embedding_dim
         ).to(self.device)
         ##########
