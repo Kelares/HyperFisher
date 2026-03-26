@@ -3,28 +3,28 @@ import matplotlib.patches as mpatches
 import numpy as np
 from matplotlib import rcParams
 
-fopng_data = np.array([
-    [1.000, 0.458, 0.524, 0.482, 0.509],  # after task 1
-    [1.000, 0.976, 0.524, 0.482, 0.509],  # after task 2
-    [1.000, 0.973, 0.988, 0.482, 0.510],  # after task 3
-    [1.000, 0.970, 0.989, 0.994, 0.513],  # after task 4
-    [1.000, 0.973, 0.928, 0.994, 0.974],  # after task 5
+ewc_data = np.array([
+    [1.000, 0.495, 0.494, 0.490, 0.491],  # after task 1
+    [1.000, 0.995, 0.511, 0.483, 0.570],  # after task 2
+    [1.000, 0.974, 0.997, 0.518, 0.457],  # after task 3
+    [0.998, 0.962, 0.476, 0.997, 0.487],  # after task 4
+    [0.999, 0.954, 0.982, 0.492, 0.986],  # after task 5
 ])
 
-ewc_data = np.array([
-    [1.000, 0.505, 0.388, 0.518, 0.508],  # after task 1
-    [0.161, 0.988, 0.430, 0.518, 0.493],  # after task 2
-    [0.196, 0.652, 0.998, 0.564, 0.492],  # after task 3
-    [0.069, 0.861, 0.476, 0.995, 0.495],  # after task 4
-    [0.517, 0.563, 0.476, 0.975, 0.973],  # after task 5
+fopng_data = np.array([
+    [1.000, 0.490, 0.657, 0.518, 0.509],  # after task 1
+    [1.000, 0.982, 0.549, 0.518, 0.509],  # after task 2
+    [1.000, 0.952, 0.996, 0.518, 0.509],  # after task 3
+    [1.000, 0.914, 0.993, 0.994, 0.509],  # after task 4
+    [0.993, 0.920, 0.986, 0.966, 0.980],  # after task 5
 ])
 
 adam_data = np.array([
-    [0.999, 0.491, 0.476, 0.518, 0.550],  # after task 1
-    [1.000, 0.994, 0.476, 0.482, 0.603],  # after task 2
-    [1.000, 0.693, 0.998, 0.482, 0.725],  # after task 3
-    [0.997, 0.475, 0.901, 0.999, 0.509],  # after task 4
-    [0.997, 0.500, 0.965, 0.470, 0.983],  # after task 5
+    [1.000, 0.495, 0.478, 0.560, 0.493],  # after task 1
+    [0.999, 0.993, 0.530, 0.518, 0.491],  # after task 2
+    [0.982, 0.478, 0.995, 0.411, 0.480],  # after task 3
+    [0.990, 0.432, 0.522, 0.996, 0.491],  # after task 4
+    [0.978, 0.488, 0.691, 0.937, 0.990],  # after task 5
 ])
 
 tasks_x = np.array([1, 2, 3, 4, 5], dtype=float)
@@ -42,7 +42,7 @@ TASK_COLORS = ['#CF222E', '#9A6700', '#1A7F37', '#0550AE', '#8250DF']
 METHODS = [
     ('Baseline (Adam)', adam_data,  '#57606A', '^'),
     ('EWC',             ewc_data,   '#9A6700', 's'),
-    ('FOPNG (Ours)',    fopng_data, '#0550AE', 'o'),
+    ('FOPNG',    fopng_data, '#0550AE', 'o'),
 ]
 
 rcParams.update({'font.family': 'DejaVu Sans'})
@@ -133,7 +133,7 @@ task_handles = [
 
 
 fig.text(0.08, 0.965,
-         'Split-MNIST | MLP | Per-task accuracy trajectories — method comparison',
+         'Split-MNIST | HyperNetwork | Per-task accuracy trajectories — method comparison',
          fontsize=14, fontweight='bold', color=TEXT_CLR, va='top')
 fig.text(0.08, 0.945,
          'dashed = before task introduced  ·  dotted = after introduction',

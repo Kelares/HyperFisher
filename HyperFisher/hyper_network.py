@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.func import functional_call
+from math import ceil
+
 
 class HyperNetwork(nn.Module):
     def __init__(self, config, target_network_template: nn.Module, device: torch.device):
@@ -14,6 +16,7 @@ class HyperNetwork(nn.Module):
             param.requires_grad = False
             
         num_target_params = sum(p.numel() for p in self.target_network.parameters())
+        print(num_target_params)
 
         # 2. Task Embeddings (No shared context)
         self.task_emb = nn.Embedding(
@@ -25,10 +28,15 @@ class HyperNetwork(nn.Module):
         # config.hyper_hidden_dim defines the bottleneck (e.g., 16)
         bottleneck_dim = getattr(config, 'hyper_hidden_dim', 16)
         
+        # CHUNKING
+        self.chunk_size = 1000
+        self.num_of_chunks = ceil( num_target_params / chunk_size )
+        ##########
+
         self.layers = nn.Sequential(
             nn.Linear(config.embedding_dim, bottleneck_dim),
             nn.ReLU(),
-            nn.Linear(bottleneck_dim, num_target_params)
+            nn.Linear(bottleneck_dim, self.chunk_size)
         ).to(self.device)
 
         # 4. Prevent variance explosion on the massive output layer
@@ -40,9 +48,15 @@ class HyperNetwork(nn.Module):
         
     def spawn(self, task_id):
         t_vec = self.task_emb(task_id).to(self.device)
-        target_params = self.layers(t_vec).squeeze().to(self.device)
-        self.target_params = self.get_params_dict(target_params)
-
+        
+        # COLLECT CHUNKS #
+        chunks = []
+        for chunk_id in range(self.num_of_chunks):
+            x = torch.concat(t_vec, chunk_id)
+            chunks.append(self.layers(x).squeeze().to(self.device))
+        self.target_params = self.get_params_dict(chunks)
+        ##################
+        
     def forward(self, x):
         return functional_call(self.target_network, self.target_params, x)
 
