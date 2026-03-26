@@ -21,7 +21,7 @@ class HyperNetwork(nn.Module):
         # CHUNKING
         self.chunk_size = 1000
         self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
-        
+
         self.chunk_emb = nn.Embedding(
             num_embeddings=self.num_of_chunks, 
             embedding_dim=config.embedding_dim
@@ -60,7 +60,7 @@ class HyperNetwork(nn.Module):
         # COLLECT CHUNKS #
         chunks = []
         for chunk_id in range(self.num_of_chunks):
-            c_vec = self.task_emb(chunk_id).to(self.device)
+            c_vec = self.chunk_emb(chunk_id).to(self.device)
             x = torch.concat(t_vec, c_vec)
             chunks.append(self.layers(x).squeeze().to(self.device))
         self.target_params = self.get_params_dict(chunks)
