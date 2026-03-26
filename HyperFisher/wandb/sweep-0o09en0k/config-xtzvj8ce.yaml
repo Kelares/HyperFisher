@@ -1,0 +1,28 @@
+wandb_version: 1
+
+alpha:
+  value: 0.3
+chunk_embedding_dim:
+  value: 89
+epochs:
+  value: 5
+fisher_samples:
+  value: 4096
+grads_per_task:
+  value: 56
+hyper_hidden_dim:
+  value: 334
+lam:
+  value: 0.001
+lr:
+  value: 0.005
+max_directions:
+  value: 104
+methods:
+  value: fopng
+seed:
+  value: 1234
+task:
+  value: split_mnist
+task_embedding_dim:
+  value: 4

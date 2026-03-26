@@ -1,0 +1,23 @@
+100%|███████████████████████████████████████████████████████████████████████| 9.91M/9.91M [00:06<00:00, 1.63MB/s]
+100%|████████████████████████████████████████████████████████████████████████| 28.9k/28.9k [00:00<00:00, 282kB/s]
+100%|████████████████████████████████████████████████████████████████████████| 1.65M/1.65M [00:01<00:00, 955kB/s]
+100%|███████████████████████████████████████████████████████████████████████| 4.54k/4.54k [00:00<00:00, 2.67MB/s]
+['fopng']
+Target_network_param_n:  478410
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 166, in __getattr__
+    return self.__getitem__(key)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 131, in __getitem__
+    return self._items[key]
+KeyError: 'embedding_dim'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 120, in <module>
+    hyper_network = HyperNetwork(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/hyper_network.py", line 45, in __init__
+    nn.Linear(config.embedding_dim + config.chunk_embedding_dim, bottleneck_dim), # * 2 because we concat 2 embedding layers
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 168, in __getattr__
+    raise AttributeError(
+AttributeError: <class 'wandb.sdk.wandb_config.Config'> object has no attribute 'embedding_dim'

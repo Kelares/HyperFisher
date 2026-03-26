@@ -9,8 +9,6 @@ parameters:
     value: "split_mnist"
   methods:
     value: "fopng"
-  num_tasks:
-    value: 5
   seed:
     value: 1234
   alpha:

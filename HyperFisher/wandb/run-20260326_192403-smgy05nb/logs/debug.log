@@ -1,0 +1,21 @@
+2026-03-26 19:24:03,679 INFO    MainThread:68507 [wandb_setup.py:_flush():81] Current SDK version is 0.25.0
+2026-03-26 19:24:03,679 INFO    MainThread:68507 [wandb_setup.py:_flush():81] Configure stats pid to 68507
+2026-03-26 19:24:03,679 INFO    MainThread:68507 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2026-03-26 19:24:03,680 INFO    MainThread:68507 [wandb_init.py:setup_run_log_directory():717] Logging user logs to /home/kelares/Desktop/HyperFisher/HyperFisher/wandb/run-20260326_192403-smgy05nb/logs/debug.log
+2026-03-26 19:24:03,680 INFO    MainThread:68507 [wandb_init.py:setup_run_log_directory():718] Logging internal logs to /home/kelares/Desktop/HyperFisher/HyperFisher/wandb/run-20260326_192403-smgy05nb/logs/debug-internal.log
+2026-03-26 19:24:03,680 INFO    MainThread:68507 [wandb_init.py:init():844] calling init triggers
+2026-03-26 19:24:03,680 INFO    MainThread:68507 [wandb_init.py:init():849] wandb.init called with sweep_config: {'alpha': 0.3, 'chunk_embedding_dim': 74, 'epochs': 5, 'fisher_samples': 4096, 'grads_per_task': 83, 'hyper_hidden_dim': 367, 'lam': 0.001, 'lr': 0.005, 'max_directions': 189, 'methods': 'fopng', 'seed': 1234, 'task': 'split_mnist', 'task_embedding_dim': 4}
+config: {'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 5, 'methods': ['fopng'], 'lr': 0.005, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 4096.0, 'grads_per_task': 83, 'max_directions': 189, 'hyper_hidden_dim': 367, 'task_embedding_dim': 4, 'chunk_embedding_dim': 74, 'check_vram': False, '_wandb': {}}
+2026-03-26 19:24:03,680 INFO    MainThread:68507 [wandb_init.py:init():892] starting backend
+2026-03-26 19:24:03,914 INFO    MainThread:68507 [wandb_init.py:init():895] sending inform_init request
+2026-03-26 19:24:03,922 INFO    MainThread:68507 [wandb_init.py:init():903] backend started and connected
+2026-03-26 19:24:03,923 INFO    MainThread:68507 [wandb_run.py:_config_callback():1403] config_cb None None {'alpha': 0.3, 'chunk_embedding_dim': 74, 'epochs': 5, 'fisher_samples': 4096, 'grads_per_task': 83, 'hyper_hidden_dim': 367, 'lam': 0.001, 'lr': 0.005, 'max_directions': 189, 'methods': 'fopng', 'seed': 1234, 'task': 'split_mnist', 'task_embedding_dim': 4}
+2026-03-26 19:24:03,924 INFO    MainThread:68507 [wandb_init.py:init():973] updated telemetry
+2026-03-26 19:24:03,933 INFO    MainThread:68507 [wandb_init.py:init():997] communicating run to backend with 90.0 second timeout
+2026-03-26 19:24:04,824 INFO    MainThread:68507 [wandb_init.py:init():1042] starting run threads in backend
+2026-03-26 19:24:04,919 INFO    MainThread:68507 [wandb_run.py:_console_start():2524] atexit reg
+2026-03-26 19:24:04,919 INFO    MainThread:68507 [wandb_run.py:_redirect():2373] redirect: wrap_raw
+2026-03-26 19:24:04,919 INFO    MainThread:68507 [wandb_run.py:_redirect():2442] Wrapping output streams.
+2026-03-26 19:24:04,919 INFO    MainThread:68507 [wandb_run.py:_redirect():2465] Redirects installed.
+2026-03-26 19:24:04,923 INFO    MainThread:68507 [wandb_init.py:init():1082] run started, returning control to user process
+2026-03-26 19:24:04,923 INFO    MainThread:68507 [wandb_run.py:_config_callback():1403] config_cb None None {'num_tasks': 5}

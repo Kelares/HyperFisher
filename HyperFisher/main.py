@@ -69,7 +69,6 @@ if __name__ == "__main__":
     lam = args.lam
     alpha = args.alpha
     fisher_samples = args.fisher_samples
-    embedding_dim = args.embedding_dim
 
     seed = args.seed
     grads_per_task = args.grads_per_task
