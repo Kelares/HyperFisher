@@ -16,7 +16,7 @@ class HyperNetwork(nn.Module):
             param.requires_grad = False
             
         self.num_target_params = sum(p.numel() for p in self.target_network.parameters())
-        print(self.num_target_params)
+        print("Target_network_param_n: ", self.num_target_params)
 
         # CHUNKING
         self.chunk_size = 1000
@@ -46,7 +46,9 @@ class HyperNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(bottleneck_dim, self.chunk_size)
         ).to(self.device)
-
+        
+        print("hyper_network_param_n: ", sum(p.numel() for p in self.layers.parameters()))
+        
         # 4. Prevent variance explosion on the massive output layer
         with torch.no_grad():
             torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.01)
