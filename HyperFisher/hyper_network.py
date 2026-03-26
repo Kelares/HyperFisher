@@ -60,7 +60,7 @@ class HyperNetwork(nn.Module):
         # COLLECT CHUNKS #
         chunks = []
         for chunk_id in range(self.num_of_chunks):
-            chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=device)
+            chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
 
             c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
             x = torch.concat(t_vec, c_vec)
