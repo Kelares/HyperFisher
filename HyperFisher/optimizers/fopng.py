@@ -46,33 +46,42 @@ class FOPNG:
     def compute_fisher_diag(
         self,
         hyper_network: nn.Module,
-        task_id, 
+        task_id,
         loader: DataLoader,
         criterion: Callable,
         device: torch.device,
         max_samples: int = 1024,
     ) -> Tensor:
+        """
+        Compute diagonal Fisher in generated weight space (w-space).
+        D = num_target_params, not num_hypernetwork_params.
+        Each batch gets a fresh generate_flat_params call so no
+        retain_graph is needed.
+        """
+        from torch.func import functional_call
         hyper_network.eval()
-        D = sum(p.numel() for p in hyper_network.parameters())
+        D = hyper_network.num_target_params          # w-space dimension
         fisher = torch.zeros(D, device=device)
         n_seen = 0
-        n_batches = 0 # <--- NEW: Track batches
-
-        hyper_network.eval()
-        hyper_network.spawn(task_id)
+        n_batches = 0
 
         with torch.enable_grad():
             for x, y in loader:
                 x, y = x.to(device), y.to(device)
                 hyper_network.zero_grad()
-                
-                output = hyper_network(x)
 
+                # Fresh graph each batch — w is the leaf we differentiate
+                w = hyper_network.generate_flat_params(task_id)   # [D_w]
+                output = functional_call(
+                    hyper_network.target_network,
+                    hyper_network.get_params_dict(w),
+                    x,
+                )
                 loss = criterion(output, y)
-                loss.backward(retain_graph=True)
 
-                g = _flat_grad(hyper_network)
-                fisher.add_(g.pow(2))
+                # d_loss/d_w — graph freed after this call
+                (g_w,) = torch.autograd.grad(loss, w)
+                fisher.add_(g_w.detach().pow(2))
 
                 n_seen += x.size(0)
                 n_batches += 1
@@ -88,14 +97,36 @@ class FOPNG:
         self._F_new = F_new
         self._A_inv = self._build_A_inv(self.G, self.F_old, F_new, self.lam)
 
-    def step(self, model: nn.Module) -> float:
+    def step(self, model: nn.Module, task_id, g_w: Tensor) -> float:
+        """
+        g_w: [D_w] gradient of loss w.r.t generated weights,
+             computed by the training loop via autograd.grad(loss, w).
+
+        1. Projects g_w in w-space via FOPNG update → v_star_w [D_w]
+        2. Maps v_star_w back to θ-space via Jᵀ · v_star_w (one backward pass)
+        3. Applies the resulting θ-space update directly from p.grad
+        """
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
-        g = _flat_grad(model)
-        v_star, rho = self._fopng_update(
-            g=g, G=self.G, F_old=self.F_old, F_new=self._F_new,
+
+        # ── 1. Project in w-space ─────────────────────────────────────────
+        v_star_w, rho = self._fopng_update(
+            g=g_w, G=self.G, F_old=self.F_old, F_new=self._F_new,
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
-        )
-        _apply_flat_update(model, v_star)
+        )   # v_star_w: [D_w]
+
+        # ── 2. Map v_star_w to θ-space via Jᵀ ───────────────────────────
+        # Fresh graph needed — the graph used to compute g_w was freed
+        # by autograd.grad(). Same task, same θ, so J is identical.
+        model.zero_grad()
+        w_fresh = model.generate_flat_params(task_id)       # fresh graph
+        w_fresh.backward(v_star_w.detach())                 # θ.grad = Jᵀ v_star_w
+
+        # ── 3. Apply θ-space update ───────────────────────────────────────
+        with torch.no_grad():
+            for p in model.parameters():
+                if p.grad is not None:
+                    p.data.add_(p.grad)
+
         model.zero_grad()
         return rho
 
@@ -157,9 +188,13 @@ class FOPNG:
         wandb.log(logs)
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
+        """
+        Collect per-batch gradients in w-space (generated weight space).
+        Returns G: [D_w, grads_per_task]
+        """
+        from torch.func import functional_call
         grads: List[Tensor] = []
         hyper_network.eval()
-        hyper_network.spawn(task_id)
 
         with torch.enable_grad():
             for x, y in loader:
@@ -168,13 +203,20 @@ class FOPNG:
                 x, y = x.to(self._device), y.to(self._device)
                 hyper_network.zero_grad()
 
-                output = hyper_network(x)
+                # Fresh graph each sample — w is the leaf
+                w = hyper_network.generate_flat_params(task_id)   # [D_w]
+                output = functional_call(
+                    hyper_network.target_network,
+                    hyper_network.get_params_dict(w),
+                    x,
+                )
                 loss = criterion(output, y)
-                loss.backward(retain_graph=True)
-                grads.append(_flat_grad(hyper_network).clone())
+                (g_w,) = torch.autograd.grad(loss, w)
+                grads.append(g_w.detach().clone())
+
         hyper_network.zero_grad()
         hyper_network.train()
-        return torch.stack(grads, dim=1)
+        return torch.stack(grads, dim=1)   # [D_w, grads_per_task]
 
     def _fopng_update(
         self,
@@ -399,14 +441,25 @@ def train_fopng(
                 hyper_network.train()
                 
                 for x, y in loader:
+                    from torch.func import functional_call
                     x, y = x.to(device), y.to(device)
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
+                    hyper_network.zero_grad()
+
+                    # Forward in w-space — w is the differentiable leaf
+                    w = hyper_network.generate_flat_params(task_id)   # [D_w]
+                    output = functional_call(
+                        hyper_network.target_network,
+                        hyper_network.get_params_dict(w),
+                        x,
+                    )
                     loss = criterion(output, y)
-                    loss.backward()
                     total_loss += loss.item()
-                    
-                    rho = fopng.step(hyper_network)
+
+                    # Gradient in w-space — graph freed after this
+                    (g_w,) = torch.autograd.grad(loss, w)
+
+                    # Project in w-space, map back to θ via Jᵀ, apply update
+                    rho = fopng.step(hyper_network, task_id, g_w.detach())
                     total_rho += rho
                     
                 avg_loss = total_loss / len(loader)

@@ -71,6 +71,28 @@ class HyperNetwork(nn.Module):
         self.target_params = self.get_params_dict(flat_params)
         ##################
 
+    def generate_flat_params(self, task_id) -> torch.Tensor:
+        """
+        Same chunk loop as spawn() but returns the flat generated weight
+        vector with its computation graph intact — w is a function of θ.
+
+        Used by FOPNG for:
+          - Fisher:  autograd.grad(loss, w)  →  g_w  [D_w]
+          - VJP:     w.backward(v_star_w)    →  θ.grad = Jᵀ v_star_w
+
+        Does NOT set self.target_params — caller uses get_params_dict(w).
+        """
+        t_vec = self.task_emb(task_id).to(self.device)
+        chunks = []
+        for chunk_id in range(self.num_of_chunks):
+            chunk_id_tensor = torch.tensor(
+                [chunk_id], dtype=torch.long, device=self.device
+            )
+            c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
+            x = torch.cat([t_vec, c_vec], dim=1)
+            chunks.append(self.layers(x).squeeze())
+        return torch.cat(chunks)[:self.num_target_params]   # [D_w], grad intact
+
     def forward(self, x):
         return functional_call(self.target_network, self.target_params, x)
 
@@ -82,5 +104,3 @@ class HyperNetwork(nn.Module):
             param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
             pointer += num_param
         return param_dict
-
-
