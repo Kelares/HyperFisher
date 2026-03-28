@@ -72,7 +72,7 @@ class HyperNetwork(nn.Module):
             self.w = torch.concat(chunks)[:self.num_target_params]  # trim padding
         else:
             self.w = self.layers(t_vec).squeeze().to(self.device)
-        self.target_params = get_params_dict(self.w)
+        self.target_params = self.get_params_dict(self.w)
         ##################
 
     def forward(self, x):

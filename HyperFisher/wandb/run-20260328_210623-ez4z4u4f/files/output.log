@@ -1,0 +1,99 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  104100
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(479, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=100, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=100, out_features=1000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.2435
+  epoch 2/7 loss=0.0061
+  epoch 3/7 loss=0.0057
+  epoch 4/7 loss=0.0020
+  epoch 5/7 loss=0.0012
+  epoch 6/7 loss=0.0010
+  epoch 7/7 loss=0.0005
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.00028800146537832916, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 62.1%
+  Task 3 Acc: 47.5%
+  Task 4 Acc: 30.8%
+  Task 5 Acc: 49.1%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=9.1055 rho=0.9999
+  epoch 2/7 loss=3.6168 rho=0.9999
+  epoch 3/7 loss=2.2554 rho=0.9998
+  epoch 4/7 loss=1.9144 rho=0.9996
+  epoch 5/7 loss=1.5308 rho=0.9996
+  epoch 6/7 loss=0.9872 rho=0.9997
+  epoch 7/7 loss=0.6367 rho=0.9998
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7079439163208008, 'fopng/fisher/mean': 0.00022549089044332504, 'fopng/memory/G_cols': 98, 'fopng/fisher_overlap/cosine': 0.0580545999109745, 'fopng/fisher_overlap/pearson': 0.056550558656454086, 'fopng/fisher_overlap/topk_iou': 0.4786761940579165, 'task_completed': 2}
+  Task 1 Acc: 99.2%
+  Task 2 Acc: 79.5%
+  Task 3 Acc: 47.6%
+  Task 4 Acc: 44.9%
+  Task 5 Acc: 49.1%
+BWT for task 2: -0.0061
+
+[FOPNG] Task 3
+  epoch 1/7 loss=11.3009 rho=0.9983
+  epoch 2/7 loss=5.1155 rho=0.9984
+  epoch 3/7 loss=2.5612 rho=0.9988
+  epoch 4/7 loss=1.4477 rho=0.9995
+  epoch 5/7 loss=0.7051 rho=0.9995
+  epoch 6/7 loss=0.3879 rho=0.9994
+  epoch 7/7 loss=0.2441 rho=0.9993
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.4980599880218506, 'fopng/fisher/mean': 0.00023296837753150612, 'fopng/memory/G_cols': 142, 'fopng/fisher_overlap/cosine': 0.07931887358427048, 'fopng/fisher_overlap/pearson': 0.07707937061786652, 'fopng/fisher_overlap/topk_iou': 0.41397746343802444, 'task_completed': 3}
+  Task 1 Acc: 97.8%
+  Task 2 Acc: 64.0%
+  Task 3 Acc: 93.3%
+  Task 4 Acc: 44.4%
+  Task 5 Acc: 49.0%
+BWT for task 3: -0.0880
+
+[FOPNG] Task 4
+  epoch 1/7 loss=11.9368 rho=0.9849
+  epoch 2/7 loss=4.5181 rho=0.9876
+  epoch 3/7 loss=1.5431 rho=0.9957
+  epoch 4/7 loss=0.4377 rho=0.9962
+  epoch 5/7 loss=0.1654 rho=0.9948
+  epoch 6/7 loss=0.0863 rho=0.9937
+  epoch 7/7 loss=0.0559 rho=0.9937
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.34865280985832214, 'fopng/fisher/mean': 0.00021558204025495797, 'fopng/memory/G_cols': 190, 'fopng/fisher_overlap/cosine': 0.16401313245296478, 'fopng/fisher_overlap/pearson': 0.16176389157772064, 'fopng/fisher_overlap/topk_iou': 0.4774537802495115, 'task_completed': 4}
+  Task 1 Acc: 91.6%
+  Task 2 Acc: 69.8%
+  Task 3 Acc: 90.0%
+  Task 4 Acc: 97.5%
+  Task 5 Acc: 49.1%
+BWT for task 4: -0.0708
+
+[FOPNG] Task 5
+  epoch 1/7 loss=8.0429 rho=0.9713
+  epoch 2/7 loss=2.9746 rho=0.9868
+  epoch 3/7 loss=1.3386 rho=0.9941
+  epoch 4/7 loss=0.7627 rho=0.9935
+  epoch 5/7 loss=0.5275 rho=0.9923
+  epoch 6/7 loss=0.3683 rho=0.9908
+  epoch 7/7 loss=0.2747 rho=0.9891
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.34451547265052795, 'fopng/fisher/mean': 0.00021482146985363215, 'fopng/memory/G_cols': 237, 'fopng/fisher_overlap/cosine': 0.13180461525917053, 'fopng/fisher_overlap/pearson': 0.12919016182422638, 'fopng/fisher_overlap/topk_iou': 0.45571901071234633, 'task_completed': 5}
+  Task 1 Acc: 79.7%
+  Task 2 Acc: 49.5%
+  Task 3 Acc: 71.7%
+  Task 4 Acc: 94.2%
+  Task 5 Acc: 92.4%
+BWT for task 5: -0.1877

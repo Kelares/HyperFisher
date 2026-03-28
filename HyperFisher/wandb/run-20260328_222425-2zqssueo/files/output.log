@@ -1,0 +1,38 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  16430
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(957, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=30, out_features=500, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.6012
+  epoch 2/7 loss=0.0388
+  epoch 3/7 loss=0.0210
+  epoch 4/7 loss=0.0147
+  epoch 5/7 loss=0.0114
+  epoch 6/7 loss=0.0087
+  epoch 7/7 loss=0.0072
+{'fopng/fisher/min': 1.5261281131278388e-16, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.0009389461483806372, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 41.0%
+  Task 3 Acc: 52.1%
+  Task 4 Acc: 59.2%
+  Task 5 Acc: 43.8%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=4.9445 rho=0.9947

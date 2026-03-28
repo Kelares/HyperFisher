@@ -1,0 +1,99 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  85240
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 10)
+  (task_emb): Embedding(5, 4)
+  (layers): Sequential(
+    (0): Linear(in_features=14, out_features=16, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=16, out_features=5000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.0938
+  epoch 2/7 loss=0.0044
+  epoch 3/7 loss=0.0023
+  epoch 4/7 loss=0.0012
+  epoch 5/7 loss=0.0001
+  epoch 6/7 loss=0.0000
+  epoch 7/7 loss=0.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 6.01038207918847e-13, 'fopng/fisher/mean': 2.0026253064656633e-16, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 70.1%
+  Task 3 Acc: 49.7%
+  Task 4 Acc: 63.8%
+  Task 5 Acc: 36.4%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=2.2425 rho=1.0000
+  epoch 2/7 loss=0.1252 rho=1.0000
+  epoch 3/7 loss=0.0723 rho=1.0000
+  epoch 4/7 loss=0.0612 rho=1.0000
+  epoch 5/7 loss=0.0422 rho=1.0000
+  epoch 6/7 loss=0.0306 rho=1.0000
+  epoch 7/7 loss=0.0260 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.2685383126154193e-06, 'fopng/fisher/mean': 2.28757013331915e-10, 'fopng/memory/G_cols': 98, 'fopng/fisher_overlap/cosine': 0.0038706394843757153, 'fopng/fisher_overlap/pearson': 3.720147453978306e-12, 'fopng/fisher_overlap/topk_iou': 0.10389145909526172, 'task_completed': 2}
+  Task 1 Acc: 94.8%
+  Task 2 Acc: 99.3%
+  Task 3 Acc: 23.2%
+  Task 4 Acc: 84.7%
+  Task 5 Acc: 45.5%
+BWT for task 2: -0.0515
+
+[FOPNG] Task 3
+  epoch 1/7 loss=0.7823 rho=1.0000
+  epoch 2/7 loss=0.0346 rho=1.0000
+  epoch 3/7 loss=0.0181 rho=1.0000
+  epoch 4/7 loss=0.0101 rho=1.0000
+  epoch 5/7 loss=0.0065 rho=1.0000
+  epoch 6/7 loss=0.0047 rho=1.0000
+  epoch 7/7 loss=0.0038 rho=0.9982
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.976386329261004e-06, 'fopng/fisher/mean': 6.495073923140637e-10, 'fopng/memory/G_cols': 142, 'fopng/fisher_overlap/cosine': 0.004196903668344021, 'fopng/fisher_overlap/pearson': 7.791993084538262e-06, 'fopng/fisher_overlap/topk_iou': 0.10377684977966453, 'task_completed': 3}
+  Task 1 Acc: 53.8%
+  Task 2 Acc: 95.0%
+  Task 3 Acc: 99.7%
+  Task 4 Acc: 67.1%
+  Task 5 Acc: 37.8%
+BWT for task 3: -0.2523
+
+[FOPNG] Task 4
+  epoch 1/7 loss=1.0199 rho=1.0000
+  epoch 2/7 loss=0.0088 rho=0.9968
+  epoch 3/7 loss=0.0081 rho=0.8246
+  epoch 4/7 loss=0.0055 rho=0.4867
+  epoch 5/7 loss=0.0015 rho=0.4106
+  epoch 6/7 loss=0.0011 rho=0.2167
+  epoch 7/7 loss=0.0000 rho=0.1308
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.3834703622706002e-06, 'fopng/fisher/mean': 4.546551746198446e-10, 'fopng/memory/G_cols': 190, 'fopng/fisher_overlap/cosine': 0.011437774635851383, 'fopng/fisher_overlap/pearson': 3.870553508776575e-13, 'fopng/fisher_overlap/topk_iou': 0.0947973042552948, 'task_completed': 4}
+  Task 1 Acc: 17.7%
+  Task 2 Acc: 69.4%
+  Task 3 Acc: 98.3%
+  Task 4 Acc: 99.8%
+  Task 5 Acc: 42.8%
+BWT for task 4: -0.3781
+
+[FOPNG] Task 5
+  epoch 1/7 loss=2.2987 rho=1.0000
+  epoch 2/7 loss=0.0813 rho=1.0000
+  epoch 3/7 loss=0.0544 rho=1.0000
+  epoch 4/7 loss=0.0399 rho=1.0000
+  epoch 5/7 loss=0.0324 rho=1.0000
+  epoch 6/7 loss=0.0189 rho=1.0000
+  epoch 7/7 loss=0.0194 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 2.1661292066710303e-06, 'fopng/fisher/mean': 6.834812715794669e-10, 'fopng/memory/G_cols': 237, 'fopng/fisher_overlap/cosine': 0.005850637331604958, 'fopng/fisher_overlap/pearson': 2.1775838831672445e-05, 'fopng/fisher_overlap/topk_iou': 0.16893493292936204, 'task_completed': 5}
+  Task 1 Acc: 76.7%
+  Task 2 Acc: 59.5%
+  Task 3 Acc: 95.8%
+  Task 4 Acc: 98.2%
+  Task 5 Acc: 98.9%
+BWT for task 5: -0.1710

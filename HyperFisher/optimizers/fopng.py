@@ -58,7 +58,6 @@ class FOPNG:
         Each batch gets a fresh generate_flat_params call so no
         retain_graph is needed.
         """
-        from torch.func import functional_call
         hyper_network.eval()
         D = hyper_network.num_target_params          # w-space dimension
         fisher = torch.zeros(D, device=device)
@@ -87,7 +86,10 @@ class FOPNG:
 
         hyper_network.zero_grad()
         hyper_network.train()
-        return fisher / max(n_seen, 1)
+        fisher = fisher / max(n_seen, 1)
+        if fisher.max() > 0:
+            fisher = fisher / fisher.max()   # normalise to [0, 1]
+        return fisher
     
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
@@ -190,24 +192,24 @@ class FOPNG:
         Collect per-batch gradients in w-space (generated weight space).
         Returns G: [D_w, grads_per_task]
         """
-        from torch.func import functional_call
         grads: List[Tensor] = []
         hyper_network.eval()
 
         with torch.enable_grad():
-            for x, y in loader:
-                if len(grads) >= self.grads_per_task:
-                    break
-                x, y = x.to(self._device), y.to(self._device)
-                hyper_network.zero_grad()
+            while len(grads) < self.grads_per_task:
+                for x, y in loader:
+                    if len(grads) >= self.grads_per_task:
+                        break
+                    x, y = x.to(self._device), y.to(self._device)
+                    hyper_network.zero_grad()
 
-                # Fresh graph each sample — w is the leaf
-                hyper_network.spawn(task_id)   # [D_w]
-                w = hyper_network.w
-                output = hyper_network(x)
-                loss = criterion(output, y)
-                (g_w,) = torch.autograd.grad(loss, w)
-                grads.append(g_w.detach().clone())
+                    # Fresh graph each sample — w is the leaf
+                    hyper_network.spawn(task_id)   # [D_w]
+                    w = hyper_network.w
+                    output = hyper_network(x)
+                    loss = criterion(output, y)
+                    (g_w,) = torch.autograd.grad(loss, w)
+                    grads.append(g_w.detach().clone())
 
         hyper_network.zero_grad()
         hyper_network.train()
@@ -253,7 +255,8 @@ class FOPNG:
         # ── unit natural gradient ──────────────────────────────────────────
         F_new_inv    = 1.0 / (F_new + lam)            # [D]
         F_new_inv_Pg = F_new_inv * Pg                  # [D]    F_new⁻¹ Pg
-        fisher_norm  = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)   # scalar
+
+        fisher_norm = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
 
         return -lr * F_new_inv_Pg / fisher_norm, rho      # [D]  negative = descent
 
@@ -280,6 +283,8 @@ class FOPNG:
         """
         F_new_inv = 1.0 / (F_new + lam)                 # [D]
         scale     = (F_old ** 2) * F_new_inv             # [D]   F_old² / F_new
+        # CLAMP: Prevent scale from exceeding a reasonable threshold (e.g., 1e4)
+        scale = torch.clamp(scale, max=1e4) 
         scaled_G  = scale.unsqueeze(1) * G               # [D, m]
         A         = G.t() @ scaled_G                     # [m, m]
         A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
@@ -436,7 +441,6 @@ def train_fopng(
                 hyper_network.train()
                 
                 for x, y in loader:
-                    from torch.func import functional_call
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
                     if hyper_network.chunk_size:
@@ -456,15 +460,15 @@ def train_fopng(
                         
                 avg_loss = total_loss / len(loader)
                 avg_rho = total_rho / len(loader)
-                
+
                 wandb.log({
-                    "fopng/train/loss": avg_loss, 
+                    "fopng/train/loss": avg_loss,
                     "fopng/train/rho_avg": avg_rho,
-                    "fopng/global_epoch": global_epoch, 
+                    "fopng/global_epoch": global_epoch,
                     "task": t+1
                 })
                 global_epoch += 1
-                
+
                 if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f} rho={avg_rho:.4f}")
             fopng.after_task(hyper_network, task_id, loader, criterion)
                 

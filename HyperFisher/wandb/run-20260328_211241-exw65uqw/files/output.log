@@ -1,0 +1,114 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  104100
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(479, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=100, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=100, out_features=1000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/10 loss=48.8845
+  epoch 2/10 loss=0.3728
+  epoch 3/10 loss=0.0445
+  epoch 4/10 loss=0.0190
+  epoch 5/10 loss=0.0126
+  epoch 6/10 loss=0.0102
+  epoch 7/10 loss=0.0072
+  epoch 8/10 loss=0.0065
+  epoch 9/10 loss=0.0058
+  epoch 10/10 loss=0.0033
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 1.1487134543131106e-05, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 50.5%
+  Task 3 Acc: 47.5%
+  Task 4 Acc: 51.9%
+  Task 5 Acc: 49.1%
+
+[FOPNG] Task 2
+  epoch 1/10 loss=2.5753 rho=1.0000
+  epoch 2/10 loss=1.3055 rho=1.0000
+  epoch 3/10 loss=0.4326 rho=1.0000
+  epoch 4/10 loss=0.2249 rho=1.0000
+  epoch 5/10 loss=0.1433 rho=1.0000
+  epoch 6/10 loss=0.1026 rho=1.0000
+  epoch 7/10 loss=0.0990 rho=1.0000
+  epoch 8/10 loss=0.0862 rho=1.0000
+  epoch 9/10 loss=0.0717 rho=1.0000
+  epoch 10/10 loss=0.0810 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.501552402973175, 'fopng/fisher/mean': 1.664923911448568e-05, 'fopng/memory/G_cols': 98, 'fopng/fisher_overlap/cosine': 0.0037186311092227697, 'fopng/fisher_overlap/pearson': 0.0036642015911638737, 'fopng/fisher_overlap/topk_iou': 0.5386240901620098, 'task_completed': 2}
+  Task 1 Acc: 76.8%
+  Task 2 Acc: 98.9%
+  Task 3 Acc: 48.1%
+  Task 4 Acc: 21.2%
+  Task 5 Acc: 49.1%
+BWT for task 2: -0.2307
+
+[FOPNG] Task 3
+  epoch 1/10 loss=5.2328 rho=1.0000
+  epoch 2/10 loss=0.8412 rho=1.0000
+  epoch 3/10 loss=0.7047 rho=1.0000
+  epoch 4/10 loss=0.8360 rho=1.0000
+  epoch 5/10 loss=0.6878 rho=1.0000
+  epoch 6/10 loss=0.7383 rho=1.0000
+  epoch 7/10 loss=0.8890 rho=1.0000
+  epoch 8/10 loss=0.6746 rho=1.0000
+  epoch 9/10 loss=0.7110 rho=1.0000
+  epoch 10/10 loss=0.4317 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5, 'fopng/fisher/mean': 1.4254158486437518e-05, 'fopng/memory/G_cols': 142, 'fopng/fisher_overlap/cosine': 0.0010671751806512475, 'fopng/fisher_overlap/pearson': 0.0009983310010284185, 'fopng/fisher_overlap/topk_iou': 0.44985004179163185, 'task_completed': 3}
+  Task 1 Acc: 62.6%
+  Task 2 Acc: 57.3%
+  Task 3 Acc: 95.4%
+  Task 4 Acc: 49.8%
+  Task 5 Acc: 48.3%
+BWT for task 3: -0.3944
+
+[FOPNG] Task 4
+  epoch 1/10 loss=3.5618 rho=0.9996
+  epoch 2/10 loss=0.7510 rho=1.0000
+  epoch 3/10 loss=0.6991 rho=1.0000
+  epoch 4/10 loss=0.7059 rho=1.0000
+  epoch 5/10 loss=0.7022 rho=1.0000
+  epoch 6/10 loss=0.7015 rho=1.0000
+  epoch 7/10 loss=0.6985 rho=1.0000
+  epoch 8/10 loss=0.6980 rho=1.0000
+  epoch 9/10 loss=0.6981 rho=1.0000
+  epoch 10/10 loss=0.6966 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5000348091125488, 'fopng/fisher/mean': 1.0027030839410145e-05, 'fopng/memory/G_cols': 190, 'fopng/fisher_overlap/cosine': 0.00016339719877578318, 'fopng/fisher_overlap/pearson': 0.0001325433113379404, 'fopng/fisher_overlap/topk_iou': 0.0008909706488811955, 'task_completed': 4}
+  Task 1 Acc: 63.1%
+  Task 2 Acc: 52.1%
+  Task 3 Acc: 63.2%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 51.1%
+BWT for task 4: -0.3859
+
+[FOPNG] Task 5
+  epoch 1/10 loss=2.2014 rho=0.9999
+  epoch 2/10 loss=0.7208 rho=1.0000
+  epoch 3/10 loss=0.7028 rho=1.0000
+  epoch 4/10 loss=0.6988 rho=1.0000
+  epoch 5/10 loss=0.6980 rho=1.0000
+  epoch 6/10 loss=0.6971 rho=1.0000
+  epoch 7/10 loss=0.8919 rho=1.0000
+  epoch 8/10 loss=2.0877 rho=1.0000
+  epoch 9/10 loss=0.5115 rho=1.0000
+  epoch 10/10 loss=1.0383 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5000000596046448, 'fopng/fisher/mean': 1.3543400200433098e-05, 'fopng/memory/G_cols': 237, 'fopng/fisher_overlap/cosine': 0.0017308476381003857, 'fopng/fisher_overlap/pearson': 0.0016462922794744372, 'fopng/fisher_overlap/topk_iou': 0.5078040113001572, 'task_completed': 5}
+  Task 1 Acc: 29.9%
+  Task 2 Acc: 37.7%
+  Task 3 Acc: 56.2%
+  Task 4 Acc: 48.2%
+  Task 5 Acc: 97.4%
+BWT for task 5: -0.4345

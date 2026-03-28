@@ -1,0 +1,49 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  42240
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(479, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=40, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=40, out_features=1000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/5 loss=0.3126
+  epoch 2/5 loss=0.0065
+  epoch 3/5 loss=0.0035
+  epoch 4/5 loss=0.0015
+  epoch 5/5 loss=0.0011
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.0002641457540448755, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 55.4%
+  Task 3 Acc: 47.7%
+  Task 4 Acc: 36.9%
+  Task 5 Acc: 48.1%
+
+[FOPNG] Task 2
+  epoch 1/5 loss=4223450210150162890752.0000 rho=0.9998
+  epoch 2/5 loss=nan rho=nan
+/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py:292: UserWarning: torch.linalg.svd: During SVD computation with the selected cusolver driver, batches 0 failed to converge. A more accurate method will be used to compute the SVD as a fallback. Check doc at https://pytorch.org/docs/stable/generated/torch.linalg.svd.html (Triggered internally at /pytorch/aten/src/ATen/native/cuda/linalg/BatchLinearAlgebraLib.cpp:701.)
+  return torch.linalg.pinv(A)                      # [m, m]
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 128, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 440, in train_fopng
+    fopng.prepare_epoch(F_new)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 98, in prepare_epoch
+    self._A_inv = self._build_A_inv(self.G, self.F_old, F_new, self.lam)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 292, in _build_A_inv
+    return torch.linalg.pinv(A)                      # [m, m]
+torch._C._LinAlgError: linalg.svd: The algorithm failed to converge because the input matrix is ill-conditioned or has too many repeated singular values (error code: 50).

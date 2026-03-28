@@ -1,0 +1,73 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  413400
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(479, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=1000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/10 loss=5.9640
+  epoch 2/10 loss=0.0198
+  epoch 3/10 loss=0.0162
+  epoch 4/10 loss=0.0120
+  epoch 5/10 loss=0.0134
+  epoch 6/10 loss=0.0084
+  epoch 7/10 loss=0.0054
+  epoch 8/10 loss=0.0037
+  epoch 9/10 loss=0.0035
+  epoch 10/10 loss=0.0033
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 7.847303095331881e-06, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 47.3%
+  Task 3 Acc: 46.2%
+  Task 4 Acc: 54.2%
+  Task 5 Acc: 46.3%
+
+[FOPNG] Task 2
+  epoch 1/10 loss=3.7959 rho=1.0000
+  epoch 2/10 loss=0.7831 rho=1.0000
+  epoch 3/10 loss=0.7028 rho=1.0000
+  epoch 4/10 loss=0.7059 rho=1.0000
+  epoch 5/10 loss=0.7095 rho=1.0000
+  epoch 6/10 loss=0.7035 rho=1.0000
+  epoch 7/10 loss=0.7075 rho=1.0000
+  epoch 8/10 loss=0.7074 rho=1.0000
+  epoch 9/10 loss=0.7031 rho=1.0000
+  epoch 10/10 loss=0.7091 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.699999988079071, 'fopng/fisher/mean': 6.7472651608113665e-06, 'fopng/memory/G_cols': 98, 'fopng/fisher_overlap/cosine': 1.3452191183205287e-07, 'fopng/fisher_overlap/pearson': -7.6473488661577e-06, 'fopng/fisher_overlap/topk_iou': 0.05983606557377049, 'task_completed': 2}
+  Task 1 Acc: 46.3%
+  Task 2 Acc: 50.5%
+  Task 3 Acc: 52.4%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 49.1%
+BWT for task 2: -0.5362
+
+[FOPNG] Task 3
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 128, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 463, in train_fopng
+    rho = fopng.step(hyper_network, task_id, g_w.detach())
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 123, in step
+    w_fresh.backward(v_star_w.detach())                 # θ.grad = Jᵀ v_star_w
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_tensor.py", line 630, in backward
+    torch.autograd.backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/__init__.py", line 364, in backward
+    _engine_run_backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

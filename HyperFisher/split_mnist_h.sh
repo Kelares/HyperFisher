@@ -15,4 +15,10 @@ conda activate venv
 
 
 #if you want to run with single gpus, use the following command
-python main.py --task split_mnist --methods ewc fopng adam --embedding_dim=4 --epochs=5 --fisher_samples=4096 --grads_per_task=80 --max_directions=400 
+#python main.py --task split_mnist --methods ewc fopng adam --embedding_dim=4 --epochs=5 --fisher_samples=4096 --grads_per_task=80 --max_directions=400 # OLD WORKING SPLIT_MNIST BEFORE CHUNKIHNG
+python main.py --task split_mnist --alpha=0.5 --lam=1e-2 --methods fopng --hyper_hidden_dim=30 --chunk_embedding_dim=15 --task_embedding_dim=15 --epochs=7 --lr=1e-4 --fisher_samples=1024 --grads_per_task=100 --max_directions=200 --chunk_size=5000 # THE BEST RUN FOR CHUNKING SO FAR
+#   Task 1 Acc: 97.7%
+#   Task 2 Acc: 92.7%
+#   Task 3 Acc: 91.1%
+#   Task 4 Acc: 98.7%
+#   Task 5 Acc: 96.4%

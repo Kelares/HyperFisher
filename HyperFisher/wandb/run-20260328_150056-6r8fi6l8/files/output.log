@@ -1,0 +1,99 @@
+['fopng']
+Target_network_param_n:  478410
+hyper_network_param_n:  17240
+
+--- Starting FOPNG Training ---
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(479, 10)
+  (task_emb): Embedding(5, 4)
+  (layers): Sequential(
+    (0): Linear(in_features=14, out_features=16, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=16, out_features=1000, bias=True)
+  )
+)
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.2895
+  epoch 2/7 loss=0.0071
+  epoch 3/7 loss=0.0024
+  epoch 4/7 loss=0.0017
+  epoch 5/7 loss=0.0018
+  epoch 6/7 loss=0.0007
+  epoch 7/7 loss=0.0003
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.1920570130996566e-07, 'fopng/fisher/mean': 8.123979267082859e-11, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 49.8%
+  Task 3 Acc: 48.6%
+  Task 4 Acc: 53.8%
+  Task 5 Acc: 49.1%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=2.2778 rho=1.0000
+  epoch 2/7 loss=0.1959 rho=1.0000
+  epoch 3/7 loss=0.1309 rho=1.0000
+  epoch 4/7 loss=0.1018 rho=1.0000
+  epoch 5/7 loss=0.0752 rho=1.0000
+  epoch 6/7 loss=0.0603 rho=1.0000
+  epoch 7/7 loss=0.0516 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 3.88453554478474e-06, 'fopng/fisher/mean': 1.0485665669079935e-09, 'fopng/memory/G_cols': 98, 'fopng/fisher_overlap/cosine': 0.006666791159659624, 'fopng/fisher_overlap/pearson': 8.854550287651364e-06, 'fopng/fisher_overlap/topk_iou': 0.11230978481998581, 'task_completed': 2}
+  Task 1 Acc: 98.6%
+  Task 2 Acc: 99.1%
+  Task 3 Acc: 26.8%
+  Task 4 Acc: 50.8%
+  Task 5 Acc: 55.5%
+BWT for task 2: -0.0123
+
+[FOPNG] Task 3
+  epoch 1/7 loss=1.4400 rho=1.0000
+  epoch 2/7 loss=0.1007 rho=1.0000
+  epoch 3/7 loss=0.0589 rho=1.0000
+  epoch 4/7 loss=0.0759 rho=1.0000
+  epoch 5/7 loss=0.0304 rho=1.0000
+  epoch 6/7 loss=0.0231 rho=1.0000
+  epoch 7/7 loss=0.0221 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 2.7191747449251125e-06, 'fopng/fisher/mean': 8.979907373252161e-10, 'fopng/memory/G_cols': 142, 'fopng/fisher_overlap/cosine': 0.004000578075647354, 'fopng/fisher_overlap/pearson': 4.603150227922015e-05, 'fopng/fisher_overlap/topk_iou': 0.10084333329498257, 'task_completed': 3}
+  Task 1 Acc: 79.1%
+  Task 2 Acc: 83.4%
+  Task 3 Acc: 99.6%
+  Task 4 Acc: 43.4%
+  Task 5 Acc: 69.2%
+BWT for task 3: -0.1819
+
+[FOPNG] Task 4
+  epoch 1/7 loss=1.2817 rho=1.0000
+  epoch 2/7 loss=0.0237 rho=1.0000
+  epoch 3/7 loss=0.0123 rho=0.9969
+  epoch 4/7 loss=0.0144 rho=0.7285
+  epoch 5/7 loss=0.0071 rho=0.6020
+  epoch 6/7 loss=0.0068 rho=0.5206
+  epoch 7/7 loss=0.0050 rho=0.4396
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.9034223441849463e-06, 'fopng/fisher/mean': 6.285935105765361e-10, 'fopng/memory/G_cols': 190, 'fopng/fisher_overlap/cosine': inf, 'fopng/fisher_overlap/pearson': 6.729998312203707e-22, 'fopng/fisher_overlap/topk_iou': 0.12025383147369777, 'task_completed': 4}
+  Task 1 Acc: 38.6%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 69.7%
+  Task 4 Acc: 99.9%
+  Task 5 Acc: 50.9%
+BWT for task 4: -0.4673
+
+[FOPNG] Task 5
+  epoch 1/7 loss=2.4574 rho=1.0000
+  epoch 2/7 loss=0.1716 rho=1.0000
+  epoch 3/7 loss=0.1619 rho=1.0000
+  epoch 4/7 loss=0.0819 rho=1.0000
+  epoch 5/7 loss=0.0589 rho=1.0000
+  epoch 6/7 loss=0.0554 rho=1.0000
+  epoch 7/7 loss=0.0442 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 6.920206487848191e-06, 'fopng/fisher/mean': 9.416319945998453e-10, 'fopng/memory/G_cols': 237, 'fopng/fisher_overlap/cosine': 0.0030494213569909334, 'fopng/fisher_overlap/pearson': 4.9138856411445886e-05, 'fopng/fisher_overlap/topk_iou': 0.12354246662204531, 'task_completed': 5}
+  Task 1 Acc: 54.9%
+  Task 2 Acc: 53.2%
+  Task 3 Acc: 71.7%
+  Task 4 Acc: 98.2%
+  Task 5 Acc: 99.0%
+BWT for task 5: -0.3012
