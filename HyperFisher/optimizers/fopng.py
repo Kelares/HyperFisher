@@ -115,7 +115,8 @@ class FOPNG:
         # Fresh graph needed — the graph used to compute g_w was freed
         # by autograd.grad(). Same task, same θ, so J is identical.
         model.zero_grad()
-        w_fresh = model.generate_flat_params(task_id)       # fresh graph
+        model.spawn(task_id)       # fresh graph
+        w_fresh = model.w
         w_fresh.backward(v_star_w.detach())                 # θ.grad = Jᵀ v_star_w
 
         # ── 3. Apply θ-space update ───────────────────────────────────────
