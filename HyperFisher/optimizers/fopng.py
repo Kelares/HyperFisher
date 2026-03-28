@@ -71,12 +71,9 @@ class FOPNG:
                 hyper_network.zero_grad()
 
                 # Fresh graph each batch — w is the leaf we differentiate
-                w = hyper_network.generate_flat_params(task_id)   # [D_w]
-                output = functional_call(
-                    hyper_network.target_network,
-                    hyper_network.get_params_dict(w),
-                    x,
-                )
+                hyper_network.spawn(task_id)   # [D_w]
+                w = hyper_network.w
+                output = hyper_network(x)
                 loss = criterion(output, y)
 
                 # d_loss/d_w — graph freed after this call
@@ -204,12 +201,9 @@ class FOPNG:
                 hyper_network.zero_grad()
 
                 # Fresh graph each sample — w is the leaf
-                w = hyper_network.generate_flat_params(task_id)   # [D_w]
-                output = functional_call(
-                    hyper_network.target_network,
-                    hyper_network.get_params_dict(w),
-                    x,
-                )
+                hyper_network.spawn(task_id)   # [D_w]
+                w = hyper_network.w
+                output = hyper_network(x)
                 loss = criterion(output, y)
                 (g_w,) = torch.autograd.grad(loss, w)
                 grads.append(g_w.detach().clone())
@@ -444,24 +438,21 @@ def train_fopng(
                     from torch.func import functional_call
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
+                    if hyper_network.chunk_size:
+                        # Forward in w-space — w is the differentiable leaf
+                        hyper_network.spawn(task_id)   # [D_w]
+                        w = hyper_network.w
+                        output = hyper_network(x)
+                        loss = criterion(output, y)
+                        total_loss += loss.item()
 
-                    # Forward in w-space — w is the differentiable leaf
-                    w = hyper_network.generate_flat_params(task_id)   # [D_w]
-                    output = functional_call(
-                        hyper_network.target_network,
-                        hyper_network.get_params_dict(w),
-                        x,
-                    )
-                    loss = criterion(output, y)
-                    total_loss += loss.item()
+                        # Gradient in w-space — graph freed after this
+                        (g_w,) = torch.autograd.grad(loss, w)
 
-                    # Gradient in w-space — graph freed after this
-                    (g_w,) = torch.autograd.grad(loss, w)
-
-                    # Project in w-space, map back to θ via Jᵀ, apply update
-                    rho = fopng.step(hyper_network, task_id, g_w.detach())
-                    total_rho += rho
-                    
+                        # Project in w-space, map back to θ via Jᵀ, apply update
+                        rho = fopng.step(hyper_network, task_id, g_w.detach())
+                        total_rho += rho
+                        
                 avg_loss = total_loss / len(loader)
                 avg_rho = total_rho / len(loader)
                 

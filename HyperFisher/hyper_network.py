@@ -19,16 +19,17 @@ class HyperNetwork(nn.Module):
         print("Target_network_param_n: ", self.num_target_params)
 
         # CHUNKING
-        self.chunk_size = 1000
-        self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
+        self.chunk_size = config.chunk_size
+        if self.chunk_size:
+            self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
 
-        self.chunk_emb = nn.Embedding(
-            num_embeddings=self.num_of_chunks, 
-            embedding_dim=config.chunk_embedding_dim
-        ).to(self.device)
+            self.chunk_emb = nn.Embedding(
+                num_embeddings=self.num_of_chunks, 
+                embedding_dim=config.chunk_embedding_dim
+            ).to(self.device)
         ##########
 
-        # 2. Task Embeddings (No shared context)
+        # 2. Task Embeddings 
         self.task_emb = nn.Embedding(
             num_embeddings=config.num_tasks, 
             embedding_dim=config.task_embedding_dim
@@ -40,11 +41,11 @@ class HyperNetwork(nn.Module):
         # config.hyper_hidden_dim defines the bottleneck (e.g., 16)
         bottleneck_dim = getattr(config, 'hyper_hidden_dim', 16)
         
-
+        output_dim = self.chunk_size if self.chunk_size else self.num_target_params
         self.layers = nn.Sequential(
             nn.Linear(config.task_embedding_dim + config.chunk_embedding_dim, bottleneck_dim), # * 2 because we concat 2 embedding layers
             nn.ReLU(),
-            nn.Linear(bottleneck_dim, self.chunk_size)
+            nn.Linear(bottleneck_dim, output_dim)
         ).to(self.device)
         
         print("hyper_network_param_n: ", sum(p.numel() for p in self.layers.parameters()))
@@ -60,38 +61,19 @@ class HyperNetwork(nn.Module):
         t_vec = self.task_emb(task_id).to(self.device)
 
         # COLLECT CHUNKS #
-        chunks = []
-        for chunk_id in range(self.num_of_chunks):
-            chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
+        if self.chunk_size:
+            chunks = []
+            for chunk_id in range(self.num_of_chunks):
+                chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
 
-            c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
-            x = torch.concat([t_vec, c_vec], dim=1)
-            chunks.append(self.layers(x).squeeze().to(self.device))
-        flat_params = torch.concat(chunks)[:self.num_target_params]  # trim padding
-        self.target_params = self.get_params_dict(flat_params)
+                c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
+                x = torch.concat([t_vec, c_vec], dim=1)
+                chunks.append(self.layers(x).squeeze().to(self.device))
+            self.w = torch.concat(chunks)[:self.num_target_params]  # trim padding
+        else:
+            self.w = self.layers(t_vec).squeeze().to(self.device)
+        self.target_params = get_params_dict(self.w)
         ##################
-
-    def generate_flat_params(self, task_id) -> torch.Tensor:
-        """
-        Same chunk loop as spawn() but returns the flat generated weight
-        vector with its computation graph intact — w is a function of θ.
-
-        Used by FOPNG for:
-          - Fisher:  autograd.grad(loss, w)  →  g_w  [D_w]
-          - VJP:     w.backward(v_star_w)    →  θ.grad = Jᵀ v_star_w
-
-        Does NOT set self.target_params — caller uses get_params_dict(w).
-        """
-        t_vec = self.task_emb(task_id).to(self.device)
-        chunks = []
-        for chunk_id in range(self.num_of_chunks):
-            chunk_id_tensor = torch.tensor(
-                [chunk_id], dtype=torch.long, device=self.device
-            )
-            c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
-            x = torch.cat([t_vec, c_vec], dim=1)
-            chunks.append(self.layers(x).squeeze())
-        return torch.cat(chunks)[:self.num_target_params]   # [D_w], grad intact
 
     def forward(self, x):
         return functional_call(self.target_network, self.target_params, x)

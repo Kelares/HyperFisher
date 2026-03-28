@@ -52,6 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("--hyper_hidden_dim", type=int, default=16)
     parser.add_argument("--task_embedding_dim", type=int, default=4)
     parser.add_argument("--chunk_embedding_dim", type=int, default=10)
+    parser.add_argument("--chunk_size", type=int, default=1000)
 
     
     # ------------------------------
