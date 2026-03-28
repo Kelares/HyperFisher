@@ -18,3 +18,5 @@ config: {'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs':
 2026-03-28 22:24:26,173 INFO    MainThread:107031 [wandb_run.py:_redirect():2465] Redirects installed.
 2026-03-28 22:24:26,176 INFO    MainThread:107031 [wandb_init.py:init():1082] run started, returning control to user process
 2026-03-28 22:24:26,176 INFO    MainThread:107031 [wandb_run.py:_config_callback():1403] config_cb None None {'num_tasks': 5}
+2026-03-28 22:37:53,561 INFO    wandb-AsyncioManager-main:107031 [service_client.py:_forward_responses():134] Reached EOF.
+2026-03-28 22:37:53,562 INFO    wandb-AsyncioManager-main:107031 [mailbox.py:close():155] Closing mailbox, abandoning 1 handles.

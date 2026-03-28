@@ -22,7 +22,6 @@ class HyperNetwork(nn.Module):
         self.chunk_size = config.chunk_size
         if self.chunk_size:
             self.num_of_chunks = ceil( self.num_target_params / self.chunk_size )
-
             self.chunk_emb = nn.Embedding(
                 num_embeddings=self.num_of_chunks, 
                 embedding_dim=config.chunk_embedding_dim

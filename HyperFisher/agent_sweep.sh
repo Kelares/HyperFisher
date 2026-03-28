@@ -13,4 +13,4 @@ fi
 cd ~/SSM_benchmark/HyperFisher/
 conda activate venv
 
-wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher_sweeps/0o09en0k
+wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher_sweeps/iic0k4bb

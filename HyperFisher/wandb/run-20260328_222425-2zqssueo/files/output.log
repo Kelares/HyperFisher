@@ -83,3 +83,47 @@ BWT for task 3: -0.1254
 
 [FOPNG] Task 4
   epoch 1/7 loss=5.9910 rho=0.9953
+  epoch 2/7 loss=2.5127 rho=0.9996
+  epoch 3/7 loss=1.8674 rho=0.9988
+  epoch 4/7 loss=0.9698 rho=0.9932
+  epoch 5/7 loss=0.2326 rho=0.9864
+  epoch 6/7 loss=0.0485 rho=0.9879
+  epoch 7/7 loss=0.0246 rho=0.9971
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[ 1.5915e-05, -4.1637e-05,  1.3349e-04,  ..., -1.6188e-04,
+         -4.6391e-04, -4.7649e-06],
+        [ 1.5915e-05, -4.1637e-05,  1.3349e-04,  ..., -1.6188e-04,
+         -4.6391e-04, -4.7649e-06],
+        [ 1.5915e-05, -4.1637e-05,  1.3349e-04,  ..., -1.6188e-04,
+         -4.6391e-04, -4.7649e-06],
+        ...,
+        [ 1.2948e-05,  1.0713e-05,  3.2848e-06,  ...,  4.2507e-03,
+          3.1776e-04, -6.1330e-03],
+        [ 7.6263e-08,  5.1264e-07,  6.5121e-07,  ...,  7.0857e-07,
+          1.2214e-08,  7.8336e-08],
+        [ 3.8886e-05,  4.9418e-05,  1.6171e-05,  ...,  1.9181e-08,
+          9.8038e-09,  7.8540e-08]], device='cuda:0')
+{'fopng/fisher/min': 1.9076601414097985e-17, 'fopng/fisher/max': 0.500606119632721, 'fopng/fisher/mean': 0.0002807373530231416, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.015448370017111301, 'fopng/fisher_overlap/pearson': 0.01376495324075222, 'fopng/fisher_overlap/topk_iou': 0.2410277694911737, 'task_completed': 4}
+  Task 1 Acc: 98.4%
+  Task 2 Acc: 57.3%
+  Task 3 Acc: 73.0%
+  Task 4 Acc: 98.8%
+  Task 5 Acc: 49.1%
+BWT for task 4: -0.2151
+
+[FOPNG] Task 5
+  epoch 1/7 loss=21.2786 rho=0.9132
+  epoch 2/7 loss=5.2123 rho=0.9915
+  epoch 3/7 loss=2.2727 rho=1.0000
+  epoch 4/7 loss=1.6334 rho=1.0000
+  epoch 5/7 loss=0.6538 rho=1.0000
+  epoch 6/7 loss=0.2222 rho=1.0000
+  epoch 7/7 loss=0.1385 rho=1.0000
+{'fopng/fisher/min': 9.538300707048992e-18, 'fopng/fisher/max': 0.5000001192092896, 'fopng/fisher/mean': 0.00020321743795648217, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.0016793851973488927, 'fopng/fisher_overlap/pearson': 0.00035635364474728703, 'fopng/fisher_overlap/topk_iou': 0.18850768886791047, 'task_completed': 5}
+  Task 1 Acc: 85.8%
+  Task 2 Acc: 42.4%
+  Task 3 Acc: 62.9%
+  Task 4 Acc: 56.6%
+  Task 5 Acc: 96.0%
+BWT for task 5: -0.3608

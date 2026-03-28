@@ -2,6 +2,7 @@ import argparse
 import wandb
 from hyper_network import HyperNetwork
 from mlp_base import MLP
+import copy
 
 
 import torch
@@ -112,21 +113,37 @@ if __name__ == "__main__":
 
     # Tell W&B to use 'task_completed' as the x-axis for all eval metrics
     wandb.define_metric("task_completed")
-    print(methods)
+
+    # 1. Create the model once before the loop
+    model = HyperNetwork(
+        target_network_template=target_network, 
+        device=device, 
+        config=config
+    ) if config.model == "HyperNetwork" else MLP(target_network, device=device)
+
+    config.update({"architecture": model})
+    print(model)
+
+    # 2. Save the "Fresh" state (Deep copy of weights)
+    initial_state = copy.deepcopy(model.state_dict())
+
+    print(config)
     for method in methods:
         wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
-            
+       
+        # 3. RESTART: Load the fresh state back into the model
+        model.load_state_dict(initial_state)
+        # Ensure any internal buffers (like model.w or model.target_params) are cleared
+        if config.model == "HyperNetwork":
+            model.target_params = None 
+            model.w = None
+
         match method:
             case "fopng":
-                hyper_network = HyperNetwork(
-                    target_network_template=target_network, 
-                    device=device, 
-                    config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
                 print("\n--- Starting FOPNG Training ---")
-                print(hyper_network)
+
                 results = train_fopng(
-                    hyper_network, train_loaders, test_loaders, criterion,
+                    model, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
@@ -140,15 +157,10 @@ if __name__ == "__main__":
                 wandb.log({"fopng/eval/average_accuracy": average_accuracy})
 
             case "ewc":
-                hyper_network = HyperNetwork(
-                    target_network_template=target_network, 
-                    device=device, 
-                    config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
                 print("\n--- Starting EWC Training ---")
-                print(hyper_network)
+
                 results = train_ewc(
-                    hyper_network, train_loaders, test_loaders, criterion,
+                    model, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=1e3, epochs=config.epochs,
                     task_classes = getattr(task_config, 'task_classes', None)
                 )
@@ -163,14 +175,8 @@ if __name__ == "__main__":
                 print("BASELINE COMPARISON (Hypernetwork + Adam)")
                 print("=" * 60)
 
-                hyper_network = HyperNetwork(
-                    target_network_template=target_network, 
-                    device=device, 
-                    config=config
-                ) if config.model =="HyperNetwork" else MLP(target_network, device=device)
-                print(hyper_network)
                 train_adam(
-                    hyper_network, train_loaders, test_loaders, criterion,
+                    model, train_loaders, test_loaders, criterion,
                     lr=config.lr, epochs=config.epochs, 
                     task_classes = getattr(task_config, 'task_classes', None)
 

@@ -27,7 +27,7 @@ parameters:
   # Your good run used 5000. Lower values = Higher entanglement/compression.
   chunk_size:
     distribution: int_uniform
-    min: 100           # Extremely aggressive compression (900 * 5 = 4500 + chunks)
+    min: 500           # Extremely aggressive compression (900+ chunks)
     max: 10000         # Light compression (48 chunks)
 
   # 2. LAMBDA (Regularization Strength)
