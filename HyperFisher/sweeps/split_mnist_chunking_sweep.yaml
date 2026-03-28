@@ -1,0 +1,70 @@
+program: main.py
+method: bayes
+metric:
+  name: fopng/eval/average_accuracy 
+  goal: maximize
+
+parameters:
+  # --- FIXED BASELINE CONSTANTS ---
+  task:
+    value: "split_mnist"
+  methods:
+    value: "fopng"
+  seed:
+    value: 1234
+  alpha:
+    value: 0.5         # Successful stability value
+  lr:
+    value: 0.0001      # The "Golden" stable LR from your run
+  epochs:
+    value: 7           # Sufficient for convergence in your logs
+  fisher_samples:
+    value: 1024        # Proven sufficient for w-space statistics
+
+  # --- PRIMARY SEARCH VARIABLES ---
+
+  # 1. CHUNK SIZE (The "How small can we go?" test)
+  # Your good run used 5000. Lower values = Higher entanglement/compression.
+  chunk_size:
+    distribution: int_uniform
+    min: 100           # Extremely aggressive compression (900 * 5 = 4500 + chunks)
+    max: 10000         # Light compression (48 chunks)
+
+  # 2. LAMBDA (Regularization Strength)
+  # 0.01 was the breakthrough. We sweep log-uniformly around it.
+  lam:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.1
+
+  # 3. HYPERNETWORK BOTTLENECK
+  # 30 worked well. If chunk_size gets smaller, we likely need more hidden units.
+  hyper_hidden_dim:
+    distribution: int_uniform
+    min: 16
+    max: 128
+
+  # 4. SUBSPACE CAPACITY
+  # Keeping the ratio similar to your successful 100/200 setup.
+  grads_per_task:
+    distribution: int_uniform
+    min: 50
+    max: 200
+
+  max_directions:
+    distribution: int_uniform
+    min: 100
+    max: 600
+
+  # 5. EMBEDDING CAPACITY
+  # 15 worked well; testing if smaller embeddings work for high-count chunks.
+  chunk_embedding_dim:
+    distribution: int_uniform
+    min: 8
+    max: 32
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}

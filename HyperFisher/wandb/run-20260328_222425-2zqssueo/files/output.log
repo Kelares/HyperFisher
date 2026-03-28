@@ -36,3 +36,50 @@ HyperNetwork(
 
 [FOPNG] Task 2
   epoch 1/7 loss=4.9445 rho=0.9947
+  epoch 2/7 loss=1.8682 rho=0.9998
+  epoch 3/7 loss=0.9385 rho=1.0000
+  epoch 4/7 loss=0.2877 rho=1.0000
+  epoch 5/7 loss=0.2002 rho=1.0000
+  epoch 6/7 loss=0.1635 rho=1.0000
+  epoch 7/7 loss=0.1412 rho=1.0000
+{'fopng/fisher/min': 7.630640565639194e-17, 'fopng/fisher/max': 0.5000001192092896, 'fopng/fisher/mean': 0.0005660695023834705, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.001077749882824719, 'fopng/fisher_overlap/pearson': -0.00046972837299108505, 'fopng/fisher_overlap/topk_iou': 0.16877786599890063, 'task_completed': 2}
+  Task 1 Acc: 99.7%
+  Task 2 Acc: 94.9%
+  Task 3 Acc: 60.5%
+  Task 4 Acc: 44.6%
+  Task 5 Acc: 48.0%
+BWT for task 2: -0.0024
+
+[FOPNG] Task 3
+  epoch 1/7 loss=5.8782 rho=0.9866
+  epoch 2/7 loss=1.9381 rho=0.9993
+  epoch 3/7 loss=1.1617 rho=0.9991
+  epoch 4/7 loss=0.4117 rho=0.9992
+  epoch 5/7 loss=0.1259 rho=0.9995
+  epoch 6/7 loss=0.0694 rho=0.9998
+  epoch 7/7 loss=0.0497 rho=0.9999
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[ 1.5915e-05, -4.1637e-05,  1.5361e-04,  ...,  1.2836e-04,
+         -3.5746e-05, -1.0671e-04],
+        [ 1.5915e-05, -4.1637e-05,  1.5361e-04,  ...,  1.2836e-04,
+         -3.5746e-05, -1.0671e-04],
+        [ 1.5915e-05, -4.1637e-05,  1.5361e-04,  ...,  1.2836e-04,
+         -3.5746e-05, -1.0671e-04],
+        ...,
+        [ 1.2948e-05,  1.0713e-05,  5.2638e-06,  ...,  5.2947e-07,
+          4.9813e-07,  4.2125e-07],
+        [ 7.6263e-08,  5.1264e-07,  1.0098e-05,  ...,  6.9599e-07,
+          1.2538e-06,  2.4436e-06],
+        [ 3.8886e-05,  4.9418e-05,  3.9868e-05,  ...,  5.8181e-07,
+          4.5718e-07,  2.5521e-07]], device='cuda:0')
+{'fopng/fisher/min': 3.815320282819597e-17, 'fopng/fisher/max': 0.5000176429748535, 'fopng/fisher/mean': 0.00034698727540671825, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.015732761472463608, 'fopng/fisher_overlap/pearson': 0.013794713653624058, 'fopng/fisher_overlap/topk_iou': 0.1306454281190178, 'task_completed': 3}
+  Task 1 Acc: 79.5%
+  Task 2 Acc: 90.2%
+  Task 3 Acc: 98.4%
+  Task 4 Acc: 46.4%
+  Task 5 Acc: 49.2%
+BWT for task 3: -0.1254
+
+[FOPNG] Task 4
+  epoch 1/7 loss=5.9910 rho=0.9953
