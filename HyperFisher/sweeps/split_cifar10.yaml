@@ -18,7 +18,7 @@ parameters:
     value: 1024
   alpha:
     value: 0.5
-  lambda:
+  lam:
     value: 0.02
 
   # --- PRIMARY SWEEP VARIABLES ---
