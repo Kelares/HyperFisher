@@ -31,7 +31,25 @@ TASK_CLASSES = [
     (6, 7),
     (8, 9),
 ]
+class CIFARTarget(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.convs = nn.Sequential(
+            nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(),
+            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(128 * 8 * 8, 64), nn.ReLU(),
+            nn.Linear(64, 10)
+        )
 
+    def forward(self, x):
+        x = self.convs(x)
+        x = x.view(x.size(0), -1)
+        return self.fc(x)
 
 class TaskGenerator:
 
@@ -47,11 +65,7 @@ class TaskGenerator:
         max_directions=400,
     )
 
-    target_network = nn.Sequential(
-        nn.Linear(3072, 10),
-        nn.ReLU(),
-        nn.Linear(10, 2),   # binary per task
-    )
+    target_network = CIFARTarget()
 
     _train_data: datasets.CIFAR10 | None = None
     _test_data:  datasets.CIFAR10 | None = None
@@ -66,7 +80,6 @@ class TaskGenerator:
                 (0.4914, 0.4822, 0.4465),
                 (0.2470, 0.2435, 0.2616),
             ),
-            transforms.Lambda(lambda x: x.view(-1)),  # flatten to [3072]
         ])
         cls._train_data = datasets.CIFAR10(
             root="./data", train=True,  download=True, transform=tf

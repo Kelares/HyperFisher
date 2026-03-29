@@ -1,0 +1,69 @@
+program: main.py
+method: bayes
+metric:
+  name: fopng/eval/average_accuracy
+  goal: maximize
+
+parameters:
+  # --- FIXED CONSTANTS (Based on your successful run) ---
+  task:
+    value: "split_cifar10"
+  methods:
+    value: "fopng"
+  lr:
+    value: 0.0001      # 1e-4 proved stable for CNN learning
+  epochs:
+    value: 15          # CIFAR requires more time to converge
+  fisher_samples:
+    value: 1024
+  alpha:
+    value: 0.5
+
+  # --- PRIMARY SWEEP VARIABLES ---
+
+  # 1. CHUNK SIZE (The Entanglement Lever)
+  # Your successful run used 10,000 (62 chunks)
+  # We test if smaller chunks (more specialization) help CIFAR features.
+  chunk_size:
+    distribution: int_uniform
+    min: 2000          # ~309 chunks
+    max: 15000         # ~41 chunks
+
+  # 2. LAMBDA (The Protection Lever)
+  # You used 5e-4. We sweep toward the "magic" 1e-2.
+  lam:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.02
+
+  # 3. HYPERNETWORK BOTTLENECK (The Capacity Lever)
+  # 100 is working, but 128-256 is the "sweet spot" for CNN generation.
+  hyper_hidden_dim:
+    distribution: int_uniform
+    min: 64
+    max: 300
+
+  # 4. SUBSPACE CAPACITY (The Memory Lever)
+  # CIFAR gradients are noisier; we might need a denser memory G.
+  grads_per_task:
+    distribution: int_uniform
+    min: 80
+    max: 200
+
+  max_directions:
+    distribution: int_uniform
+    min: 300
+    max: 1000
+
+  # 5. EMBEDDINGS
+  # Testing if higher-dim embeddings help the hypernet distinguish chunks.
+  chunk_embedding_dim:
+    distribution: int_uniform
+    min: 15
+    max: 64
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}

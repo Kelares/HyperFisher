@@ -122,6 +122,9 @@ if __name__ == "__main__":
     ) if config.model == "HyperNetwork" else MLP(target_network, device=device)
 
     config.update({"architecture": model})
+    if config.model == "HyperNetwork":
+        config.update({"num_of_chunks": model.num_of_chunks})
+        print(model.num_of_chunks)
     print(model)
 
     # 2. Save the "Fresh" state (Deep copy of weights)

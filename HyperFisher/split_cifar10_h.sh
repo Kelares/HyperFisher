@@ -13,5 +13,6 @@ fi
 cd ~/SSM_benchmark/HyperFisher/
 conda activate venv
 
-# wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher_sweeps/iic0k4bb # FOR OLD MNIST
-wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher/0q0h4vkj # CIFAR
+
+#if you want to run with single gpus, use the following command
+python main.py --task=split_cifar10 --chunk_size=10000 --lam=5e-4 --alpha=0.5 --grads_per_task=76 --max_direction=120 --hyper_hidden_dim=100 --methods fopng --task_embedding_dim=15 --chunk_embedding_dim=15 --epochs=7#   Task 1 Acc: 97.7%
