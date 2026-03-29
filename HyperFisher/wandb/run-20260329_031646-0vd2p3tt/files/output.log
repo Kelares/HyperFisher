@@ -1,0 +1,178 @@
+Target_network_param_n:  618698
+hyper_network_param_n:  1218700
+155
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): ReLU()
+      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): ReLU()
+      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): ReLU()
+      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (fc): Sequential(
+      (0): Linear(in_features=8192, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(155, 32)
+  (task_emb): Embedding(5, 16)
+  (layers): Sequential(
+    (0): Linear(in_features=48, out_features=300, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=300, out_features=4000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0003, 'lam': 0.01, 'alpha': 0.5, 'fisher_samples': 2048, 'grads_per_task': 150, 'max_directions': 800, 'hyper_hidden_dim': 300, 'task_embedding_dim': 16, 'chunk_embedding_dim': 32, 'chunk_size': 4000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): ReLU()\n      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): ReLU()\n      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): ReLU()\n      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (fc): Sequential(\n      (0): Linear(in_features=8192, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(155, 32)\n  (task_emb): Embedding(5, 16)\n  (layers): Sequential(\n    (0): Linear(in_features=48, out_features=300, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=300, out_features=4000, bias=True)\n  )\n)', 'num_of_chunks': 155}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/20 loss=0.5372
+  epoch 2/20 loss=0.2690
+  epoch 3/20 loss=0.2086
+  epoch 4/20 loss=0.1665
+  epoch 5/20 loss=0.1457
+  epoch 6/20 loss=0.1559
+  epoch 7/20 loss=0.1271
+  epoch 8/20 loss=0.1069
+  epoch 9/20 loss=0.0706
+  epoch 10/20 loss=0.0873
+  epoch 11/20 loss=0.1771
+  epoch 12/20 loss=0.0883
+  epoch 13/20 loss=0.0481
+  epoch 14/20 loss=0.0483
+  epoch 15/20 loss=0.0580
+  epoch 16/20 loss=0.0271
+  epoch 17/20 loss=0.0107
+  epoch 18/20 loss=0.0046
+  epoch 19/20 loss=0.0093
+  epoch 20/20 loss=0.0253
+{'fopng/fisher/min': 3.741836903655473e-26, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.00012155926378909498, 'fopng/memory/G_cols': 150, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 95.0%
+  Task 2 Acc: 48.6%
+  Task 3 Acc: 53.2%
+  Task 4 Acc: 47.9%
+  Task 5 Acc: 34.7%
+
+[FOPNG] Task 2
+  epoch 1/20 loss=2.4544 rho=0.9989
+  epoch 2/20 loss=0.6235 rho=0.9998
+  epoch 3/20 loss=0.5283 rho=0.9998
+  epoch 4/20 loss=0.4904 rho=0.9998
+  epoch 5/20 loss=0.4729 rho=0.9999
+  epoch 6/20 loss=0.4521 rho=0.9999
+  epoch 7/20 loss=0.4403 rho=0.9998
+  epoch 8/20 loss=0.4168 rho=0.9995
+  epoch 9/20 loss=0.4143 rho=0.9997
+  epoch 10/20 loss=0.4056 rho=0.9997
+  epoch 11/20 loss=0.3943 rho=0.9996
+  epoch 12/20 loss=0.3722 rho=0.9993
+  epoch 13/20 loss=0.3571 rho=0.9993
+  epoch 14/20 loss=0.3527 rho=0.9994
+  epoch 15/20 loss=0.3364 rho=0.9992
+  epoch 16/20 loss=0.3275 rho=0.9990
+  epoch 17/20 loss=0.3136 rho=0.9986
+  epoch 18/20 loss=0.3087 rho=0.9991
+  epoch 19/20 loss=0.2986 rho=0.9991
+  epoch 20/20 loss=0.2856 rho=0.9990
+{'fopng/fisher/min': 7.883101515670678e-21, 'fopng/fisher/max': 0.5087548494338989, 'fopng/fisher/mean': 6.565394869539887e-05, 'fopng/memory/G_cols': 300, 'fopng/fisher_overlap/cosine': 0.046036530286073685, 'fopng/fisher_overlap/pearson': 0.04593924805521965, 'fopng/fisher_overlap/topk_iou': 0.1872883063548873, 'task_completed': 2}
+  Task 1 Acc: 73.9%
+  Task 2 Acc: 77.8%
+  Task 3 Acc: 54.9%
+  Task 4 Acc: 52.4%
+  Task 5 Acc: 48.5%
+BWT for task 2: -0.2105
+
+[FOPNG] Task 3
+  epoch 1/20 loss=1.9982 rho=0.9997
+  epoch 2/20 loss=0.5495 rho=0.9999
+  epoch 3/20 loss=0.4702 rho=0.9999
+  epoch 4/20 loss=0.4107 rho=0.9999
+  epoch 5/20 loss=0.4024 rho=0.9999
+  epoch 6/20 loss=0.3529 rho=0.9998
+  epoch 7/20 loss=0.3368 rho=0.9999
+  epoch 8/20 loss=0.3191 rho=0.9997
+  epoch 9/20 loss=0.3077 rho=0.9998
+  epoch 10/20 loss=0.2871 rho=0.9997
+  epoch 11/20 loss=0.2840 rho=0.9998
+  epoch 12/20 loss=0.2647 rho=0.9997
+  epoch 13/20 loss=0.2550 rho=0.9994
+  epoch 14/20 loss=0.2502 rho=0.9997
+  epoch 15/20 loss=0.2401 rho=0.9997
+  epoch 16/20 loss=0.2280 rho=0.9995
+  epoch 17/20 loss=0.2257 rho=0.9996
+  epoch 18/20 loss=0.2198 rho=0.9995
+  epoch 19/20 loss=0.2118 rho=0.9996
+  epoch 20/20 loss=0.2017 rho=0.9990
+{'fopng/fisher/min': 7.35536362589604e-18, 'fopng/fisher/max': 0.5000000596046448, 'fopng/fisher/mean': 4.226482997182757e-05, 'fopng/memory/G_cols': 450, 'fopng/fisher_overlap/cosine': 0.124173104763031, 'fopng/fisher_overlap/pearson': 0.12399151176214218, 'fopng/fisher_overlap/topk_iou': 0.21633736360955472, 'task_completed': 3}
+  Task 1 Acc: 90.0%
+  Task 2 Acc: 55.0%
+  Task 3 Acc: 88.2%
+  Task 4 Acc: 52.2%
+  Task 5 Acc: 48.0%
+BWT for task 3: -0.1387
+
+[FOPNG] Task 4
+  epoch 1/20 loss=1.6106 rho=0.9992
+  epoch 2/20 loss=0.5222 rho=0.9998
+  epoch 3/20 loss=0.2800 rho=0.9995
+  epoch 4/20 loss=0.2052 rho=0.9988
+  epoch 5/20 loss=0.1617 rho=0.9989
+  epoch 6/20 loss=0.1340 rho=0.9987
+  epoch 7/20 loss=0.1230 rho=0.9991
+  epoch 8/20 loss=0.1129 rho=0.9982
+  epoch 9/20 loss=0.1016 rho=0.9987
+  epoch 10/20 loss=0.0969 rho=0.9988
+  epoch 11/20 loss=0.0840 rho=0.9992
+  epoch 12/20 loss=0.0800 rho=0.9992
+  epoch 13/20 loss=0.0701 rho=0.9989
+  epoch 14/20 loss=0.0666 rho=0.9991
+  epoch 15/20 loss=0.0592 rho=0.9987
+  epoch 16/20 loss=0.0559 rho=0.9989
+  epoch 17/20 loss=0.0538 rho=0.9989
+  epoch 18/20 loss=0.0420 rho=0.9986
+  epoch 19/20 loss=0.0378 rho=0.9982
+  epoch 20/20 loss=0.0319 rho=0.9986
+{'fopng/fisher/min': 3.67768181294802e-18, 'fopng/fisher/max': 0.5, 'fopng/fisher/mean': 3.452769306022674e-05, 'fopng/memory/G_cols': 600, 'fopng/fisher_overlap/cosine': 0.16333219408988953, 'fopng/fisher_overlap/pearson': 0.16313549876213074, 'fopng/fisher_overlap/topk_iou': 0.29971429771858327, 'task_completed': 4}
+  Task 1 Acc: 87.2%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 58.2%
+  Task 4 Acc: 94.5%
+  Task 5 Acc: 49.4%
+BWT for task 4: -0.2185
+
+[FOPNG] Task 5
+  epoch 1/20 loss=2.8775 rho=0.9994
+  epoch 2/20 loss=0.4878 rho=0.9999
+  epoch 3/20 loss=0.2957 rho=0.9999
+  epoch 4/20 loss=0.2434 rho=0.9998
+  epoch 5/20 loss=0.2060 rho=0.9997
+  epoch 6/20 loss=0.1851 rho=0.9998
+  epoch 7/20 loss=0.1689 rho=0.9997
+  epoch 8/20 loss=0.1556 rho=0.9998
+  epoch 9/20 loss=0.1528 rho=0.9996
+  epoch 10/20 loss=0.1355 rho=0.9995
+  epoch 11/20 loss=0.1271 rho=0.9996
+  epoch 12/20 loss=0.1157 rho=0.9995
+  epoch 13/20 loss=0.1101 rho=0.9996
+  epoch 14/20 loss=0.1021 rho=0.9994
+  epoch 15/20 loss=0.0909 rho=0.9994
+  epoch 16/20 loss=0.0849 rho=0.9993
+  epoch 17/20 loss=0.0808 rho=0.9994
+  epoch 18/20 loss=0.0659 rho=0.9991
+  epoch 19/20 loss=0.0688 rho=0.9994
+  epoch 20/20 loss=0.0591 rho=0.9992
+{'fopng/fisher/min': 1.83884090647401e-18, 'fopng/fisher/max': 0.5, 'fopng/fisher/mean': 2.5628334697103128e-05, 'fopng/memory/G_cols': 750, 'fopng/fisher_overlap/cosine': 0.12123867124319077, 'fopng/fisher_overlap/pearson': 0.1210867390036583, 'fopng/fisher_overlap/topk_iou': 0.2834028253158255, 'task_completed': 5}
+  Task 1 Acc: 77.5%
+  Task 2 Acc: 50.4%
+  Task 3 Acc: 62.4%
+  Task 4 Acc: 63.8%
+  Task 5 Acc: 92.5%
+BWT for task 5: -0.2535

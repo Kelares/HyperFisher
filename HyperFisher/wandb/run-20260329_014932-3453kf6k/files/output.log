@@ -1,0 +1,86 @@
+Target_network_param_n:  618698
+hyper_network_param_n:  524752
+310
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): ReLU()
+      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): ReLU()
+      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): ReLU()
+      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (fc): Sequential(
+      (0): Linear(in_features=8192, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(310, 25)
+  (task_emb): Embedding(5, 16)
+  (layers): Sequential(
+    (0): Linear(in_features=41, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=256, out_features=2000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 15, 'methods': ['fopng'], 'lr': 0.01, 'lam': 0.01, 'alpha': 0.5, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 400, 'hyper_hidden_dim': 256, 'task_embedding_dim': 16, 'chunk_embedding_dim': 25, 'chunk_size': 2000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): ReLU()\n      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): ReLU()\n      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): ReLU()\n      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (fc): Sequential(\n      (0): Linear(in_features=8192, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(310, 25)\n  (task_emb): Embedding(5, 16)\n  (layers): Sequential(\n    (0): Linear(in_features=41, out_features=256, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=256, out_features=2000, bias=True)\n  )\n)', 'num_of_chunks': 310}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/15 loss=85.2809
+  epoch 2/15 loss=0.7101
+  epoch 3/15 loss=0.6988
+  epoch 4/15 loss=0.6969
+  epoch 5/15 loss=0.6998
+  epoch 6/15 loss=0.6961
+  epoch 7/15 loss=0.6955
+  epoch 8/15 loss=0.6941
+  epoch 9/15 loss=0.6956
+  epoch 10/15 loss=0.6962
+  epoch 11/15 loss=0.6944
+  epoch 12/15 loss=0.6963
+  epoch 13/15 loss=0.6946
+  epoch 14/15 loss=0.6954
+  epoch 15/15 loss=0.6939
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 3.2170366921491222e-06, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 50.0%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 50.0%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 50.0%
+
+[FOPNG] Task 2
+  epoch 1/15 loss=2494.7177 rho=1.0000
+  epoch 2/15 loss=0.8975 rho=1.0000
+  epoch 3/15 loss=0.7031 rho=1.0000
+  epoch 4/15 loss=0.7122 rho=1.0000
+  epoch 5/15 loss=0.7106 rho=1.0000
+  epoch 6/15 loss=0.7113 rho=1.0000
+  epoch 7/15 loss=0.7045 rho=1.0000
+  epoch 8/15 loss=0.7037 rho=1.0000
+  epoch 9/15 loss=0.7041 rho=1.0000
+  epoch 10/15 loss=0.7051 rho=1.0000
+  epoch 11/15 loss=0.7031 rho=1.0000
+  epoch 12/15 loss=0.7035 rho=1.0000
+  epoch 13/15 loss=0.7016 rho=1.0000
+  epoch 14/15 loss=0.7050 rho=1.0000
+  epoch 15/15 loss=0.7039 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5000001788139343, 'fopng/fisher/mean': 3.223844032618217e-06, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 3.604833409553976e-07, 'fopng/fisher_overlap/pearson': -2.8720878617605194e-06, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 2}
+  Task 1 Acc: 50.0%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 50.0%
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 483, in train_fopng
+    acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id, task_classes=tc)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/utils.py", line 52, in evaluate_accuracy
+    active = torch.tensor([class_a, class_b], device=device)
+KeyboardInterrupt

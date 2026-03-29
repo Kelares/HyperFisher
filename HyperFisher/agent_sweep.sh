@@ -14,4 +14,4 @@ cd ~/SSM_benchmark/HyperFisher/
 conda activate venv
 
 # wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher_sweeps/iic0k4bb # FOR OLD MNIST
-wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher/0q0h4vkj # CIFAR
+wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher/cvxa4512 # CIFAR

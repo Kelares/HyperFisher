@@ -18,6 +18,8 @@ parameters:
     value: 1024
   alpha:
     value: 0.5
+  lambda:
+    value: 0.02
 
   # --- PRIMARY SWEEP VARIABLES ---
 
@@ -29,12 +31,7 @@ parameters:
     min: 2000          # ~309 chunks
     max: 15000         # ~41 chunks
 
-  # 2. LAMBDA (The Protection Lever)
-  # You used 5e-4. We sweep toward the "magic" 1e-2.
-  lam:
-    distribution: log_uniform_values
-    min: 0.0001
-    max: 0.02
+
 
   # 3. HYPERNETWORK BOTTLENECK (The Capacity Lever)
   # 100 is working, but 128-256 is the "sweet spot" for CNN generation.
