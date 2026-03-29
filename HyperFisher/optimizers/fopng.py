@@ -86,9 +86,24 @@ class FOPNG:
 
         hyper_network.zero_grad()
         hyper_network.train()
-        fisher = fisher / max(n_seen, 1)
-        if fisher.max() > 0:
-            fisher = fisher / fisher.max()   # normalise to [0, 1]
+        # NEW: Layer-wise Normalization
+        pointer = 0
+        with torch.no_grad():
+            for name, param in hyper_network.target_network.named_parameters():
+                num_p = param.numel()
+                layer_fisher = fisher[pointer : pointer + num_p]
+                
+                # 1. Normalize this specific layer to [0, 1]
+                if layer_fisher.max() > 0:
+                    layer_fisher = layer_fisher / layer_fisher.max()
+                
+                # 2. Apply Power-Smoothing (Inflation) to broaden the protection
+                layer_fisher = torch.pow(layer_fisher, 0.3) 
+                
+                fisher[pointer : pointer + num_p] = layer_fisher
+                pointer += num_p
+
+    return fisher
         return fisher
     
     def prepare_epoch(self, F_new: Tensor) -> None:
