@@ -103,7 +103,6 @@ class FOPNG:
                 fisher[pointer : pointer + num_p] = layer_fisher
                 pointer += num_p
 
-    return fisher
         return fisher
     
     def prepare_epoch(self, F_new: Tensor) -> None:

@@ -35,23 +35,39 @@ class CIFARTarget(nn.Module):
     def __init__(self):
         super().__init__()
         self.convs = nn.Sequential(
-            nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(), nn.BatchNorm2d(32),
+            # Layer 1
+            nn.Conv2d(3, 32, 3, padding=1),
+            nn.BatchNorm2d(32), # BN before ReLU
+            nn.ReLU(),
             
-            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.BatchNorm2d(64),
-            nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(), nn.BatchNorm2d(128),
-            nn.MaxPool2d(2)
+            # Layer 2
+            nn.Conv2d(32, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2), # 32x32 -> 16x16
+            
+            # Layer 3
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2)  # 16x16 -> 8x8
         )
+        
+        # Replace Flatten with Global Average Pooling
+        self.gap = nn.AdaptiveAvgPool2d(1) 
+        
         self.fc = nn.Sequential(
-            nn.Linear(128 * 8 * 8, 64), nn.ReLU(),
+            nn.Linear(128, 64), # Input is now 128 instead of 8192
+            nn.ReLU(),
             nn.Linear(64, 10)
         )
 
     def forward(self, x):
         x = self.convs(x)
+        x = self.gap(x)
         x = x.view(x.size(0), -1)
         return self.fc(x)
-
+        
 class TaskGenerator:
 
     TASK_CLASSES = TASK_CLASSES

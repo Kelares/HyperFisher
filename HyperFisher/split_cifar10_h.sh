@@ -15,4 +15,15 @@ conda activate venv
 
 
 #if you want to run with single gpus, use the following command
-python main.py --task=split_cifar10 --chunk_size=10000 --lam=5e-4 --alpha=0.5 --grads_per_task=76 --max_direction=120 --hyper_hidden_dim=100 --methods fopng --task_embedding_dim=15 --chunk_embedding_dim=15 --epochs=7#   Task 1 Acc: 97.7%
+python main.py --task=split_cifar10 \
+  --chunk_size=1500 \
+  --hyper_hidden_dim=400 \
+  --lr=1e-4 \
+  --epochs=20 \
+  --lam=1e-2 \
+  --alpha=0.4 \
+  --grads_per_task=250 \
+  --max_directions=1250 \
+  --methods fopng \
+  --task_embedding_dim=32 \
+  --chunk_embedding_dim=32

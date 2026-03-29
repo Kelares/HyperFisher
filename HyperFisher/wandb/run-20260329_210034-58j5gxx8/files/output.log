@@ -1,0 +1,54 @@
+Target_network_param_n:  618698
+hyper_network_param_n:  627500
+413
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): ReLU()
+      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): ReLU()
+      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): ReLU()
+      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (fc): Sequential(
+      (0): Linear(in_features=8192, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(413, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.4, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): ReLU()\n      (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): ReLU()\n      (5): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): ReLU()\n      (9): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (fc): Sequential(\n      (0): Linear(in_features=8192, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(413, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 413}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/20 loss=1.0169
+  epoch 2/20 loss=0.5201
+  epoch 3/20 loss=0.4173
+  epoch 4/20 loss=0.4095
+  epoch 5/20 loss=0.3003
+  epoch 6/20 loss=0.2723
+  epoch 7/20 loss=0.2499
+  epoch 8/20 loss=0.2809
+  epoch 9/20 loss=0.1866
+  epoch 10/20 loss=0.1866
+  epoch 11/20 loss=0.1633
+  epoch 12/20 loss=0.1532
+  epoch 13/20 loss=0.1800
+  epoch 14/20 loss=0.1322
+  epoch 15/20 loss=0.1047
+  epoch 16/20 loss=0.0937
+  epoch 17/20 loss=0.1285
+  epoch 18/20 loss=0.1100

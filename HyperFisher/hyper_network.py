@@ -51,7 +51,7 @@ class HyperNetwork(nn.Module):
         
         # 4. Prevent variance explosion on the massive output layer
         with torch.no_grad():
-            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.05)
+            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.02)
             torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.01)
 
         self.target_params = None
