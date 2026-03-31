@@ -1,0 +1,121 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  1548300
+69
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): GroupNorm(1, 32, eps=1e-05, affine=True)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): GroupNorm(1, 64, eps=1e-05, affine=True)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): GroupNorm(1, 128, eps=1e-05, affine=True)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (gap): AdaptiveAvgPool2d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=128, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(69, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=800, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=800, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.4, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): GroupNorm(1, 32, eps=1e-05, affine=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): GroupNorm(1, 64, eps=1e-05, affine=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): GroupNorm(1, 128, eps=1e-05, affine=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (gap): AdaptiveAvgPool2d(output_size=1)\n    (fc): Sequential(\n      (0): Linear(in_features=128, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=800, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=800, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 69}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/20 loss=0.6986
+  epoch 2/20 loss=0.5049
+  epoch 3/20 loss=0.4232
+  epoch 4/20 loss=0.4066
+  epoch 5/20 loss=0.3723
+  epoch 6/20 loss=0.3417
+  epoch 7/20 loss=0.3176
+  epoch 8/20 loss=0.3258
+  epoch 9/20 loss=0.3170
+  epoch 10/20 loss=0.2849
+  epoch 11/20 loss=0.2872
+  epoch 12/20 loss=0.2601
+  epoch 13/20 loss=0.2577
+  epoch 14/20 loss=0.2382
+  epoch 15/20 loss=0.2270
+  epoch 16/20 loss=0.2295
+  epoch 17/20 loss=0.2074
+  epoch 18/20 loss=0.2292
+  epoch 19/20 loss=0.2060
+  epoch 20/20 loss=0.1858
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.029828572645783424, 'fopng/memory/G_cols': 250, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 91.5%
+  Task 2 Acc: 42.6%
+  Task 3 Acc: 48.8%
+  Task 4 Acc: 54.1%
+  Task 5 Acc: 69.8%
+
+[FOPNG] Task 2
+  epoch 1/20 loss=11.3646 rho=0.8645
+  epoch 2/20 loss=10.5006 rho=0.8810
+  epoch 3/20 loss=9.7090 rho=0.8974
+  epoch 4/20 loss=9.0174 rho=0.9109
+  epoch 5/20 loss=8.3906 rho=0.9194
+  epoch 6/20 loss=7.7935 rho=0.9261
+  epoch 7/20 loss=7.2517 rho=0.9326
+  epoch 8/20 loss=6.7495 rho=0.9390
+  epoch 9/20 loss=6.2715 rho=0.9440
+  epoch 10/20 loss=5.8287 rho=0.9487
+  epoch 11/20 loss=5.3986 rho=0.9520
+  epoch 12/20 loss=5.0209 rho=0.9575
+  epoch 13/20 loss=4.6417 rho=0.9603
+  epoch 14/20 loss=4.2974 rho=0.9644
+  epoch 15/20 loss=3.9813 rho=0.9690
+  epoch 16/20 loss=3.6975 rho=0.9732
+  epoch 17/20 loss=3.4296 rho=0.9758
+  epoch 18/20 loss=3.1900 rho=0.9774
+  epoch 19/20 loss=2.9744 rho=0.9796
+  epoch 20/20 loss=2.7815 rho=0.9815
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.8453397750854492, 'fopng/fisher/mean': 0.027020582929253578, 'fopng/memory/G_cols': 500, 'fopng/fisher_overlap/cosine': 0.6889302730560303, 'fopng/fisher_overlap/pearson': 0.5843338370323181, 'fopng/fisher_overlap/topk_iou': 0.28539213229766974, 'task_completed': 2}
+  Task 1 Acc: 76.1%
+  Task 2 Acc: 49.5%
+  Task 3 Acc: 50.1%
+  Task 4 Acc: 39.4%
+  Task 5 Acc: 52.7%
+BWT for task 2: -0.1535
+
+[FOPNG] Task 3
+  epoch 1/20 loss=2.8840 rho=0.8457
+  epoch 2/20 loss=2.7462 rho=0.8664
+  epoch 3/20 loss=2.6192 rho=0.8925
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 473, in train_fopng
+    for x, y in loader:
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 741, in __next__
+    data = self._next_data()
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 801, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 57, in fetch
+    return self.collate_fn(data)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py", line 401, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py", line 214, in collate
+    return [
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py", line 215, in <listcomp>
+    collate(samples, collate_fn_map=collate_fn_map)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py", line 155, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/utils/data/_utils/collate.py", line 275, in collate_tensor_fn
+    return torch.stack(batch, 0, out=out)
+KeyboardInterrupt

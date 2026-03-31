@@ -1,0 +1,72 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  1548300
+69
+HyperNetwork(
+  (target_network): CIFARTargetMultiHead(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): GroupNorm(1, 32, eps=1e-05, affine=True)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): GroupNorm(1, 64, eps=1e-05, affine=True)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): GroupNorm(1, 128, eps=1e-05, affine=True)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (11): AdaptiveAvgPool2d(output_size=1)
+    )
+    (fc_base): Linear(in_features=128, out_features=64, bias=True)
+    (heads): ModuleDict(
+      (head_0): Linear(in_features=64, out_features=2, bias=True)
+      (head_1): Linear(in_features=64, out_features=2, bias=True)
+      (head_2): Linear(in_features=64, out_features=2, bias=True)
+      (head_3): Linear(in_features=64, out_features=2, bias=True)
+      (head_4): Linear(in_features=64, out_features=2, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(69, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=800, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=800, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.4, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTargetMultiHead(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): GroupNorm(1, 32, eps=1e-05, affine=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): GroupNorm(1, 64, eps=1e-05, affine=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): GroupNorm(1, 128, eps=1e-05, affine=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (11): AdaptiveAvgPool2d(output_size=1)\n    )\n    (fc_base): Linear(in_features=128, out_features=64, bias=True)\n    (heads): ModuleDict(\n      (head_0): Linear(in_features=64, out_features=2, bias=True)\n      (head_1): Linear(in_features=64, out_features=2, bias=True)\n      (head_2): Linear(in_features=64, out_features=2, bias=True)\n      (head_3): Linear(in_features=64, out_features=2, bias=True)\n      (head_4): Linear(in_features=64, out_features=2, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=800, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=800, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 69}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/20 loss=0.5608
+  epoch 2/20 loss=0.4689
+  epoch 3/20 loss=0.4101
+  epoch 4/20 loss=0.3807
+  epoch 5/20 loss=0.3483
+  epoch 6/20 loss=0.3138
+  epoch 7/20 loss=0.2983
+  epoch 8/20 loss=0.2945
+  epoch 9/20 loss=0.2755
+  epoch 10/20 loss=0.2645
+  epoch 11/20 loss=0.2451
+  epoch 12/20 loss=0.2395
+  epoch 13/20 loss=0.2442
+  epoch 14/20 loss=0.2165
+  epoch 15/20 loss=0.1985
+  epoch 16/20 loss=0.2269
+  epoch 17/20 loss=0.1880
+  epoch 18/20 loss=0.2014
+  epoch 19/20 loss=0.1821
+  epoch 20/20 loss=0.1623
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 463, in train_fopng
+    fopng.after_task(hyper_network, task_id, loader, criterion)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 167, in after_task
+    F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 80, in compute_fisher_diag
+    fisher.add_(g_w.detach().pow(2))
+RuntimeError: The size of tensor a (102602) must match the size of tensor b (101952) at non-singleton dimension 0

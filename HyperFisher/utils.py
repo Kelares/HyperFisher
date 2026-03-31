@@ -45,7 +45,7 @@ def evaluate_accuracy(model: nn.Module, loader, task_id, task_classes=None) -> f
     with torch.no_grad():
         for x, y in loader:
             x, y = x.to(device), y.to(device)
-            logits = model(x)
+            logits = model(x, task_id.item())
             if task_classes is not None:
                 # restrict argmax to the two active output neurons
                 class_a, class_b = task_classes

@@ -1,0 +1,90 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  1548300
+69
+HyperNetwork(
+  (target_network): CIFARTargetMultiHead(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): GroupNorm(1, 32, eps=1e-05, affine=True)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): GroupNorm(1, 64, eps=1e-05, affine=True)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): GroupNorm(1, 128, eps=1e-05, affine=True)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (11): AdaptiveAvgPool2d(output_size=1)
+    )
+    (fc_base): Linear(in_features=128, out_features=64, bias=True)
+    (heads): ModuleDict(
+      (head_0): Linear(in_features=64, out_features=2, bias=True)
+      (head_1): Linear(in_features=64, out_features=2, bias=True)
+      (head_2): Linear(in_features=64, out_features=2, bias=True)
+      (head_3): Linear(in_features=64, out_features=2, bias=True)
+      (head_4): Linear(in_features=64, out_features=2, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(69, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=800, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=800, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.4, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTargetMultiHead(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): GroupNorm(1, 32, eps=1e-05, affine=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): GroupNorm(1, 64, eps=1e-05, affine=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): GroupNorm(1, 128, eps=1e-05, affine=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (11): AdaptiveAvgPool2d(output_size=1)\n    )\n    (fc_base): Linear(in_features=128, out_features=64, bias=True)\n    (heads): ModuleDict(\n      (head_0): Linear(in_features=64, out_features=2, bias=True)\n      (head_1): Linear(in_features=64, out_features=2, bias=True)\n      (head_2): Linear(in_features=64, out_features=2, bias=True)\n      (head_3): Linear(in_features=64, out_features=2, bias=True)\n      (head_4): Linear(in_features=64, out_features=2, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=800, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=800, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 69}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/20 loss=0.5583
+  epoch 2/20 loss=0.4441
+  epoch 3/20 loss=0.4111
+  epoch 4/20 loss=0.3746
+  epoch 5/20 loss=0.3489
+  epoch 6/20 loss=0.3242
+  epoch 7/20 loss=0.2975
+  epoch 8/20 loss=0.3027
+  epoch 9/20 loss=0.2779
+  epoch 10/20 loss=0.2772
+  epoch 11/20 loss=0.2751
+  epoch 12/20 loss=0.2478
+  epoch 13/20 loss=0.2336
+  epoch 14/20 loss=0.2318
+  epoch 15/20 loss=0.2252
+  epoch 16/20 loss=0.2454
+  epoch 17/20 loss=0.2104
+  epoch 18/20 loss=0.2361
+  epoch 19/20 loss=0.2004
+  epoch 20/20 loss=0.1876
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 463, in train_fopng
+    fopng.after_task(hyper_network, task_id, loader, criterion)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 167, in after_task
+    F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 75, in compute_fisher_diag
+    output = hyper_network(x, task_id=task_id)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/hyper_network.py", line 92, in forward
+    return functional_call(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_functorch/functional_call.py", line 153, in functional_call
+    return nn.utils.stateless._functional_call(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/utils/stateless.py", line 279, in _functional_call
+    return module(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/tasks/split_cifar10.py", line 67, in forward
+    return self.heads[f"head_{task_id}"](x)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/container.py", line 555, in __getitem__
+    return self._modules[key]
+KeyError: "head_tensor([0], device='cuda:0')"

@@ -62,30 +62,66 @@ class HyperNetwork(nn.Module):
         
     def spawn(self, task_id):
         t_vec = self.task_emb(task_id).to(self.device)
+        
+        # Extract the integer value safely whether it's a tensor or int
+        task_idx = task_id.item() if isinstance(task_id, torch.Tensor) else task_id
+        
+        # 1. Calculate active target params for this task
+        # Shared params + parameters for head_{task_idx}
+        active_param_names = [n for n, _ in self.target_network.named_parameters() 
+                            if "heads" not in n or f"heads.head_{task_idx}" in n]
+        
+        task_target_n = sum(p.numel() for n, p in self.target_network.named_parameters() 
+                            if n in active_param_names)
 
-        # COLLECT CHUNKS #
-        if self.chunk_size:
-            chunks = []
-            for chunk_id in range(self.num_of_chunks):
-                chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
+        # 2. Collect chunks as usual
+        num_chunks = ceil(task_target_n / self.chunk_size)
+        chunks = []
+        for chunk_id in range(num_chunks):
+            chunk_id_tensor = torch.tensor([chunk_id], device=self.device)
+            c_vec = self.chunk_emb(chunk_id_tensor)
+            x = torch.concat([t_vec, c_vec], dim=1)
+            # Squeeze removes batch dim to make 1D vector
+            chunks.append(self.layers(x).squeeze())
+        
+        self.w = torch.concat(chunks)[:task_target_n]
+        
+        # 3. Map to dict, but only for active parameters
+        self.target_params = self.get_params_dict(self.w, active_param_names)
 
-                c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
-                x = torch.concat([t_vec, c_vec], dim=1)
-                chunks.append(self.layers(x).squeeze().to(self.device))
-            self.w = torch.concat(chunks)[:self.num_target_params]  # trim padding
-        else:
-            self.w = self.layers(t_vec).squeeze().to(self.device)
-        self.target_params = self.get_params_dict(self.w)
-        ##################
+    def forward(self, x, task_id): 
+        # Pass task_id as a keyword argument to the target network's forward
+        return functional_call(
+            self.target_network, 
+            self.target_params, 
+            args=(x,), 
+            kwargs={'task_id': task_id}
+        )
 
-    def forward(self, x):
-        return functional_call(self.target_network, self.target_params, x)
-
-    def get_params_dict(self, flat_params):
+    def get_params_dict(self, flat_params, active_names):
         param_dict = {}
         pointer = 0
         for name, param in self.target_network.named_parameters():
-            num_param = param.numel()
-            param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
-            pointer += num_param
+            if name in active_names:
+                num_p = param.numel()
+                param_dict[name] = flat_params[pointer : pointer+num_p].view_as(param)
+                pointer += num_p
         return param_dict
+
+    def get_active_indices(self, task_id):
+        """
+        Returns a 1D tensor of global indices that correspond to the active
+        parameters (shared + current head) for this task_id.
+        """
+        task_idx = task_id.item() if isinstance(task_id, torch.Tensor) else task_id
+        indices = []
+        current_idx = 0
+        
+        for name, param in self.target_network.named_parameters():
+            num_p = param.numel()
+            # If it's a shared layer, or it's the specific head for this task
+            if "heads" not in name or f"heads.head_{task_idx}" in name:
+                indices.extend(range(current_idx, current_idx + num_p))
+            current_idx += num_p
+            
+        return torch.tensor(indices, dtype=torch.long, device=self.device)

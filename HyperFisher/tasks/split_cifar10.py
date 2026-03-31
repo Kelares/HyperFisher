@@ -32,42 +32,42 @@ TASK_CLASSES = [
     (8, 9),
 ]
 
-class CIFARTarget(nn.Module):
-    def __init__(self):
+class CIFARTargetMultiHead(nn.Module):
+    def __init__(self, num_tasks=5):
         super().__init__()
+        # 1. Shared Feature Extractor (Shared across all tasks)
         self.convs = nn.Sequential(
             nn.Conv2d(3, 32, 3, padding=1),
-            nn.LayerNorm2d(32), # BN before ReLU
+            nn.GroupNorm(1, 32), 
             nn.ReLU(),
-            
             nn.Conv2d(32, 64, 3, padding=1),
-            nn.LayerNorm2d(64), # BN before ReLU
+            nn.GroupNorm(1, 64), 
             nn.ReLU(),
             nn.MaxPool2d(2),
-            
             nn.Conv2d(64, 128, 3, padding=1),
-            nn.LayerNorm2d(128), # BN before ReLU
+            nn.GroupNorm(1, 128), 
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.MaxPool2d(2),
+            nn.AdaptiveAvgPool2d(1)
         )
         
-        # New: Global Average Pooling to reduce 8192 features to 128
-        self.gap = nn.AdaptiveAvgPool2d(1) 
+        # 2. Shared Bottleneck
+        self.fc_base = nn.Linear(128, 64)
         
-        self.fc = nn.Sequential(
-            nn.Linear(128, 64), # Updated input dim
-            nn.ReLU(),
-            nn.Linear(64, 10)
-        )
+        # 3. Task-Specific Heads (Only 2 neurons per task)
+        # Using a ModuleDict so each head is clearly indexed
+        self.heads = nn.ModuleDict({
+            f"head_{i}": nn.Linear(64, 2) for i in range(num_tasks)
+        })
 
-    def forward(self, x):
-        x = self.convs(x)
-        x = self.gap(x) # [batch, 128, 1, 1]
-        x = x.view(x.size(0), -1) # [batch, 128]
-        return self.fc(x)
-        
+    def forward(self, x, task_id: int):
+        x = self.convs(x).view(x.size(0), -1)
+        x = torch.relu(self.fc_base(x))
+        # Dynamically route to the correct head
+        return self.heads[f"head_{task_id}"](x)
+
+
 class TaskGenerator:
-
     TASK_CLASSES = TASK_CLASSES
 
     config = SimpleNamespace(
@@ -80,7 +80,7 @@ class TaskGenerator:
         max_directions=400,
     )
 
-    target_network = CIFARTarget()
+    target_network = CIFARTargetMultiHead()
 
     _train_data: datasets.CIFAR10 | None = None
     _test_data:  datasets.CIFAR10 | None = None
