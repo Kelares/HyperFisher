@@ -42,9 +42,13 @@ class HyperNetwork(nn.Module):
         
         output_dim = self.chunk_size if self.chunk_size else self.num_target_params
         self.layers = nn.Sequential(
-            nn.Linear(config.task_embedding_dim + config.chunk_embedding_dim, bottleneck_dim), # * 2 because we concat 2 embedding layers
-            nn.LeakyReLU(0.1),  # Changed from ReLU to LeakyReLU for cifar10 cnn!
-            nn.Linear(bottleneck_dim, output_dim)
+            nn.Linear(config.task_embedding_dim + config.chunk_embedding_dim, bottleneck_dim),
+            nn.LeakyReLU(0.1),
+
+            nn.Linear(bottleneck_dim, bottleneck_dim*2),
+            nn.LeakyReLU(0.1), 
+
+            nn.Linear(bottleneck_dim*2, output_dim)
         ).to(self.device)
         
         print("hyper_network_param_n: ", sum(p.numel() for p in self.layers.parameters()))
