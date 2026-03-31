@@ -93,12 +93,12 @@ class FOPNG:
                 num_p = param.numel()
                 layer_fisher = fisher[pointer : pointer + num_p]
                 
-                # 1. Normalize this specific layer to [0, 1]
-                if layer_fisher.max() > 0:
-                    layer_fisher = layer_fisher / layer_fisher.max()
+                # Remove the layer-wise loop and just do:
+                if fisher.max() > 0:
+                    fisher = fisher / fisher.max()
                 
                 # 2. Apply Power-Smoothing (Inflation) to broaden the protection
-                layer_fisher = torch.pow(layer_fisher, 0.3) 
+                # layer_fisher = torch.pow(layer_fisher, 0.3) 
                 
                 fisher[pointer : pointer + num_p] = layer_fisher
                 pointer += num_p
@@ -117,7 +117,9 @@ class FOPNG:
 
         1. Projects g_w in w-space via FOPNG update → v_star_w [D_w]
         2. Maps v_star_w back to θ-space via Jᵀ · v_star_w (one backward pass)
-        3. Applies the resulting θ-space update directly from p.grad
+        3. Normalises the θ-space update to match v_star_w magnitude,
+           cancelling the chunk-loop Jacobian amplification (~479x)
+        4. Applies the normalised update directly to θ
         """
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
 
@@ -125,21 +127,35 @@ class FOPNG:
         v_star_w, rho = self._fopng_update(
             g=g_w, G=self.G, F_old=self.F_old, F_new=self._F_new,
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
-        )   # v_star_w: [D_w]
+        )   # v_star_w: [D_w], magnitude controlled by self.lr
 
-        # ── 2. Map v_star_w to θ-space via Jᵀ ───────────────────────────
-        # Fresh graph needed — the graph used to compute g_w was freed
-        # by autograd.grad(). Same task, same θ, so J is identical.
+        # ── 2. Map v_star_w to θ-space via Jᵀ ────────────────────────────
+        # Fresh spawn — same task, same θ, so J is identical to the
+        # forward pass that produced g_w. Graph freed after backward.
         model.zero_grad()
-        model.spawn(task_id)       # fresh graph
-        w_fresh = model.w
-        w_fresh.backward(v_star_w.detach())                 # θ.grad = Jᵀ v_star_w
+        model.spawn(task_id)
+        model.w.backward(v_star_w.detach())   # θ.grad = Jᵀ v_star_w
 
-        # ── 3. Apply θ-space update ───────────────────────────────────────
+        # ── 3. Normalise to cancel Jacobian amplification ─────────────────
+        # Jᵀ amplifies by ~num_chunks because the same layers weights
+        # accumulate gradient from every chunk. Rescale so the θ-space
+        # update has the same norm as v_star_w.
+        jt_v = torch.cat([
+            p.grad.view(-1) for p in model.parameters() if p.grad is not None
+        ])
+        jt_v_norm  = jt_v.norm()
+        v_star_norm = v_star_w.norm()
+
+        scale = (v_star_norm / (jt_v_norm + 1e-8)).item()
+
+        # Inside fopng.py -> step()
+        # print(f"DEBUG: v_norm={v_star_norm:.4f}, jt_v_norm={jt_v_norm:.4f}, scale={scale:.6f}")
+        
+        # ── 4. Apply normalised θ-space update ───────────────────────────
         with torch.no_grad():
             for p in model.parameters():
                 if p.grad is not None:
-                    p.data.add_(p.grad)
+                    p.data.add_(p.grad * scale)
 
         model.zero_grad()
         return rho
@@ -453,33 +469,33 @@ def train_fopng(
                 fopng.prepare_epoch(F_new)
                 total_loss, total_rho = 0.0, 0.0
                 hyper_network.train()
-                
+
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
-                    if hyper_network.chunk_size:
-                        # Forward in w-space — w is the differentiable leaf
-                        hyper_network.spawn(task_id)   # [D_w]
-                        w = hyper_network.w
-                        output = hyper_network(x)
-                        loss = criterion(output, y)
-                        total_loss += loss.item()
 
-                        # Gradient in w-space — graph freed after this
-                        (g_w,) = torch.autograd.grad(loss, w)
+                    # Forward — w stays in graph as the differentiable leaf
+                    hyper_network.spawn(task_id)
+                    w = hyper_network.w
+                    output = hyper_network(x)
+                    loss = criterion(output, y)
+                    total_loss += loss.item()
 
-                        # Project in w-space, map back to θ via Jᵀ, apply update
-                        rho = fopng.step(hyper_network, task_id, g_w.detach())
-                        total_rho += rho
-                        
+                    # g_w: gradient in w-space — graph freed after this
+                    (g_w,) = torch.autograd.grad(loss, w)
+
+                    # Project in w-space, map back to θ via normalised Jᵀ
+                    rho = fopng.step(hyper_network, task_id, g_w.detach())
+                    total_rho += rho
+
                 avg_loss = total_loss / len(loader)
-                avg_rho = total_rho / len(loader)
+                avg_rho  = total_rho  / len(loader)
 
                 wandb.log({
-                    "fopng/train/loss": avg_loss,
+                    "fopng/train/loss":    avg_loss,
                     "fopng/train/rho_avg": avg_rho,
-                    "fopng/global_epoch": global_epoch,
-                    "task": t+1
+                    "fopng/global_epoch":  global_epoch,
+                    "task":                t + 1,
                 })
                 global_epoch += 1
 

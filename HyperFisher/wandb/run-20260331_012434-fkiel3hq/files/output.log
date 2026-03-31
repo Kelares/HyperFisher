@@ -1,0 +1,114 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  627500
+69
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (gap): AdaptiveAvgPool2d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=128, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(69, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 5, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (gap): AdaptiveAvgPool2d(output_size=1)\n    (fc): Sequential(\n      (0): Linear(in_features=128, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 69}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/5 loss=0.9287
+  epoch 2/5 loss=0.3835
+  epoch 3/5 loss=0.3843
+  epoch 4/5 loss=0.3401
+  epoch 5/5 loss=0.3327
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.033294517546892166, 'fopng/memory/G_cols': 250, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 85.7%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 51.0%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 50.0%
+
+[FOPNG] Task 2
+  epoch 1/5 loss=5.0414 rho=0.9549
+  epoch 2/5 loss=3.2448 rho=0.9686
+  epoch 3/5 loss=1.9770 rho=0.9814
+  epoch 4/5 loss=1.2244 rho=0.9863
+  epoch 5/5 loss=0.8744 rho=0.9911
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.043973300606012344, 'fopng/memory/G_cols': 500, 'fopng/fisher_overlap/cosine': 0.5571727752685547, 'fopng/fisher_overlap/pearson': 0.44015559554100037, 'fopng/fisher_overlap/topk_iou': 0.20954907161803712, 'task_completed': 2}
+  Task 1 Acc: 85.4%
+  Task 2 Acc: 58.0%
+  Task 3 Acc: 52.2%
+  Task 4 Acc: 53.4%
+  Task 5 Acc: 50.0%
+BWT for task 2: -0.0030
+
+[FOPNG] Task 3
+  epoch 1/5 loss=7.6564 rho=0.9910
+  epoch 2/5 loss=5.2235 rho=0.9922
+  epoch 3/5 loss=3.2832 rho=0.9922
+  epoch 4/5 loss=2.0410 rho=0.9947
+  epoch 5/5 loss=1.2708 rho=0.9973
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.8613098859786987, 'fopng/fisher/mean': 0.048765264451503754, 'fopng/memory/G_cols': 750, 'fopng/fisher_overlap/cosine': 0.5903956890106201, 'fopng/fisher_overlap/pearson': 0.4237404763698578, 'fopng/fisher_overlap/topk_iou': 0.20436670970771217, 'task_completed': 3}
+  Task 1 Acc: 84.0%
+  Task 2 Acc: 51.6%
+  Task 3 Acc: 59.0%
+  Task 4 Acc: 54.4%
+  Task 5 Acc: 50.0%
+BWT for task 3: -0.0403
+
+[FOPNG] Task 4
+  epoch 1/5 loss=2.1032 rho=0.9953
+  epoch 2/5 loss=1.3930 rho=0.9939
+  epoch 3/5 loss=0.9624 rho=0.9902
+  epoch 4/5 loss=0.7213 rho=0.9902
+  epoch 5/5 loss=0.6300 rho=0.9922
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.9020655751228333, 'fopng/fisher/mean': 0.053742799907922745, 'fopng/memory/G_cols': 1000, 'fopng/fisher_overlap/cosine': 0.6399418115615845, 'fopng/fisher_overlap/pearson': 0.46064940094947815, 'fopng/fisher_overlap/topk_iou': 0.193717277486911, 'task_completed': 4}
+  Task 1 Acc: 82.2%
+  Task 2 Acc: 52.2%
+  Task 3 Acc: 53.2%
+  Task 4 Acc: 70.0%
+  Task 5 Acc: 50.0%
+BWT for task 4: -0.0498
+
+[FOPNG] Task 5
+  epoch 1/5 loss=9.7322 rho=0.9666
+  epoch 2/5 loss=6.5829 rho=0.9681
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 485, in train_fopng
+    rho = fopng.step(hyper_network, task_id, g_w.detach())
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 136, in step
+    model.spawn(task_id)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/hyper_network.py", line 70, in spawn
+    chunks.append(self.layers(x).squeeze().to(self.device))
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1780, in _call_impl
+    def _call_impl(self, *args, **kwargs):
+KeyboardInterrupt

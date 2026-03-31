@@ -52,3 +52,56 @@ HyperNetwork(
   epoch 16/20 loss=0.0937
   epoch 17/20 loss=0.1285
   epoch 18/20 loss=0.1100
+  epoch 19/20 loss=0.0912
+  epoch 20/20 loss=0.0825
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.02109614387154579, 'fopng/memory/G_cols': 250, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 93.5%
+  Task 2 Acc: 45.6%
+  Task 3 Acc: 49.5%
+  Task 4 Acc: 48.1%
+  Task 5 Acc: 52.5%
+
+[FOPNG] Task 2
+  epoch 1/20 loss=5.8577 rho=0.9553
+  epoch 2/20 loss=0.8062 rho=0.9981
+  epoch 3/20 loss=0.7560 rho=0.9995
+  epoch 4/20 loss=0.7267 rho=0.9990
+  epoch 5/20 loss=0.7227 rho=0.9992
+  epoch 6/20 loss=0.6981 rho=0.9995
+  epoch 7/20 loss=0.6736 rho=0.9991
+  epoch 8/20 loss=0.6594 rho=0.9991
+  epoch 9/20 loss=0.6438 rho=0.9986
+  epoch 10/20 loss=0.6219 rho=0.9988
+  epoch 11/20 loss=0.6225 rho=0.9979
+  epoch 12/20 loss=0.6033 rho=0.9978
+  epoch 13/20 loss=0.5763 rho=0.9973
+  epoch 14/20 loss=0.5670 rho=0.9967
+  epoch 15/20 loss=0.5568 rho=0.9947
+  epoch 16/20 loss=0.5365 rho=0.9954
+  epoch 17/20 loss=0.5310 rho=0.9906
+  epoch 18/20 loss=0.5215 rho=0.9915
+  epoch 19/20 loss=0.5125 rho=0.9918
+  epoch 20/20 loss=0.4976 rho=0.9891
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.028299029916524887, 'fopng/memory/G_cols': 500, 'fopng/fisher_overlap/cosine': 0.40574124455451965, 'fopng/fisher_overlap/pearson': 0.30814310908317566, 'fopng/fisher_overlap/topk_iou': 0.17580318709199236, 'task_completed': 2}
+  Task 1 Acc: 62.5%
+  Task 2 Acc: 73.9%
+  Task 3 Acc: 49.0%
+  Task 4 Acc: 54.5%
+  Task 5 Acc: 50.1%
+BWT for task 2: -0.3100
+
+[FOPNG] Task 3
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 472, in train_fopng
+    rho = fopng.step(hyper_network, task_id, g_w.detach())
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 136, in step
+    w_fresh.backward(v_star_w.detach())                 # θ.grad = Jᵀ v_star_w
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_tensor.py", line 630, in backward
+    torch.autograd.backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/__init__.py", line 364, in backward
+    _engine_run_backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

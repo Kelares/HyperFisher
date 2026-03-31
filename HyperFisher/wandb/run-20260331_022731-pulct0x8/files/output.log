@@ -1,0 +1,62 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  155930
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=30, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 200, 'hyper_hidden_dim': 30, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=30, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=30, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.6777
+  epoch 2/7 loss=0.0134
+  epoch 3/7 loss=0.0086
+  epoch 4/7 loss=0.0054
+  epoch 5/7 loss=0.0039
+  epoch 6/7 loss=0.0026
+  epoch 7/7 loss=0.0020
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.006599376909434795, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 47.8%
+  Task 3 Acc: 56.5%
+  Task 4 Acc: 58.6%
+  Task 5 Acc: 45.7%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=8.2498 rho=0.9993
+  epoch 2/7 loss=8.2663 rho=0.9993
+  epoch 3/7 loss=8.2663 rho=0.9993
+  epoch 4/7 loss=8.2627 rho=0.9993
+  epoch 5/7 loss=8.2419 rho=0.9993
+  epoch 6/7 loss=8.2573 rho=0.9993
+  epoch 7/7 loss=8.2480 rho=0.9993
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.9825989603996277, 'fopng/fisher/mean': 0.006024659611284733, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.19166333973407745, 'fopng/fisher_overlap/pearson': 0.15055188536643982, 'fopng/fisher_overlap/topk_iou': 0.16517694050025572, 'task_completed': 2}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 47.9%
+  Task 3 Acc: 56.5%
+  Task 4 Acc: 58.6%
+  Task 5 Acc: 45.7%
+BWT for task 2: 0.0000
+
+[FOPNG] Task 3
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 482, in train_fopng
+    hyper_network.spawn(task_id)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/hyper_network.py", line 70, in spawn
+    chunks.append(self.layers(x).squeeze().to(self.device))
+KeyboardInterrupt

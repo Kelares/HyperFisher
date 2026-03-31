@@ -1,0 +1,539 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  155930
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=30, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 200, 'hyper_hidden_dim': 30, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=30, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=30, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.6777
+  epoch 2/7 loss=0.0134
+  epoch 3/7 loss=0.0086
+  epoch 4/7 loss=0.0054
+  epoch 5/7 loss=0.0039
+  epoch 6/7 loss=0.0026
+  epoch 7/7 loss=0.0020
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.006599376909434795, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 47.8%
+  Task 3 Acc: 56.5%
+  Task 4 Acc: 58.6%
+  Task 5 Acc: 45.7%
+
+[FOPNG] Task 2
+DEBUG: v_norm=0.0017, jt_v_norm=0.0043, scale=0.406348
+DEBUG: v_norm=0.0017, jt_v_norm=0.0043, scale=0.401274
+DEBUG: v_norm=0.0017, jt_v_norm=0.0042, scale=0.408262
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.406136
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.409033
+DEBUG: v_norm=0.0017, jt_v_norm=0.0042, scale=0.416247
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.413423
+DEBUG: v_norm=0.0017, jt_v_norm=0.0041, scale=0.424428
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.413112
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.413485
+DEBUG: v_norm=0.0017, jt_v_norm=0.0042, scale=0.414876
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.412773
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.424626
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.415558
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.415174
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.416913
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.426507
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.426609
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.427314
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.416738
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.434811
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.424753
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.420952
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.425631
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.420588
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.431947
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.412609
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.425567
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.431476
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.426019
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.432217
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.422224
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.429922
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.424981
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.423118
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.428353
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.426369
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.421599
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.425093
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.422138
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.430643
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.425860
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.424888
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.413493
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.424218
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.419771
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.432274
+DEBUG: v_norm=0.0020, jt_v_norm=0.0049, scale=0.417612
+  epoch 1/7 loss=5.7200 rho=0.9994
+DEBUG: v_norm=0.0018, jt_v_norm=0.0045, scale=0.400125
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.409983
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.420710
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.412950
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.407968
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.414579
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.417732
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.414462
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.425002
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.414866
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.417402
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.406065
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.423458
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.419050
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.413521
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.415541
+DEBUG: v_norm=0.0018, jt_v_norm=0.0045, scale=0.405757
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.411630
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.423277
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.416795
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.424246
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.423282
+DEBUG: v_norm=0.0018, jt_v_norm=0.0045, scale=0.413581
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.418114
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.421425
+DEBUG: v_norm=0.0019, jt_v_norm=0.0047, scale=0.410563
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.422271
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.428898
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.434258
+DEBUG: v_norm=0.0019, jt_v_norm=0.0046, scale=0.413852
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.425330
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.425410
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.420064
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.430315
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.433922
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.424373
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.432660
+DEBUG: v_norm=0.0019, jt_v_norm=0.0047, scale=0.413469
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.425868
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.412538
+DEBUG: v_norm=0.0020, jt_v_norm=0.0048, scale=0.414988
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.439043
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.429144
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.419750
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.431563
+DEBUG: v_norm=0.0019, jt_v_norm=0.0046, scale=0.423820
+DEBUG: v_norm=0.0020, jt_v_norm=0.0049, scale=0.420254
+DEBUG: v_norm=0.0022, jt_v_norm=0.0056, scale=0.392420
+  epoch 2/7 loss=2.1659 rho=0.9996
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.405088
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.424155
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.429788
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.412611
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.415525
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.443242
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.416699
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.421605
+DEBUG: v_norm=0.0018, jt_v_norm=0.0039, scale=0.450382
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.425292
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.444166
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.434579
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.424363
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.433685
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.444412
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.426832
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.435261
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.445046
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.455162
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.432750
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.416357
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.428416
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.447023
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.462433
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.440357
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.445091
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.427718
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.444094
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.426929
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.451340
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.437384
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.428039
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.455185
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.433286
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.438799
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.438849
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.433720
+DEBUG: v_norm=0.0019, jt_v_norm=0.0040, scale=0.461356
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.426663
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.463557
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.441652
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.448923
+DEBUG: v_norm=0.0021, jt_v_norm=0.0050, scale=0.410489
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.431458
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.452624
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.448021
+DEBUG: v_norm=0.0020, jt_v_norm=0.0043, scale=0.451234
+DEBUG: v_norm=0.0021, jt_v_norm=0.0049, scale=0.434313
+  epoch 3/7 loss=0.8354 rho=0.9998
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.425568
+DEBUG: v_norm=0.0019, jt_v_norm=0.0047, scale=0.410398
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.432745
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.443625
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.439819
+DEBUG: v_norm=0.0019, jt_v_norm=0.0046, scale=0.422850
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.437160
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.438869
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.450439
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.437664
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.426154
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.449857
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.452431
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.431238
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.448518
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.429543
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.420012
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.436099
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.438750
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.429465
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.449962
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.426784
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.447289
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.441257
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.423613
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.437352
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.438547
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.439198
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.445113
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.441184
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.434625
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.433023
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.434273
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.442329
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.451560
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.424736
+DEBUG: v_norm=0.0021, jt_v_norm=0.0049, scale=0.422090
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.444523
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.432483
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.444014
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.444209
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.445562
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.440980
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.428872
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.443194
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.438305
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.443177
+DEBUG: v_norm=0.0022, jt_v_norm=0.0054, scale=0.406635
+  epoch 4/7 loss=0.4653 rho=1.0000
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.440748
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.437703
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.428556
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.437573
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.438912
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.448779
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.431491
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.452727
+DEBUG: v_norm=0.0019, jt_v_norm=0.0047, scale=0.406277
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.452845
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.425393
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.439370
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.457611
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.427747
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.454849
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.449888
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.443199
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.436366
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.442765
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.431975
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.461631
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.447755
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.447398
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.454678
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.449632
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.450875
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.442495
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.427209
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.447078
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.458790
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.438456
+DEBUG: v_norm=0.0020, jt_v_norm=0.0048, scale=0.414409
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.455447
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.446988
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.433033
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.431318
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.431218
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.450076
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.454244
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.440610
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.434715
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.447097
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.446936
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.440258
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.445367
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.439900
+DEBUG: v_norm=0.0020, jt_v_norm=0.0047, scale=0.437753
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.427947
+  epoch 5/7 loss=0.3147 rho=1.0000
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.431879
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.442062
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.443106
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.433937
+DEBUG: v_norm=0.0018, jt_v_norm=0.0039, scale=0.462140
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.425209
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.446800
+DEBUG: v_norm=0.0021, jt_v_norm=0.0047, scale=0.454649
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.457334
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.451948
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.435451
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.449687
+DEBUG: v_norm=0.0020, jt_v_norm=0.0043, scale=0.455973
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.454843
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.436951
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.430592
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.454404
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.445679
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.449137
+DEBUG: v_norm=0.0020, jt_v_norm=0.0044, scale=0.446255
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.449822
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.454963
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.436158
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.439540
+DEBUG: v_norm=0.0021, jt_v_norm=0.0050, scale=0.417522
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.462187
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.449529
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.447679
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.448917
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.425667
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.432007
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.427511
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.432406
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.433641
+DEBUG: v_norm=0.0019, jt_v_norm=0.0045, scale=0.424190
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.456852
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.443207
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.457243
+DEBUG: v_norm=0.0020, jt_v_norm=0.0045, scale=0.438302
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.448223
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.445545
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.437552
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.462839
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.434181
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.428513
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.428098
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.443303
+DEBUG: v_norm=0.0019, jt_v_norm=0.0041, scale=0.457213
+  epoch 6/7 loss=0.2512 rho=1.0000
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.432466
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.446240
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.444529
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.431501
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.440883
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.435722
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.436587
+DEBUG: v_norm=0.0017, jt_v_norm=0.0038, scale=0.447090
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.437371
+DEBUG: v_norm=0.0019, jt_v_norm=0.0046, scale=0.423740
+DEBUG: v_norm=0.0018, jt_v_norm=0.0038, scale=0.460950
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.444637
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.441462
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.420733
+DEBUG: v_norm=0.0017, jt_v_norm=0.0041, scale=0.424406
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.439051
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.433715
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.431808
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.448211
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.438262
+DEBUG: v_norm=0.0018, jt_v_norm=0.0040, scale=0.445922
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.429544
+DEBUG: v_norm=0.0017, jt_v_norm=0.0039, scale=0.436722
+DEBUG: v_norm=0.0018, jt_v_norm=0.0045, scale=0.408408
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.439866
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.432874
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.434337
+DEBUG: v_norm=0.0017, jt_v_norm=0.0039, scale=0.437982
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.430675
+DEBUG: v_norm=0.0021, jt_v_norm=0.0048, scale=0.435721
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.451383
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.436022
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.447007
+DEBUG: v_norm=0.0018, jt_v_norm=0.0044, scale=0.417096
+DEBUG: v_norm=0.0017, jt_v_norm=0.0039, scale=0.447143
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.427937
+DEBUG: v_norm=0.0020, jt_v_norm=0.0048, scale=0.422234
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.451907
+DEBUG: v_norm=0.0018, jt_v_norm=0.0043, scale=0.424727
+DEBUG: v_norm=0.0019, jt_v_norm=0.0043, scale=0.440490
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.436554
+DEBUG: v_norm=0.0017, jt_v_norm=0.0038, scale=0.445689
+DEBUG: v_norm=0.0019, jt_v_norm=0.0042, scale=0.447731
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.431683
+DEBUG: v_norm=0.0018, jt_v_norm=0.0041, scale=0.441631
+DEBUG: v_norm=0.0019, jt_v_norm=0.0044, scale=0.429656
+DEBUG: v_norm=0.0018, jt_v_norm=0.0042, scale=0.441415
+DEBUG: v_norm=0.0020, jt_v_norm=0.0046, scale=0.426599
+  epoch 7/7 loss=0.2130 rho=1.0000
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7069608569145203, 'fopng/fisher/mean': 0.006888094823807478, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.17072828114032745, 'fopng/fisher_overlap/pearson': 0.11929700523614883, 'fopng/fisher_overlap/topk_iou': 0.1610484164543138, 'task_completed': 2}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 93.2%
+  Task 3 Acc: 59.6%
+  Task 4 Acc: 56.6%
+  Task 5 Acc: 43.6%
+BWT for task 2: -0.0014
+
+[FOPNG] Task 3
+DEBUG: v_norm=0.0017, jt_v_norm=0.0056, scale=0.302346
+DEBUG: v_norm=0.0018, jt_v_norm=0.0057, scale=0.308632
+DEBUG: v_norm=0.0018, jt_v_norm=0.0059, scale=0.304956
+DEBUG: v_norm=0.0018, jt_v_norm=0.0059, scale=0.305876
+DEBUG: v_norm=0.0018, jt_v_norm=0.0058, scale=0.305653
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.324684
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.328951
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.326957
+DEBUG: v_norm=0.0018, jt_v_norm=0.0054, scale=0.331507
+DEBUG: v_norm=0.0018, jt_v_norm=0.0059, scale=0.300377
+DEBUG: v_norm=0.0018, jt_v_norm=0.0056, scale=0.323272
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.337440
+DEBUG: v_norm=0.0019, jt_v_norm=0.0057, scale=0.329375
+DEBUG: v_norm=0.0020, jt_v_norm=0.0053, scale=0.367018
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.333003
+DEBUG: v_norm=0.0018, jt_v_norm=0.0054, scale=0.337243
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.362795
+DEBUG: v_norm=0.0019, jt_v_norm=0.0051, scale=0.381131
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.372595
+DEBUG: v_norm=0.0019, jt_v_norm=0.0054, scale=0.346485
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.355586
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.354522
+DEBUG: v_norm=0.0020, jt_v_norm=0.0053, scale=0.371895
+DEBUG: v_norm=0.0019, jt_v_norm=0.0057, scale=0.334411
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.358220
+DEBUG: v_norm=0.0020, jt_v_norm=0.0057, scale=0.351410
+DEBUG: v_norm=0.0019, jt_v_norm=0.0051, scale=0.375873
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.355548
+DEBUG: v_norm=0.0020, jt_v_norm=0.0057, scale=0.344098
+DEBUG: v_norm=0.0020, jt_v_norm=0.0056, scale=0.365353
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.366780
+DEBUG: v_norm=0.0021, jt_v_norm=0.0053, scale=0.388331
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.366554
+DEBUG: v_norm=0.0020, jt_v_norm=0.0052, scale=0.376428
+DEBUG: v_norm=0.0020, jt_v_norm=0.0054, scale=0.364886
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.363392
+DEBUG: v_norm=0.0020, jt_v_norm=0.0053, scale=0.377018
+DEBUG: v_norm=0.0020, jt_v_norm=0.0054, scale=0.374851
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.374552
+DEBUG: v_norm=0.0021, jt_v_norm=0.0054, scale=0.378046
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.355775
+DEBUG: v_norm=0.0020, jt_v_norm=0.0054, scale=0.369595
+DEBUG: v_norm=0.0020, jt_v_norm=0.0056, scale=0.361056
+DEBUG: v_norm=0.0021, jt_v_norm=0.0057, scale=0.368095
+  epoch 1/7 loss=5.8940 rho=0.9999
+DEBUG: v_norm=0.0019, jt_v_norm=0.0058, scale=0.322279
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.329761
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.333898
+DEBUG: v_norm=0.0017, jt_v_norm=0.0052, scale=0.333008
+DEBUG: v_norm=0.0018, jt_v_norm=0.0054, scale=0.332633
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.350526
+DEBUG: v_norm=0.0018, jt_v_norm=0.0058, scale=0.313838
+DEBUG: v_norm=0.0019, jt_v_norm=0.0057, scale=0.335743
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.350999
+DEBUG: v_norm=0.0018, jt_v_norm=0.0056, scale=0.325315
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.337095
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.353105
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.351140
+DEBUG: v_norm=0.0018, jt_v_norm=0.0054, scale=0.335040
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.359434
+DEBUG: v_norm=0.0018, jt_v_norm=0.0053, scale=0.344784
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.361196
+DEBUG: v_norm=0.0018, jt_v_norm=0.0053, scale=0.338578
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.350947
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.335860
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.361919
+DEBUG: v_norm=0.0019, jt_v_norm=0.0057, scale=0.341163
+DEBUG: v_norm=0.0019, jt_v_norm=0.0055, scale=0.342167
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.355683
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.358192
+DEBUG: v_norm=0.0018, jt_v_norm=0.0053, scale=0.343897
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.349717
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.353761
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.353288
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.352884
+DEBUG: v_norm=0.0018, jt_v_norm=0.0053, scale=0.346019
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.356181
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.347386
+DEBUG: v_norm=0.0019, jt_v_norm=0.0055, scale=0.349822
+DEBUG: v_norm=0.0019, jt_v_norm=0.0055, scale=0.345492
+DEBUG: v_norm=0.0019, jt_v_norm=0.0054, scale=0.351349
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.359819
+DEBUG: v_norm=0.0019, jt_v_norm=0.0057, scale=0.337840
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.350630
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.356097
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.358537
+DEBUG: v_norm=0.0020, jt_v_norm=0.0058, scale=0.339229
+DEBUG: v_norm=0.0020, jt_v_norm=0.0057, scale=0.358218
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.348560
+  epoch 2/7 loss=2.5654 rho=0.9998
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.346209
+DEBUG: v_norm=0.0019, jt_v_norm=0.0058, scale=0.325377
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.354789
+DEBUG: v_norm=0.0018, jt_v_norm=0.0049, scale=0.364102
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.348228
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.354359
+DEBUG: v_norm=0.0019, jt_v_norm=0.0055, scale=0.342862
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.353943
+DEBUG: v_norm=0.0018, jt_v_norm=0.0049, scale=0.363591
+DEBUG: v_norm=0.0018, jt_v_norm=0.0055, scale=0.330257
+DEBUG: v_norm=0.0018, jt_v_norm=0.0056, scale=0.328859
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.353078
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.361185
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.335616
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.354666
+DEBUG: v_norm=0.0018, jt_v_norm=0.0053, scale=0.346839
+DEBUG: v_norm=0.0019, jt_v_norm=0.0051, scale=0.369519
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.348585
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.358003
+DEBUG: v_norm=0.0018, jt_v_norm=0.0054, scale=0.343850
+DEBUG: v_norm=0.0019, jt_v_norm=0.0051, scale=0.363905
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.357287
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.353926
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.348660
+DEBUG: v_norm=0.0018, jt_v_norm=0.0049, scale=0.363630
+DEBUG: v_norm=0.0019, jt_v_norm=0.0051, scale=0.363825
+DEBUG: v_norm=0.0017, jt_v_norm=0.0047, scale=0.365447
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.356532
+DEBUG: v_norm=0.0019, jt_v_norm=0.0054, scale=0.353942
+DEBUG: v_norm=0.0019, jt_v_norm=0.0055, scale=0.344678
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.358980
+DEBUG: v_norm=0.0018, jt_v_norm=0.0052, scale=0.354240
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.362153
+DEBUG: v_norm=0.0019, jt_v_norm=0.0054, scale=0.355404
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.358412
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.355537
+DEBUG: v_norm=0.0018, jt_v_norm=0.0049, scale=0.366084
+DEBUG: v_norm=0.0018, jt_v_norm=0.0051, scale=0.352260
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.353489
+DEBUG: v_norm=0.0018, jt_v_norm=0.0050, scale=0.366825
+DEBUG: v_norm=0.0020, jt_v_norm=0.0055, scale=0.359469
+DEBUG: v_norm=0.0019, jt_v_norm=0.0056, scale=0.348670
+DEBUG: v_norm=0.0019, jt_v_norm=0.0052, scale=0.356034
+DEBUG: v_norm=0.0019, jt_v_norm=0.0053, scale=0.361984
+  epoch 3/7 loss=1.2272 rho=0.9998
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 492, in train_fopng
+    rho = fopng.step(hyper_network, task_id, g_w.detach())
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 137, in step
+    model.w.backward(v_star_w.detach())   # θ.grad = Jᵀ v_star_w
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_tensor.py", line 630, in backward
+    torch.autograd.backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/__init__.py", line 364, in backward
+    _engine_run_backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

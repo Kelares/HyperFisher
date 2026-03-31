@@ -33,7 +33,7 @@ class HyperNetwork(nn.Module):
             num_embeddings=config.num_tasks, 
             embedding_dim=config.task_embedding_dim
         ).to(self.device)
-        
+        torch.nn.init.constant_(self.task_emb.weight, 0.0)
 
 
         # 3. Modular Hypernetwork Generator
@@ -51,7 +51,7 @@ class HyperNetwork(nn.Module):
         
         # 4. Prevent variance explosion on the massive output layer
         with torch.no_grad():
-            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.02)
+            torch.nn.init.normal_(self.layers[-1].weight, mean=0.0, std=0.05)
             torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.01)
 
         self.target_params = None

@@ -31,41 +31,39 @@ TASK_CLASSES = [
     (6, 7),
     (8, 9),
 ]
+
 class CIFARTarget(nn.Module):
     def __init__(self):
         super().__init__()
         self.convs = nn.Sequential(
-            # Layer 1
             nn.Conv2d(3, 32, 3, padding=1),
-            nn.BatchNorm2d(32), # BN before ReLU
+            nn.BatchNorm2d(32, track_running_stats=False), # BN before ReLU
             nn.ReLU(),
             
-            # Layer 2
             nn.Conv2d(32, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(64, track_running_stats=False), # BN before ReLU
             nn.ReLU(),
-            nn.MaxPool2d(2), # 32x32 -> 16x16
+            nn.MaxPool2d(2),
             
-            # Layer 3
             nn.Conv2d(64, 128, 3, padding=1),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(128, track_running_stats=False), # BN before ReLU
             nn.ReLU(),
-            nn.MaxPool2d(2)  # 16x16 -> 8x8
+            nn.MaxPool2d(2)
         )
         
-        # Replace Flatten with Global Average Pooling
+        # New: Global Average Pooling to reduce 8192 features to 128
         self.gap = nn.AdaptiveAvgPool2d(1) 
         
         self.fc = nn.Sequential(
-            nn.Linear(128, 64), # Input is now 128 instead of 8192
+            nn.Linear(128, 64), # Updated input dim
             nn.ReLU(),
             nn.Linear(64, 10)
         )
 
     def forward(self, x):
         x = self.convs(x)
-        x = self.gap(x)
-        x = x.view(x.size(0), -1)
+        x = self.gap(x) # [batch, 128, 1, 1]
+        x = x.view(x.size(0), -1) # [batch, 128]
         return self.fc(x)
         
 class TaskGenerator:

@@ -1,0 +1,24 @@
+2026-03-29 22:03:21,451 INFO    MainThread:117729 [wandb_setup.py:_flush():81] Current SDK version is 0.25.0
+2026-03-29 22:03:21,451 INFO    MainThread:117729 [wandb_setup.py:_flush():81] Configure stats pid to 117729
+2026-03-29 22:03:21,451 INFO    MainThread:117729 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2026-03-29 22:03:21,451 INFO    MainThread:117729 [wandb_init.py:setup_run_log_directory():717] Logging user logs to /home/kelares/Desktop/HyperFisher/HyperFisher/wandb/run-20260329_220321-rhn7fzkg/logs/debug.log
+2026-03-29 22:03:21,452 INFO    MainThread:117729 [wandb_init.py:setup_run_log_directory():718] Logging internal logs to /home/kelares/Desktop/HyperFisher/HyperFisher/wandb/run-20260329_220321-rhn7fzkg/logs/debug-internal.log
+2026-03-29 22:03:21,452 INFO    MainThread:117729 [wandb_init.py:init():844] calling init triggers
+2026-03-29 22:03:21,452 INFO    MainThread:117729 [wandb_init.py:init():849] wandb.init called with sweep_config: {}
+config: {'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 20, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 1e-05, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 400, 'max_directions': 1200, 'hyper_hidden_dim': 200, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, '_wandb': {}}
+2026-03-29 22:03:21,452 INFO    MainThread:117729 [wandb_init.py:init():892] starting backend
+2026-03-29 22:03:21,670 INFO    MainThread:117729 [wandb_init.py:init():895] sending inform_init request
+2026-03-29 22:03:21,673 INFO    MainThread:117729 [wandb_init.py:init():903] backend started and connected
+2026-03-29 22:03:21,693 INFO    MainThread:117729 [wandb_init.py:init():973] updated telemetry
+2026-03-29 22:03:21,700 INFO    MainThread:117729 [wandb_init.py:init():997] communicating run to backend with 90.0 second timeout
+2026-03-29 22:03:22,409 INFO    MainThread:117729 [wandb_init.py:init():1042] starting run threads in backend
+2026-03-29 22:03:22,462 INFO    MainThread:117729 [wandb_run.py:_console_start():2524] atexit reg
+2026-03-29 22:03:22,462 INFO    MainThread:117729 [wandb_run.py:_redirect():2373] redirect: wrap_raw
+2026-03-29 22:03:22,462 INFO    MainThread:117729 [wandb_run.py:_redirect():2442] Wrapping output streams.
+2026-03-29 22:03:22,462 INFO    MainThread:117729 [wandb_run.py:_redirect():2465] Redirects installed.
+2026-03-29 22:03:22,464 INFO    MainThread:117729 [wandb_init.py:init():1082] run started, returning control to user process
+2026-03-29 22:03:22,464 INFO    MainThread:117729 [wandb_run.py:_config_callback():1403] config_cb None None {'num_tasks': 5}
+2026-03-29 22:03:24,254 INFO    MainThread:117729 [wandb_run.py:_config_callback():1403] config_cb None None {'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (gap): AdaptiveAvgPool2d(output_size=1)\n    (fc): Sequential(\n      (0): Linear(in_features=128, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=200, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=200, out_features=1500, bias=True)\n  )\n)'}
+2026-03-29 22:03:24,254 INFO    MainThread:117729 [wandb_run.py:_config_callback():1403] config_cb None None {'num_of_chunks': 69}
+2026-03-29 22:09:57,794 INFO    wandb-AsyncioManager-main:117729 [service_client.py:_forward_responses():134] Reached EOF.
+2026-03-29 22:09:57,794 INFO    wandb-AsyncioManager-main:117729 [mailbox.py:close():155] Closing mailbox, abandoning 1 handles.
