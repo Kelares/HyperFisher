@@ -98,8 +98,8 @@ class FOPNG:
                     fisher = fisher / fisher.max()
                 
                 # 2. Apply Power-Smoothing (Inflation) to broaden the protection
-                # layer_fisher = torch.pow(layer_fisher, 0.3) 
-                
+                layer_fisher = torch.pow(layer_fisher, 0.3) 
+                                
                 fisher[pointer : pointer + num_p] = layer_fisher
                 pointer += num_p
 
