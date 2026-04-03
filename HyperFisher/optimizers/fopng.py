@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import wandb
-from utils import _flat_grad, _apply_flat_update, calc_bwt, evaluate_accuracy
+from utils import _flat_grad, _apply_flat_update, calc_bwt, evaluate_accuracy, plot_overlap
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -38,7 +38,7 @@ class FOPNG:
         self._A_inv: Optional[Tensor] = None
         self._device: Optional[torch.device] = None
         self.debug = 1
-        self.all_fishers = []
+        self.fisher_after_task = {}
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -97,9 +97,6 @@ class FOPNG:
                 if fisher.max() > 0:
                     fisher = fisher / fisher.max()
                 
-                # 2. Apply Power-Smoothing (Inflation) to broaden the protection
-                layer_fisher = torch.pow(layer_fisher, 0.3) 
-                                
                 fisher[pointer : pointer + num_p] = layer_fisher
                 pointer += num_p
 
@@ -148,7 +145,6 @@ class FOPNG:
 
         scale = (v_star_norm / (jt_v_norm + 1e-8)).item()
 
-        # Inside fopng.py -> step()
         # print(f"DEBUG: v_norm={v_star_norm:.4f}, jt_v_norm={jt_v_norm:.4f}, scale={scale:.6f}")
         
         # ── 4. Apply normalised θ-space update ───────────────────────────
@@ -165,6 +161,7 @@ class FOPNG:
         self._device = device
 
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
+        self.fisher_after_task[task_id.item()] = F_new 
         # 1. CALCULATE OVERLAP BEFORE UPDATING F_OLD
         # At task 0, F_old is None, so we log 1.0 (perfect correlation with itself) or 0.0
         if self.F_old is not None:
@@ -189,9 +186,7 @@ class FOPNG:
         if self.G.shape[1] > self.max_directions:
             if self.debug:
                 print("MAX N OF G REACHED: ", self.G.shape[1], "\n ##########################  \n", self.G)
-                self.debug += 1
-                if self.debug == 3:
-                    self.debug = 0
+
                     
             # Uniformly sample indices across the entire chronological history. THE COLUMNS
             # This ensures every task gets an equal slice of the max_directions budget. Because the order is chronological
@@ -314,7 +309,7 @@ class FOPNG:
         F_new_inv = 1.0 / (F_new + lam)                 # [D]
         scale     = (F_old ** 2) * F_new_inv             # [D]   F_old² / F_new
         # CLAMP: Prevent scale from exceeding a reasonable threshold (e.g., 1e4)
-        scale = torch.clamp(scale, max=1e4) 
+        # scale = torch.clamp(scale, max=1e4) 
         scaled_G  = scale.unsqueeze(1) * G               # [D, m]
         A         = G.t() @ scaled_G                     # [m, m]
         A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
@@ -409,6 +404,35 @@ class FOPNG:
         iou = intersection_size / union_size
         
         return iou
+
+    def frechet(self, F_1, F_2): # TODO FINISH FRECHET
+        # Normalize to unit trace
+        F_1_norm = F_1 / (F_1.sum() + 1e-8)
+        F_2_norm = F_2 / (F_2.sum() + 1e-8)
+
+        # Frechet distance (squared) for diagonal matrices
+        # d^2 = 0.5 * sum( (sqrt(F1) - sqrt(F2))^2 )
+        d_squared = 0.5 * torch.sum((torch.sqrt(F_1_norm) - torch.sqrt(F_2_norm))**2)
+
+        fisher_overlap = 1.0 - d_squared.item()
+        return fisher_overlap
+    
+    def compute_overlap_matrix(self):
+        keys = list(self.fisher_after_task.keys())
+        n = len(keys)
+        # Initialize a symmetric matrix with 1s on the diagonal
+        matrix = np.eye(n)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                overlap = self.frechet(
+                    self.fisher_after_task[keys[i]], 
+                    self.fisher_after_task[keys[j]]
+                )
+                matrix[i, j] = overlap
+                matrix[j, i] = overlap  # Symmetry
+                
+        return matrix, keys
 
 def train_fopng(
     hyper_network: nn.Module,
@@ -519,12 +543,17 @@ def train_fopng(
             bwt = calc_bwt(results, task_id=t+1)
             eval_metrics["fopng/eval/bwt"] = bwt
             if verbose: print(f"BWT for task {t+1}: {bwt:.4f}")
-            
+                    # Normalize to unit trace
+
+
         wandb.log(eval_metrics)
 
     tasks_completed = sorted(list(results.keys())) # [1, 2, 3]
     num_eval_tasks = len(test_loaders)
 
+    matrix, keys = fopng.compute_overlap_matrix()
+    heat_map = plot_overlap(matrix, keys)
+    wandb.log({"FOPNG FRECHET CORR MATRIX": wandb.Image(heat_map)})
     # 1. Log the overlapping FOPNG chart
     plt.figure(figsize=(10, 6))
     

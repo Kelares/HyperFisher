@@ -22,3 +22,10 @@ python main.py --task split_mnist --alpha=0.5 --lam=1e-2 --methods fopng --hyper
 #   Task 3 Acc: 91.1%
 #   Task 4 Acc: 98.7%
 #   Task 5 Acc: 96.4%
+
+
+python main.py --task split_mnist --alpha=0.3 --lr=5e-4 --lam=1e-4 --methods fopng --hyper_hidden_dim=50 --chunk_embedding_dim=15 --task_embedding_dim=15 --epochs=7 --fisher_samples=1024 --grads_per_task=150 --max_directions=300  --chunk_size=5000
+
+
+python main.py --task split_mnist --alpha=0.3 --lr=1e-3 --lam=1e-3 --methods fopng --hyper_hidden_dim=100 --chunk_embedding_dim=15 --task_embedding_dim=15 --
+epochs=5 --fisher_samples=1024 --grads_per_task=150 --max_directions=300  --chunk_size=5000

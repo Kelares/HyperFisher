@@ -6,7 +6,7 @@ from math import ceil
 
 class HyperNetwork(nn.Module):
     def __init__(self, config, target_network_template: nn.Module, device: torch.device):
-        super().__init__()
+        super().__init__()        
         self.device = device
         
         # 1. The Modular Target Network
@@ -33,7 +33,6 @@ class HyperNetwork(nn.Module):
             num_embeddings=config.num_tasks, 
             embedding_dim=config.task_embedding_dim
         ).to(self.device)
-        torch.nn.init.constant_(self.task_emb.weight, 0.0)
 
 
         # 3. Modular Hypernetwork Generator

@@ -1,0 +1,161 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  1548300
+69
+HyperNetwork(
+  (target_network): CIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): GroupNorm(1, 32, eps=1e-05, affine=True)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): GroupNorm(1, 64, eps=1e-05, affine=True)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): GroupNorm(1, 128, eps=1e-05, affine=True)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (gap): AdaptiveAvgPool2d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=128, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(69, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=800, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=800, out_features=1500, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 10, 'methods': ['fopng'], 'lr': 0.001, 'lam': 0.0001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 500, 'max_directions': 1000, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1500, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): CIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): GroupNorm(1, 32, eps=1e-05, affine=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): GroupNorm(1, 64, eps=1e-05, affine=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): GroupNorm(1, 128, eps=1e-05, affine=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (gap): AdaptiveAvgPool2d(output_size=1)\n    (fc): Sequential(\n      (0): Linear(in_features=128, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(69, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=800, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=800, out_features=1500, bias=True)\n  )\n)', 'num_of_chunks': 69}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/10 loss=1.0195
+  epoch 2/10 loss=0.5833
+  epoch 3/10 loss=0.5498
+  epoch 4/10 loss=0.5215
+  epoch 5/10 loss=0.4728
+  epoch 6/10 loss=0.5042
+  epoch 7/10 loss=0.4658
+  epoch 8/10 loss=0.4344
+  epoch 9/10 loss=0.3929
+  epoch 10/10 loss=0.3659
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.0053428602404892445, 'fopng/memory/G_cols': 500, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 82.2%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 37.1%
+  Task 4 Acc: 58.5%
+  Task 5 Acc: 47.6%
+
+[FOPNG] Task 2
+  epoch 1/10 loss=1.9554 rho=0.9880, frechet=0.8933210670948029
+  epoch 2/10 loss=0.7899 rho=1.0000, frechet=0.8383625596761703
+  epoch 3/10 loss=0.6426 rho=1.0000, frechet=0.8330321907997131
+  epoch 4/10 loss=0.6135 rho=0.9999, frechet=0.8470181822776794
+  epoch 5/10 loss=0.5796 rho=1.0000, frechet=0.8242367506027222
+  epoch 6/10 loss=0.5636 rho=0.9999, frechet=0.8355303108692169
+  epoch 7/10 loss=0.5500 rho=0.9999, frechet=0.8262947499752045
+  epoch 8/10 loss=0.5481 rho=0.9999, frechet=0.8190633952617645
+  epoch 9/10 loss=0.5403 rho=0.9999, frechet=0.8077730238437653
+  epoch 10/10 loss=0.5336 rho=0.9999, frechet=0.808103397488594
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7002048492431641, 'fopng/fisher/mean': 0.005340843461453915, 'fopng/memory/G_cols': 1000, 'fopng/fisher_overlap/cosine': 0.517220675945282, 'fopng/fisher_overlap/pearson': 0.46716004610061646, 'fopng/fisher_overlap/topk_iou': 0.39260264675941636, 'task_completed': 2}
+  Task 1 Acc: 77.2%
+  Task 2 Acc: 73.2%
+  Task 3 Acc: 50.0%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 50.0%
+BWT for task 2: -0.0495
+
+[FOPNG] Task 3
+  epoch 1/10 loss=1.6874 rho=0.9991, frechet=0.8684146255254745
+  epoch 2/10 loss=0.9629 rho=1.0000, frechet=0.8342110514640808
+  epoch 3/10 loss=0.6128 rho=0.9994, frechet=0.8231562227010727
+  epoch 4/10 loss=0.5795 rho=0.9991, frechet=0.8578147143125534
+  epoch 5/10 loss=0.5707 rho=0.9990, frechet=0.8520905673503876
+  epoch 6/10 loss=0.5645 rho=0.9988, frechet=0.8472052812576294
+  epoch 7/10 loss=0.5563 rho=0.9960, frechet=0.8497067093849182
+  epoch 8/10 loss=0.5513 rho=0.9960, frechet=0.8417257070541382
+  epoch 9/10 loss=0.5476 rho=0.9966, frechet=0.8291903138160706
+  epoch 10/10 loss=0.5439 rho=0.9969, frechet=0.8187006711959839
+MAX N OF G REACHED:  1500
+ ##########################
+ tensor([[-4.0954e-05, -5.9501e-04, -6.6760e-04,  ..., -3.9647e-03,
+         -3.0073e-03, -4.3337e-03],
+        [ 1.7028e-04, -5.2495e-06, -4.4668e-04,  ..., -4.3024e-03,
+         -3.4775e-03, -4.9382e-03],
+        [ 5.1229e-04,  5.0791e-04, -2.3645e-04,  ..., -1.9285e-03,
+         -1.9260e-03, -1.3638e-03],
+        ...,
+        [ 4.4792e-05,  2.8944e-05,  7.0812e-05,  ...,  5.3191e-04,
+          4.8098e-04,  5.0417e-04],
+        [ 2.5175e-05,  1.7008e-05,  4.2860e-05,  ...,  3.0426e-04,
+          2.9889e-04,  3.0476e-04],
+        [ 1.9592e-05,  1.2035e-05,  4.9321e-05,  ...,  4.6332e-04,
+          4.4374e-04,  4.5350e-04]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5333158373832703, 'fopng/fisher/mean': 0.005955906584858894, 'fopng/memory/G_cols': 1000, 'fopng/fisher_overlap/cosine': 0.5118037462234497, 'fopng/fisher_overlap/pearson': 0.4466017484664917, 'fopng/fisher_overlap/topk_iou': 0.3130278986434605, 'task_completed': 3}
+  Task 1 Acc: 70.5%
+  Task 2 Acc: 62.1%
+  Task 3 Acc: 71.2%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 50.0%
+BWT for task 3: -0.1140
+
+[FOPNG] Task 4
+  epoch 1/10 loss=2.0062 rho=0.9983, frechet=0.867079883813858
+  epoch 2/10 loss=0.7435 rho=0.9999, frechet=0.8501895219087601
+  epoch 3/10 loss=0.7988 rho=1.0000, frechet=0.8293699324131012
+  epoch 4/10 loss=0.6157 rho=1.0000, frechet=0.8294406235218048
+  epoch 5/10 loss=0.5775 rho=1.0000, frechet=0.8374018967151642
+  epoch 6/10 loss=0.5529 rho=1.0000, frechet=0.8384889364242554
+  epoch 7/10 loss=0.5377 rho=1.0000, frechet=0.842064768075943
+  epoch 8/10 loss=0.5235 rho=1.0000, frechet=0.8403020799160004
+  epoch 9/10 loss=0.5113 rho=1.0000, frechet=0.8247261494398117
+  epoch 10/10 loss=0.4946 rho=1.0000, frechet=0.8384878635406494
+MAX N OF G REACHED:  1500
+ ##########################
+ tensor([[-4.0954e-05, -5.9501e-04, -3.5374e-03,  ..., -3.2990e-04,
+         -8.6848e-04, -7.8845e-04],
+        [ 1.7028e-04, -5.2495e-06, -3.3944e-03,  ..., -5.7219e-04,
+         -7.2543e-04, -1.3749e-03],
+        [ 5.1229e-04,  5.0791e-04, -3.0055e-03,  ..., -2.0369e-03,
+         -1.0316e-03, -1.6333e-03],
+        ...,
+        [ 4.4792e-05,  2.8944e-05,  8.4430e-05,  ..., -1.4907e-02,
+          1.5876e-02, -9.4116e-03],
+        [ 2.5175e-05,  1.7008e-05,  5.1873e-05,  ...,  1.4478e-05,
+          1.6911e-05,  1.8902e-05],
+        [ 1.9592e-05,  1.2035e-05,  6.3177e-05,  ...,  2.0185e-06,
+          2.6030e-06,  3.1144e-06]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.47822877764701843, 'fopng/fisher/mean': 0.00606867391616106, 'fopng/memory/G_cols': 1000, 'fopng/fisher_overlap/cosine': 0.5592397451400757, 'fopng/fisher_overlap/pearson': 0.49177947640419006, 'fopng/fisher_overlap/topk_iou': 0.35921043916009804, 'task_completed': 4}
+  Task 1 Acc: 65.6%
+  Task 2 Acc: 66.8%
+  Task 3 Acc: 72.9%
+  Task 4 Acc: 78.5%
+  Task 5 Acc: 38.6%
+BWT for task 4: -0.0707
+
+[FOPNG] Task 5
+  epoch 1/10 loss=3.7475 rho=0.9984, frechet=0.8655483722686768
+  epoch 2/10 loss=1.8772 rho=0.9999, frechet=0.8381537199020386
+  epoch 3/10 loss=0.8707 rho=0.9999, frechet=0.8396099805831909
+  epoch 4/10 loss=0.5573 rho=0.9998, frechet=0.8384518027305603
+  epoch 5/10 loss=0.4542 rho=0.9999, frechet=0.8466683030128479
+  epoch 6/10 loss=0.4347 rho=0.9999, frechet=0.844692051410675
+  epoch 7/10 loss=0.4200 rho=0.9999, frechet=0.8474680930376053
+  epoch 8/10 loss=0.4102 rho=0.9999, frechet=0.848281979560852
+  epoch 9/10 loss=0.4007 rho=0.9999, frechet=0.8472865521907806
+  epoch 10/10 loss=0.3991 rho=0.9998, frechet=0.8494880497455597
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5927721261978149, 'fopng/fisher/mean': 0.007633498404175043, 'fopng/memory/G_cols': 1000, 'fopng/fisher_overlap/cosine': 0.6399173736572266, 'fopng/fisher_overlap/pearson': 0.5676503777503967, 'fopng/fisher_overlap/topk_iou': 0.3720246055094945, 'task_completed': 5}
+  Task 1 Acc: 76.5%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 73.1%
+  Task 4 Acc: 75.1%
+  Task 5 Acc: 80.3%
+BWT for task 5: -0.0755

@@ -1,0 +1,132 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  1028300
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=100, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=100, out_features=200, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=200, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 200, 'hyper_hidden_dim': 100, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=100, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=100, out_features=200, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=200, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.3893
+  epoch 2/7 loss=0.0090
+  epoch 3/7 loss=0.0051
+  epoch 4/7 loss=0.0031
+  epoch 5/7 loss=0.0018
+  epoch 6/7 loss=0.0011
+  epoch 7/7 loss=0.0008
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.010870393365621567, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 52.3%
+  Task 3 Acc: 68.8%
+  Task 4 Acc: 55.6%
+  Task 5 Acc: 44.6%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=18.8523 rho=0.9891, frechet=0
+  epoch 2/7 loss=16.1391 rho=0.9908, frechet=0
+  epoch 3/7 loss=13.7432 rho=0.9930, frechet=0
+  epoch 4/7 loss=11.7271 rho=0.9952, frechet=0
+  epoch 5/7 loss=10.0211 rho=0.9973, frechet=0
+  epoch 6/7 loss=8.4976 rho=0.9987, frechet=0
+  epoch 7/7 loss=7.1361 rho=0.9993, frechet=0
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.8560388088226318, 'fopng/fisher/mean': 0.03516027703881264, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.18052081763744354, 'fopng/fisher_overlap/pearson': -0.11790822446346283, 'fopng/fisher_overlap/topk_iou': 0.00865476855609787, 'task_completed': 2}
+  Task 1 Acc: 99.8%
+  Task 2 Acc: 59.3%
+  Task 3 Acc: 65.8%
+  Task 4 Acc: 54.9%
+  Task 5 Acc: 46.6%
+BWT for task 2: -0.0005
+
+[FOPNG] Task 3
+  epoch 1/7 loss=16.7940 rho=0.9205, frechet=0
+  epoch 2/7 loss=13.8817 rho=0.9282, frechet=0
+  epoch 3/7 loss=11.3267 rho=0.9394, frechet=0
+  epoch 4/7 loss=9.1068 rho=0.9494, frechet=0
+  epoch 5/7 loss=7.1941 rho=0.9592, frechet=0
+  epoch 6/7 loss=5.5593 rho=0.9687, frechet=0
+  epoch 7/7 loss=4.2030 rho=0.9756, frechet=0
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[-3.5921e-06,  1.1935e-05, -2.1824e-06,  ..., -1.4575e-02,
+         -1.1009e-02, -9.4153e-03],
+        [-3.5921e-06,  1.1935e-05, -2.1824e-06,  ..., -1.4575e-02,
+         -1.1009e-02, -9.4153e-03],
+        [-3.5921e-06,  1.1935e-05, -2.1824e-06,  ..., -1.4575e-02,
+         -1.1009e-02, -9.4153e-03],
+        ...,
+        [ 1.0984e-11,  7.3795e-07,  1.9514e-08,  ...,  7.4222e-02,
+          6.6338e-02,  8.6915e-02],
+        [ 5.2309e-12,  5.2569e-10,  1.9428e-10,  ...,  5.1308e-02,
+          8.3590e-02,  5.3123e-02],
+        [ 2.6366e-10,  6.1258e-08,  8.8613e-10,  ...,  1.2468e-01,
+          1.2832e-01,  1.0218e-01]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7728933095932007, 'fopng/fisher/mean': 0.049103472381830215, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.7025627493858337, 'fopng/fisher_overlap/pearson': 0.28426414728164673, 'fopng/fisher_overlap/topk_iou': 0.12800622465339997, 'task_completed': 3}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 62.3%
+  Task 3 Acc: 73.9%
+  Task 4 Acc: 53.0%
+  Task 5 Acc: 44.7%
+BWT for task 3: 0.0152
+
+[FOPNG] Task 4
+  epoch 1/7 loss=27.9705 rho=0.9827, frechet=0
+  epoch 2/7 loss=23.2938 rho=0.9730, frechet=0
+  epoch 3/7 loss=19.0802 rho=0.9676, frechet=0
+  epoch 4/7 loss=15.3545 rho=0.9699, frechet=0
+  epoch 5/7 loss=12.0555 rho=0.9734, frechet=0
+  epoch 6/7 loss=9.2391 rho=0.9759, frechet=0
+  epoch 7/7 loss=6.9382 rho=0.9799, frechet=0
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[-3.5921e-06,  1.1935e-05,  3.4457e-05,  ...,  3.8125e-02,
+          3.6340e-02,  3.3696e-02],
+        [-3.5921e-06,  1.1935e-05,  3.4457e-05,  ...,  3.8125e-02,
+          3.6340e-02,  3.3696e-02],
+        [-3.5921e-06,  1.1935e-05,  3.4457e-05,  ...,  3.8125e-02,
+          3.6340e-02,  3.3696e-02],
+        ...,
+        [ 1.0984e-11,  7.3795e-07,  3.1364e-10,  ..., -1.7604e-01,
+         -1.8402e-01, -9.6064e-02],
+        [ 5.2309e-12,  5.2569e-10,  7.3667e-11,  ...,  3.6321e-05,
+          9.1538e-04,  3.0836e-04],
+        [ 2.6366e-10,  6.1258e-08,  9.0803e-11,  ...,  1.3126e-01,
+          8.2666e-02,  9.1987e-02]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.6488394141197205, 'fopng/fisher/mean': 0.06732393056154251, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.8098551630973816, 'fopng/fisher_overlap/pearson': 0.4804336130619049, 'fopng/fisher_overlap/topk_iou': 0.20122027770105708, 'task_completed': 4}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 64.9%
+  Task 3 Acc: 72.5%
+  Task 4 Acc: 74.5%
+  Task 5 Acc: 46.1%
+BWT for task 4: 0.0145
+
+[FOPNG] Task 5
+  epoch 1/7 loss=7.3446 rho=0.9634, frechet=0
+  epoch 2/7 loss=6.2653 rho=0.9682, frechet=0
+  epoch 3/7 loss=5.3089 rho=0.9735, frechet=0
+  epoch 4/7 loss=4.4194 rho=0.9741, frechet=0
+  epoch 5/7 loss=3.6408 rho=0.9750, frechet=0
+  epoch 6/7 loss=2.9194 rho=0.9784, frechet=0
+  epoch 7/7 loss=2.3047 rho=0.9820, frechet=0
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.5341013073921204, 'fopng/fisher/mean': 0.06487999111413956, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.8412229418754578, 'fopng/fisher_overlap/pearson': 0.5559228658676147, 'fopng/fisher_overlap/topk_iou': 0.23831340270228296, 'task_completed': 5}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 65.5%
+  Task 3 Acc: 75.9%
+  Task 4 Acc: 71.9%
+  Task 5 Acc: 55.1%
+BWT for task 5: 0.0142

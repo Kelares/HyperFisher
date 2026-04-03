@@ -37,16 +37,16 @@ class CIFARTarget(nn.Module):
         super().__init__()
         self.convs = nn.Sequential(
             nn.Conv2d(3, 32, 3, padding=1),
-            nn.LayerNorm2d(32), # BN before ReLU
+            nn.GroupNorm(1, 32), # BN before ReLU
             nn.ReLU(),
             
             nn.Conv2d(32, 64, 3, padding=1),
-            nn.LayerNorm2d(64), # BN before ReLU
+            nn.GroupNorm(1, 64), # BN before ReLU
             nn.ReLU(),
             nn.MaxPool2d(2),
             
             nn.Conv2d(64, 128, 3, padding=1),
-            nn.LayerNorm2d(128), # BN before ReLU
+            nn.GroupNorm(1, 128), # BN before ReLU
             nn.ReLU(),
             nn.MaxPool2d(2)
         )

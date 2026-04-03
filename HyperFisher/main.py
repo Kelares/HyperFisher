@@ -169,7 +169,7 @@ if __name__ == "__main__":
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
-                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                average_accuracy = sum(final_accuracies) / len(finaltask1_lr_accuracies)
                 
                 wandb.log({"ewc/eval/average_accuracy": average_accuracy})
 

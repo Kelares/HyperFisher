@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.utils.data import Dataset
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Low-level utilities
@@ -122,3 +124,10 @@ class SubsetByClass(Dataset):
         base_idx = self.indices[idx]
         img, label = self.base_dataset[base_idx]
         return img, self.class_to_new[int(label)]
+    
+def plot_overlap(matrix, labels):
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(matrix, annot=True, fmt=".2f", cmap="YlGnBu", 
+                xticklabels=labels, yticklabels=labels)
+    plt.title("Fisher Overlap (Task Similarity)")
+    return plt

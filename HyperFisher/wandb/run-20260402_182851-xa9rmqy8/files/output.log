@@ -1,0 +1,102 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  307790
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=30, out_features=60, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=60, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 5, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.0001, 'alpha': 0.3, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 200, 'hyper_hidden_dim': 30, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=30, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=30, out_features=60, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=60, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/5 loss=0.2153
+  epoch 2/5 loss=0.0078
+  epoch 3/5 loss=0.0048
+  epoch 4/5 loss=0.0034
+  epoch 5/5 loss=0.0030
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.01509823091328144, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 47.6%
+  Task 3 Acc: 53.3%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 50.9%
+
+[FOPNG] Task 2
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.8308502435684204, 'fopng/fisher/mean': 0.02687670849263668, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.2995227873325348, 'fopng/fisher_overlap/pearson': -0.02882946841418743, 'fopng/fisher_overlap/topk_iou': 0.02276808619805028, 'task_completed': 2}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 45.5%
+  Task 3 Acc: 52.3%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 49.4%
+BWT for task 2: 0.0000
+
+[FOPNG] Task 3
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[-3.8398e-06, -7.5179e-05, -6.2384e-05,  ..., -5.9967e-03,
+         -6.0776e-03, -6.8789e-03],
+        [-3.8398e-06, -7.5179e-05, -6.2384e-05,  ..., -5.9967e-03,
+         -6.0776e-03, -6.8789e-03],
+        [-3.8398e-06, -7.5179e-05, -6.2384e-05,  ..., -5.9967e-03,
+         -6.0776e-03, -6.8789e-03],
+        ...,
+        [ 5.7551e-06,  3.3961e-06,  6.5102e-06,  ...,  7.8872e-03,
+          6.0751e-03,  6.8375e-03],
+        [ 2.1436e-06,  1.7418e-06,  1.8248e-06,  ...,  3.2101e-03,
+          2.1936e-03,  2.5265e-03],
+        [ 2.1743e-06,  2.7233e-06,  2.8943e-06,  ...,  7.8508e-04,
+          6.2079e-04,  8.6079e-04]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.8648502826690674, 'fopng/fisher/mean': 0.04210379719734192, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.6781219840049744, 'fopng/fisher_overlap/pearson': 0.282116174697876, 'fopng/fisher_overlap/topk_iou': 0.1076997881429514, 'task_completed': 3}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 46.9%
+  Task 3 Acc: 53.8%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 49.5%
+BWT for task 3: 0.0069
+
+[FOPNG] Task 4
+MAX N OF G REACHED:  300
+ ##########################
+ tensor([[-3.8398e-06, -7.5179e-05, -2.2042e-05,  ..., -2.1348e-02,
+         -2.3930e-02, -2.0453e-02],
+        [-3.8398e-06, -7.5179e-05, -2.2042e-05,  ..., -2.1348e-02,
+         -2.3930e-02, -2.0453e-02],
+        [-3.8398e-06, -7.5179e-05, -2.2042e-05,  ..., -2.1348e-02,
+         -2.3930e-02, -2.0453e-02],
+        ...,
+        [ 5.7551e-06,  3.3961e-06,  7.0190e-06,  ..., -7.6454e-02,
+         -1.7245e-01, -1.1609e-01],
+        [ 2.1436e-06,  1.7418e-06,  2.9807e-06,  ...,  9.8039e-04,
+          7.5579e-04,  1.5213e-03],
+        [ 2.1743e-06,  2.7233e-06,  3.6290e-06,  ...,  5.8907e-03,
+          6.8829e-03,  7.6729e-03]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7300708293914795, 'fopng/fisher/mean': 0.05084776505827904, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.7557758092880249, 'fopng/fisher_overlap/pearson': 0.36597082018852234, 'fopng/fisher_overlap/topk_iou': 0.17083736126577012, 'task_completed': 4}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 46.1%
+  Task 3 Acc: 53.5%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 50.7%
+BWT for task 4: 0.0011
+
+[FOPNG] Task 5
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7803613543510437, 'fopng/fisher/mean': 0.05278272181749344, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.810393750667572, 'fopng/fisher_overlap/pearson': 0.49406540393829346, 'fopng/fisher_overlap/topk_iou': 0.22590647021140295, 'task_completed': 5}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 45.7%
+  Task 3 Acc: 53.5%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 53.7%
+BWT for task 5: -0.0001

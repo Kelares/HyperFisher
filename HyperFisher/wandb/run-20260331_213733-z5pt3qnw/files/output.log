@@ -1,0 +1,110 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  307790
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=30, out_features=60, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=60, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.001, 'alpha': 0.5, 'fisher_samples': 1024, 'grads_per_task': 50, 'max_directions': 100, 'hyper_hidden_dim': 30, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=30, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=30, out_features=60, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=60, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.2153
+  epoch 2/7 loss=0.0078
+  epoch 3/7 loss=0.0048
+  epoch 4/7 loss=0.0034
+  epoch 5/7 loss=0.0030
+  epoch 6/7 loss=0.0020
+  epoch 7/7 loss=0.0015
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.01331279892474413, 'fopng/memory/G_cols': 50, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 46.7%
+  Task 3 Acc: 53.0%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 50.1%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=4.6749 rho=0.9955, frechet=0.607046902179718
+  epoch 2/7 loss=4.0680 rho=0.9962, frechet=0.6013151705265045
+  epoch 3/7 loss=3.4800 rho=0.9967, frechet=0.6086836755275726
+  epoch 4/7 loss=2.9413 rho=0.9973, frechet=0.604555070400238
+  epoch 5/7 loss=2.4510 rho=0.9978, frechet=0.6055420935153961
+  epoch 6/7 loss=2.0119 rho=0.9983, frechet=0.6086482405662537
+  epoch 7/7 loss=1.6446 rho=0.9987, frechet=0.6141215562820435
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.6709665656089783, 'fopng/fisher/mean': 0.029911424964666367, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 0.28555652499198914, 'fopng/fisher_overlap/pearson': -0.04407944902777672, 'fopng/fisher_overlap/topk_iou': 0.0313338722716249, 'task_completed': 2}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 45.1%
+  Task 3 Acc: 51.9%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 48.7%
+BWT for task 2: -0.0005
+
+[FOPNG] Task 3
+  epoch 1/7 loss=7.3925 rho=0.9603, frechet=0.9027631133794785
+  epoch 2/7 loss=6.7342 rho=0.9589, frechet=0.9052413776516914
+  epoch 3/7 loss=6.1282 rho=0.9563, frechet=0.9083454608917236
+  epoch 4/7 loss=5.5550 rho=0.9541, frechet=0.909240759909153
+  epoch 5/7 loss=5.0200 rho=0.9525, frechet=0.9102688059210777
+  epoch 6/7 loss=4.5239 rho=0.9520, frechet=0.9126886874437332
+  epoch 7/7 loss=4.0642 rho=0.9525, frechet=0.9140247479081154
+MAX N OF G REACHED:  150
+ ##########################
+ tensor([[ 2.1631e-07,  3.5949e-06,  3.6234e-07,  ..., -6.7320e-04,
+         -3.0419e-03, -2.0106e-03],
+        [ 2.1631e-07,  3.5949e-06,  3.6234e-07,  ..., -6.7320e-04,
+         -3.0419e-03, -2.0106e-03],
+        [ 2.1631e-07,  3.5949e-06,  3.6234e-07,  ..., -6.7320e-04,
+         -3.0419e-03, -2.0106e-03],
+        ...,
+        [ 1.3673e-05,  1.0330e-05,  4.1136e-06,  ...,  8.3020e-03,
+          8.3847e-03,  6.8542e-03],
+        [ 5.6308e-06,  2.8368e-06,  1.9516e-06,  ...,  4.0949e-03,
+          4.4529e-03,  5.8378e-03],
+        [ 6.3374e-06,  1.9367e-06,  1.8838e-06,  ...,  1.2726e-03,
+          1.3573e-03,  1.2702e-03]], device='cuda:0')
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.7997487187385559, 'fopng/fisher/mean': 0.051387201994657516, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 0.7336994409561157, 'fopng/fisher_overlap/pearson': 0.32673561573028564, 'fopng/fisher_overlap/topk_iou': 0.13713559060171374, 'task_completed': 3}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 48.0%
+  Task 3 Acc: 53.5%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 49.2%
+BWT for task 3: 0.0145
+
+[FOPNG] Task 4
+  epoch 1/7 loss=8.4497 rho=0.9927, frechet=0.9268172830343246
+  epoch 2/7 loss=7.5408 rho=0.9934, frechet=0.9273930639028549
+  epoch 3/7 loss=6.7230 rho=0.9937, frechet=0.9269123077392578
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 488, in train_fopng
+    fopng.prepare_epoch(F_new)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/hyper_network.py", line 73, in spawn
+    chunks.append(self.layers(x).squeeze().to(self.device))
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 134, in forward
+    return F.linear(input, self.weight, self.bias)
+KeyboardInterrupt

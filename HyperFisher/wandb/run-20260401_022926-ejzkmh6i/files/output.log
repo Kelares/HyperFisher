@@ -1,0 +1,73 @@
+Target_network_param_n:  478410
+hyper_network_param_n:  307790
+96
+HyperNetwork(
+  (target_network): Sequential(
+    (0): Linear(in_features=784, out_features=400, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=400, out_features=400, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=400, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(96, 15)
+  (task_emb): Embedding(5, 15)
+  (layers): Sequential(
+    (0): Linear(in_features=30, out_features=30, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=30, out_features=60, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=60, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_mnist', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.5, 'fisher_samples': 1024, 'grads_per_task': 100, 'max_directions': 200, 'hyper_hidden_dim': 30, 'task_embedding_dim': 15, 'chunk_embedding_dim': 15, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): Sequential(\n    (0): Linear(in_features=784, out_features=400, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=400, out_features=400, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=400, out_features=10, bias=True)\n  )\n  (chunk_emb): Embedding(96, 15)\n  (task_emb): Embedding(5, 15)\n  (layers): Sequential(\n    (0): Linear(in_features=30, out_features=30, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=30, out_features=60, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=60, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 96}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.2153
+  epoch 2/7 loss=0.0078
+  epoch 3/7 loss=0.0048
+  epoch 4/7 loss=0.0034
+  epoch 5/7 loss=0.0030
+  epoch 6/7 loss=0.0020
+  epoch 7/7 loss=0.0015
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.01331279892474413, 'fopng/memory/G_cols': 100, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 100.0%
+  Task 2 Acc: 46.7%
+  Task 3 Acc: 53.0%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 50.1%
+
+[FOPNG] Task 2
+  epoch 1/7 loss=4.6891 rho=0.9973, frechet=0
+  epoch 2/7 loss=4.1109 rho=0.9978, frechet=0
+  epoch 3/7 loss=3.5532 rho=0.9983, frechet=0
+  epoch 4/7 loss=3.0391 rho=0.9986, frechet=0
+  epoch 5/7 loss=2.5588 rho=0.9989, frechet=0
+  epoch 6/7 loss=2.1357 rho=0.9991, frechet=0
+  epoch 7/7 loss=1.7681 rho=0.9994, frechet=0
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 0.6870847344398499, 'fopng/fisher/mean': 0.03063073940575123, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 0.28590601682662964, 'fopng/fisher_overlap/pearson': -0.04630552604794502, 'fopng/fisher_overlap/topk_iou': 0.0315006468305304, 'task_completed': 2}
+  Task 1 Acc: 99.9%
+  Task 2 Acc: 44.2%
+  Task 3 Acc: 52.2%
+  Task 4 Acc: 51.8%
+  Task 5 Acc: 49.0%
+BWT for task 2: -0.0005
+
+[FOPNG] Task 3
+  epoch 1/7 loss=7.3613 rho=0.9576, frechet=0
+  epoch 2/7 loss=6.7023 rho=0.9546, frechet=0
+  epoch 3/7 loss=6.0828 rho=0.9508, frechet=0
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 509, in train_fopng
+    rho, fisher_overlap = fopng.step(hyper_network, task_id, g_w.detach())
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 137, in step
+    model.w.backward(v_star_w.detach())   # θ.grad = Jᵀ v_star_w
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/_tensor.py", line 630, in backward
+    torch.autograd.backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/__init__.py", line 364, in backward
+    _engine_run_backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt
