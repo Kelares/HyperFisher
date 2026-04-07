@@ -50,7 +50,8 @@ class HyperNetwork(nn.Module):
             nn.Linear(bottleneck_dim*2, output_dim)
         ).to(self.device)
         
-        print("hyper_network_param_n: ", sum(p.numel() for p in self.layers.parameters()))
+        self.num_hyper_params = sum(p.numel() for p in self.layers.parameters())
+        print("hyper_network_param_n: ", self.num_hyper_params)
         
         # 4. Prevent variance explosion on the massive output layer
         with torch.no_grad():
