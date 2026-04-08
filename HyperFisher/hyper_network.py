@@ -61,22 +61,23 @@ class HyperNetwork(nn.Module):
         self.target_params = None
         
     def spawn(self, task_id):
-        t_vec = self.task_emb(task_id).to(self.device)
+        # 1. Get the embedding and force it to be 1D (embedding_dim,)
+        # This handles both task_id=0 and task_id=torch.tensor([0])
+        t_emb = self.task_emb(task_id).view(-1) 
 
-        # COLLECT CHUNKS #
-        if self.chunk_size:
-            chunks = []
-            for chunk_id in range(self.num_of_chunks):
-                chunk_id_tensor = torch.tensor([chunk_id], dtype=torch.long, device=self.device)
+        # 1b. Repeat it into a 2D matrix (num_chunks, embedding_dim)
+        t_vec = t_emb.repeat(self.num_of_chunks, 1)
 
-                c_vec = self.chunk_emb(chunk_id_tensor).to(self.device)
-                x = torch.concat([t_vec, c_vec], dim=1)
-                chunks.append(self.layers(x).squeeze().to(self.device))
-            self.w = torch.concat(chunks)[:self.num_target_params]  # trim padding
-        else:
-            self.w = self.layers(t_vec).squeeze().to(self.device)
+        # 2. Get all chunk embeddings at once
+        chunk_ids = torch.arange(self.num_of_chunks, device=self.device)
+        c_vec = self.chunk_emb(chunk_ids) # [num_chunks, emb_dim]
+
+        # 3. Concatenate and pass through MLP in one batch
+        x = torch.cat([t_vec, c_vec], dim=1)
+        flat_w = self.layers(x).view(-1) # Flatten all chunks into one long vector
+        
+        self.w = flat_w[:self.num_target_params] # Trim padding
         self.target_params = self.get_params_dict(self.w)
-        ##################
 
     def forward(self, x):
         return functional_call(self.target_network, self.target_params, x)

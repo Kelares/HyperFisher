@@ -1,0 +1,137 @@
+Target_network_param_n:  11173962
+hyper_network_param_n:  227700
+11174
+HyperNetwork(
+  (target_network): ResNet(
+    (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)
+    (layer1): Sequential(
+      (0): BasicBlock(
+        (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 64, eps=1e-05, affine=True)
+        (shortcut): Sequential()
+      )
+      (1): BasicBlock(
+        (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 64, eps=1e-05, affine=True)
+        (shortcut): Sequential()
+      )
+    )
+    (layer2): Sequential(
+      (0): BasicBlock(
+        (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 128, eps=1e-05, affine=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 128, eps=1e-05, affine=True)
+        (shortcut): Sequential(
+          (0): Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)
+          (1): GroupNorm(32, 128, eps=1e-05, affine=True)
+        )
+      )
+      (1): BasicBlock(
+        (conv1): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 128, eps=1e-05, affine=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 128, eps=1e-05, affine=True)
+        (shortcut): Sequential()
+      )
+    )
+    (layer3): Sequential(
+      (0): BasicBlock(
+        (conv1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 256, eps=1e-05, affine=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 256, eps=1e-05, affine=True)
+        (shortcut): Sequential(
+          (0): Conv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)
+          (1): GroupNorm(32, 256, eps=1e-05, affine=True)
+        )
+      )
+      (1): BasicBlock(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 256, eps=1e-05, affine=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 256, eps=1e-05, affine=True)
+        (shortcut): Sequential()
+      )
+    )
+    (layer4): Sequential(
+      (0): BasicBlock(
+        (conv1): Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 512, eps=1e-05, affine=True)
+        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 512, eps=1e-05, affine=True)
+        (shortcut): Sequential(
+          (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+          (1): GroupNorm(32, 512, eps=1e-05, affine=True)
+        )
+      )
+      (1): BasicBlock(
+        (conv1): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn1): GroupNorm(32, 512, eps=1e-05, affine=True)
+        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (gn2): GroupNorm(32, 512, eps=1e-05, affine=True)
+        (shortcut): Sequential()
+      )
+    )
+    (linear): Linear(in_features=512, out_features=10, bias=True)
+  )
+  (chunk_emb): Embedding(11174, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=100, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=100, out_features=200, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=200, out_features=1000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 5, 'methods': ['fopng'], 'lr': 0.001, 'lam': 0.001, 'alpha': 0.3, 'fisher_samples': 512, 'grads_per_task': 200, 'max_directions': 600, 'hyper_hidden_dim': 100, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 1000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): ResNet(\n    (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n    (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)\n    (layer1): Sequential(\n      (0): BasicBlock(\n        (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)\n        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 64, eps=1e-05, affine=True)\n        (shortcut): Sequential()\n      )\n      (1): BasicBlock(\n        (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 64, eps=1e-05, affine=True)\n        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 64, eps=1e-05, affine=True)\n        (shortcut): Sequential()\n      )\n    )\n    (layer2): Sequential(\n      (0): BasicBlock(\n        (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 128, eps=1e-05, affine=True)\n        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 128, eps=1e-05, affine=True)\n        (shortcut): Sequential(\n          (0): Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)\n          (1): GroupNorm(32, 128, eps=1e-05, affine=True)\n        )\n      )\n      (1): BasicBlock(\n        (conv1): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 128, eps=1e-05, affine=True)\n        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 128, eps=1e-05, affine=True)\n        (shortcut): Sequential()\n      )\n    )\n    (layer3): Sequential(\n      (0): BasicBlock(\n        (conv1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 256, eps=1e-05, affine=True)\n        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 256, eps=1e-05, affine=True)\n        (shortcut): Sequential(\n          (0): Conv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)\n          (1): GroupNorm(32, 256, eps=1e-05, affine=True)\n        )\n      )\n      (1): BasicBlock(\n        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 256, eps=1e-05, affine=True)\n        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 256, eps=1e-05, affine=True)\n        (shortcut): Sequential()\n      )\n    )\n    (layer4): Sequential(\n      (0): BasicBlock(\n        (conv1): Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 512, eps=1e-05, affine=True)\n        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 512, eps=1e-05, affine=True)\n        (shortcut): Sequential(\n          (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)\n          (1): GroupNorm(32, 512, eps=1e-05, affine=True)\n        )\n      )\n      (1): BasicBlock(\n        (conv1): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn1): GroupNorm(32, 512, eps=1e-05, affine=True)\n        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n        (gn2): GroupNorm(32, 512, eps
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/5 loss=0.7986
+  epoch 2/5 loss=0.6562
+  epoch 3/5 loss=0.5343
+  epoch 4/5 loss=0.4097
+  epoch 5/5 loss=0.5113
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 4.313106728659477e-06, 'fopng/memory/G_cols': 200, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 78.9%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 55.6%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 50.0%
+
+[FOPNG] Task 2
+  epoch 5/5 loss=2.5866 rho=1.0000
+  epoch 5/5 loss=0.7003 rho=1.0000
+  epoch 5/5 loss=0.6382 rho=1.0000
+  epoch 5/5 loss=0.5907 rho=1.0000
+  epoch 5/5 loss=0.5458 rho=1.0000
+  epoch 5/5 loss=0.5197 rho=1.0000
+  epoch 5/5 loss=0.5047 rho=1.0000
+  epoch 5/5 loss=0.4937 rho=1.0000
+  epoch 5/5 loss=0.4893 rho=1.0000
+  epoch 5/5 loss=0.4738 rho=1.0000
+  epoch 5/5 loss=0.4600 rho=1.0000
+  epoch 5/5 loss=0.4537 rho=1.0000
+  epoch 5/5 loss=0.4450 rho=1.0000
+  epoch 5/5 loss=0.4399 rho=1.0000
+  epoch 5/5 loss=0.4392 rho=1.0000
+  epoch 5/5 loss=0.4382 rho=1.0000
+  epoch 5/5 loss=0.4296 rho=1.0000
+  epoch 5/5 loss=0.4241 rho=1.0000
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 494, in train_fopng
+    fopng.prepare_epoch(F_new)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 98, in prepare_epoch
+    self._A_inv = self._build_A_inv(self.G, self.F_old, self._F_new, self.lam)
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 314, in _build_A_inv
+    A         = A + lam * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
+KeyboardInterrupt

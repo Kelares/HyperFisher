@@ -1,0 +1,96 @@
+Target_network_param_n:  102602
+hyper_network_param_n:  4351800
+21
+HyperNetwork(
+  (target_network): DummyCIFARTarget(
+    (convs): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): GroupNorm(1, 32, eps=1e-05, affine=True)
+      (2): ReLU()
+      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): GroupNorm(1, 64, eps=1e-05, affine=True)
+      (5): ReLU()
+      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (8): GroupNorm(1, 128, eps=1e-05, affine=True)
+      (9): ReLU()
+      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (gap): AdaptiveAvgPool2d(output_size=1)
+    (fc): Sequential(
+      (0): Linear(in_features=128, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=10, bias=True)
+    )
+  )
+  (chunk_emb): Embedding(21, 32)
+  (task_emb): Embedding(5, 32)
+  (layers): Sequential(
+    (0): Linear(in_features=64, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.1)
+    (2): Linear(in_features=400, out_features=800, bias=True)
+    (3): LeakyReLU(negative_slope=0.1)
+    (4): Linear(in_features=800, out_features=5000, bias=True)
+  )
+)
+{'model': 'HyperNetwork', 'task': 'split_cifar10', 'seed': 1234, 'epochs': 7, 'methods': ['fopng'], 'lr': 0.0001, 'lam': 0.01, 'alpha': 0.4, 'fisher_samples': 1024, 'grads_per_task': 250, 'max_directions': 1250, 'hyper_hidden_dim': 400, 'task_embedding_dim': 32, 'chunk_embedding_dim': 32, 'chunk_size': 5000, 'check_vram': False, 'num_tasks': 5, 'architecture': 'HyperNetwork(\n  (target_network): DummyCIFARTarget(\n    (convs): Sequential(\n      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (1): GroupNorm(1, 32, eps=1e-05, affine=True)\n      (2): ReLU()\n      (3): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (4): GroupNorm(1, 64, eps=1e-05, affine=True)\n      (5): ReLU()\n      (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n      (7): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n      (8): GroupNorm(1, 128, eps=1e-05, affine=True)\n      (9): ReLU()\n      (10): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n    )\n    (gap): AdaptiveAvgPool2d(output_size=1)\n    (fc): Sequential(\n      (0): Linear(in_features=128, out_features=64, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=64, out_features=10, bias=True)\n    )\n  )\n  (chunk_emb): Embedding(21, 32)\n  (task_emb): Embedding(5, 32)\n  (layers): Sequential(\n    (0): Linear(in_features=64, out_features=400, bias=True)\n    (1): LeakyReLU(negative_slope=0.1)\n    (2): Linear(in_features=400, out_features=800, bias=True)\n    (3): LeakyReLU(negative_slope=0.1)\n    (4): Linear(in_features=800, out_features=5000, bias=True)\n  )\n)', 'num_of_chunks': 21}
+
+--- Starting FOPNG Training ---
+[FOPNG] Task 1 – Adam
+  epoch 1/7 loss=0.6737
+  epoch 2/7 loss=0.5209
+  epoch 3/7 loss=0.4950
+  epoch 4/7 loss=0.4518
+  epoch 5/7 loss=0.4112
+  epoch 6/7 loss=0.4064
+  epoch 7/7 loss=0.4113
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.0003218060592189431, 'fopng/memory/G_cols': 250, 'fopng/fisher_overlap/cosine': 1.0, 'fopng/fisher_overlap/pearson': 1.0, 'fopng/fisher_overlap/topk_iou': 1.0, 'task_completed': 1}
+  Task 1 Acc: 78.4%
+  Task 2 Acc: 50.0%
+  Task 3 Acc: 49.1%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 50.0%
+
+[FOPNG] Task 2
+  epoch 7/7 loss=5.4314 rho=0.9995
+  epoch 7/7 loss=3.4711 rho=0.9975
+  epoch 7/7 loss=2.1283 rho=0.9938
+  epoch 7/7 loss=1.4788 rho=0.9990
+  epoch 7/7 loss=1.0944 rho=0.9999
+  epoch 7/7 loss=0.8366 rho=0.9998
+  epoch 7/7 loss=0.6991 rho=0.9991
+  epoch 7/7 loss=0.6343 rho=0.9986
+  epoch 7/7 loss=0.6005 rho=0.9933
+  epoch 7/7 loss=0.5794 rho=0.9826
+  epoch 7/7 loss=0.5693 rho=0.9806
+  epoch 7/7 loss=0.5613 rho=0.9795
+  epoch 7/7 loss=0.5517 rho=0.9719
+  epoch 7/7 loss=0.5501 rho=0.9797
+  epoch 7/7 loss=0.5450 rho=0.9777
+  epoch 7/7 loss=0.5421 rho=0.9714
+  epoch 7/7 loss=0.5407 rho=0.9734
+  epoch 7/7 loss=0.5375 rho=0.9788
+  epoch 7/7 loss=0.5360 rho=0.9714
+  epoch 7/7 loss=0.5393 rho=0.9696
+{'fopng/fisher/min': 0.0, 'fopng/fisher/max': 1.0, 'fopng/fisher/mean': 0.0002788127458188683, 'fopng/memory/G_cols': 500, 'fopng/fisher_overlap/cosine': 0.3714408576488495, 'fopng/fisher_overlap/pearson': 0.37076884508132935, 'fopng/fisher_overlap/topk_iou': 0.28378378378378377, 'task_completed': 2}
+  Task 1 Acc: 82.8%
+  Task 2 Acc: 72.7%
+  Task 3 Acc: 50.8%
+  Task 4 Acc: 50.0%
+  Task 5 Acc: 46.8%
+BWT for task 2: 0.0445
+
+[FOPNG] Task 3
+  epoch 7/7 loss=3.4810 rho=0.9993
+  epoch 7/7 loss=2.1843 rho=0.9999
+  epoch 7/7 loss=1.3846 rho=1.0000
+Traceback (most recent call last):
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/main.py", line 148, in <module>
+    results = train_fopng(
+  File "/home/kelares/Desktop/HyperFisher/HyperFisher/optimizers/fopng.py", line 510, in train_fopng
+    (g_w,) = torch.autograd.grad(loss, w)
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/__init__.py", line 515, in grad
+    result = _engine_run_backward(
+  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

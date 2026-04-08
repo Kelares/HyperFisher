@@ -10,7 +10,8 @@ import wandb
 from utils import _flat_grad, _apply_flat_update, calc_bwt, evaluate_accuracy, plot_overlap
 import matplotlib.pyplot as plt
 import numpy as np
-
+import gc #Garbage Collector
+from math import inf
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FOPNG Class
@@ -87,25 +88,15 @@ class FOPNG:
         hyper_network.zero_grad()
         hyper_network.train()
         # NEW: Layer-wise Normalization
-        pointer = 0
-        with torch.no_grad():
-            for name, param in hyper_network.target_network.named_parameters():
-                num_p = param.numel()
-                layer_fisher = fisher[pointer : pointer + num_p]
-                
-                # Remove the layer-wise loop and just do:
-                if fisher.max() > 0:
-                    fisher = fisher / fisher.max()
-                
-                fisher[pointer : pointer + num_p] = layer_fisher
-                pointer += num_p
+        if fisher.max() > 0:
+            fisher = fisher / fisher.max()
 
         return fisher
     
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
-        self._F_new = F_new
-        self._A_inv = self._build_A_inv(self.G, self.F_old, F_new, self.lam)
+        self._F_new = F_new.detach().cpu()
+        self._A_inv = self._build_A_inv(self.G, self.F_old, self._F_new, self.lam)
 
     def step(self, model: nn.Module, task_id, g_w: Tensor) -> float:
         """
@@ -173,12 +164,12 @@ class FOPNG:
             pearson_corr = 1.0
             topk_iou = 1.0
 
+        # To this:
         if self.F_old is None:
-            self.F_old = F_new.clone()
+            self.F_old = F_new.detach().cpu() # Force to CPU
         else:
-            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new
-
-
+            # Ensure math happens on CPU by moving the new component there
+            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
 
         new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
         self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
@@ -194,7 +185,7 @@ class FOPNG:
                 0, self.G.shape[1] - 1, 
                 steps=self.max_directions, 
                 dtype=torch.long, 
-                device=self._device
+                device=self.G.device
             )
             self.G = self.G[:, indices]
 
@@ -211,6 +202,9 @@ class FOPNG:
         print(logs)
 
         wandb.log(logs)
+        torch.cuda.empty_cache()
+        gc.collect()
+
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
         """
@@ -234,7 +228,7 @@ class FOPNG:
                     output = hyper_network(x)
                     loss = criterion(output, y)
                     (g_w,) = torch.autograd.grad(loss, w)
-                    grads.append(g_w.detach().clone())
+                    grads.append(g_w.detach().cpu()) # Store on CPU to save VRAM
 
         hyper_network.zero_grad()
         hyper_network.train()
@@ -264,26 +258,32 @@ class FOPNG:
         so F_new⁻¹ Pg also points uphill.  We negate to descend.
         Applied as  θ ← θ + v*  (i.e. θ ← θ - η · normalised_natural_grad).
         """
+
+        # 1. Move the current gradient to CPU to join its historical friends
+        g_cpu = g.detach().cpu() 
+        
         # ── projection ────────────────────────────────────────────────────
-        F_old_g  = F_old * g                          # [D]    F_old · g
+        F_old_g  = F_old * g_cpu                          # [D]    F_old · g
         GtFg     = G.t() @ F_old_g                    # [m]    Gᵀ F_old g
         coeff    = A_inv @ GtFg                        # [m]    A⁻¹ Gᵀ F_old g
-        Pg       = g - F_old * (G @ coeff)             # [D]    Pg = g − F_old G A⁻¹ Gᵀ F_old g
-
+        Pg       = g_cpu - F_old * (G @ coeff)             # [D]    Pg = g − F_old G A⁻¹ Gᵀ F_old g
+        
         # Calculate norms
         g_norm = torch.norm(g)
         Pg_norm = torch.norm(Pg)
 
         # Calculate ratio (add epsilon to avoid division by zero)
-        rho = (Pg_norm / (g_norm + 1e-8)).item()
+        rho = (torch.norm(Pg) / (torch.norm(g_cpu) + 1e-8)).item()
 
         # ── unit natural gradient ──────────────────────────────────────────
         F_new_inv    = 1.0 / (F_new + lam)            # [D]
         F_new_inv_Pg = F_new_inv * Pg                  # [D]    F_new⁻¹ Pg
-
         fisher_norm = torch.sqrt((Pg * F_new_inv_Pg).sum() + eps)
+        
+        # Move the result BACK to the original device (GPU) for the backward pass
+        update_direction = -lr * F_new_inv_Pg / fisher_norm
+        return update_direction.to(g.device), rho
 
-        return -lr * F_new_inv_Pg / fisher_norm, rho      # [D]  negative = descent
 
     def _build_A_inv(
         self,
@@ -320,8 +320,8 @@ class FOPNG:
         #  a diagonal one has the default euclidian form as it is just a vector.
         #   F_a o F_B    /
         #||F_a||||F_b||
-        F_a_flat = F_a.view(-1)
-        F_b_flat = F_b.view(-1)
+        F_a_flat = F_a.detach().cpu().view(-1)
+        F_b_flat = F_b.detach().cpu().view(-1)
         
         dot_product = torch.dot(F_a_flat, F_b_flat)
         norm_a = torch.norm(F_a_flat, p=2)
@@ -336,8 +336,8 @@ class FOPNG:
         Pure PyTorch implementation
         """
         # 1. Flatten the tensors
-        F_a_flat = F_a.view(-1)
-        F_b_flat = F_b.view(-1)
+        F_a_flat = F_a.detach().cpu().view(-1)
+        F_b_flat = F_b.detach().cpu().view(-1)
         
         # 2. Calculate the means
         mean_a = torch.mean(F_a_flat)
@@ -372,13 +372,13 @@ class FOPNG:
             float: The Intersection over Union (IoU) score between 0.0 and 1.0.
         """
         # 1. Flatten tensors to 1D (assuming they are diagonal approximations)
-        F_a = F_a.view(-1)
-        F_b = F_b.view(-1)
+        F_a_flat = F_a.detach().cpu().view(-1)
+        F_b_flat = F_b.detach().cpu().view(-1)
         
-        assert F_a.shape == F_b.shape, "Fisher vectors must have the same size."
+        assert F_a_flat.shape == F_b_flat.shape, "Fisher vectors must have the same size."
         
         # 2. Determine K based on the total number of parameters
-        total_params = F_a.numel()
+        total_params = F_a_flat.numel()
         k = int(total_params * k_fraction)
         
         if k == 0:
@@ -386,8 +386,8 @@ class FOPNG:
         
         # 3. Get the indices of the Top K values for both tasks
         # torch.topk returns a tuple of (values, indices). We only need the indices.
-        _, indices_a = torch.topk(F_a, k)
-        _, indices_b = torch.topk(F_b, k)
+        _, indices_a = torch.topk(F_a_flat, k)
+        _, indices_b = torch.topk(F_b_flat, k)
         
         # 4. Calculate Intersection using pure PyTorch (Fast on GPU)
         # Concatenate the two index tensors
@@ -447,6 +447,7 @@ def train_fopng(
     max_directions: int = 400,
     fisher_samples: int = 1024,
     epochs: int = 5,
+    max_epochs: int = None,
     first_task_optimizer_cls=torch.optim.Adam,
     task_classes: Optional[list] = None,
     verbose: bool = True,
@@ -488,7 +489,12 @@ def train_fopng(
 
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
-            for epoch in range(epochs):
+
+            best_loss = inf
+            loss_repeat = 0
+            max_epochs = max_epochs if max_epochs else epochs
+            epoch = 0
+            while best_loss >= 0.25 and loss_repeat < 2 and epoch < max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss, total_rho = 0.0, 0.0
@@ -496,7 +502,7 @@ def train_fopng(
 
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
-                    hyper_network.zero_grad()
+                    hyper_network.zero_grad()   
 
                     # Forward — w stays in graph as the differentiable leaf
                     hyper_network.spawn(task_id)
@@ -513,6 +519,12 @@ def train_fopng(
                     total_rho += rho
 
                 avg_loss = total_loss / len(loader)
+                if best_loss < avg_loss:
+                    no_progress += 1
+                else:
+                    no_progress = 0
+                    best_loss = avg_loss
+
                 avg_rho  = total_rho  / len(loader)
 
                 wandb.log({
@@ -523,7 +535,9 @@ def train_fopng(
                 })
                 global_epoch += 1
 
-                if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f} rho={avg_rho:.4f}")
+                if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} rho={avg_rho:.4f}")
+                epoch += 1
+
             fopng.after_task(hyper_network, task_id, loader, criterion)
                 
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────

@@ -1,0 +1,9 @@
+{"time":"2026-04-07T23:43:46.685024504+02:00","level":"INFO","msg":"stream: starting","core version":"0.25.0"}
+{"time":"2026-04-07T23:43:47.038555684+02:00","level":"INFO","msg":"stream: created new stream","id":"rzi1meb1"}
+{"time":"2026-04-07T23:43:47.038694269+02:00","level":"INFO","msg":"handler: started","stream_id":"rzi1meb1"}
+{"time":"2026-04-07T23:43:47.038802431+02:00","level":"INFO","msg":"stream: started","id":"rzi1meb1"}
+{"time":"2026-04-07T23:43:47.038849331+02:00","level":"INFO","msg":"sender: started","stream_id":"rzi1meb1"}
+{"time":"2026-04-07T23:43:47.038851451+02:00","level":"INFO","msg":"writer: started","stream_id":"rzi1meb1"}
+{"time":"2026-04-07T23:51:48.485451717+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/michalowski-jb-tilburg-university/HyperFisher/rzi1meb1/file_stream\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2026-04-07T23:54:50.650368118+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/michalowski-jb-tilburg-university/HyperFisher/rzi1meb1/file_stream\": context deadline exceeded"}
+{"time":"2026-04-07T23:57:55.173050658+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/michalowski-jb-tilburg-university/HyperFisher/rzi1meb1/file_stream\": context deadline exceeded"}

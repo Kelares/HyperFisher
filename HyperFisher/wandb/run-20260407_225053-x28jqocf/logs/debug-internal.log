@@ -1,0 +1,6 @@
+{"time":"2026-04-07T22:50:53.488015591+02:00","level":"INFO","msg":"stream: starting","core version":"0.25.0"}
+{"time":"2026-04-07T22:50:53.600767771+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": dial tcp: lookup api.wandb.ai on [::1]:53: read udp [::1]:51335->[::1]:53: read: connection refused"}
+{"time":"2026-04-07T22:50:55.985082791+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": dial tcp: lookup api.wandb.ai on [::1]:53: read udp [::1]:43989->[::1]:53: read: connection refused"}
+{"time":"2026-04-07T22:51:00.642340274+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": dial tcp: lookup api.wandb.ai on [::1]:53: read udp [::1]:58236->[::1]:53: read: connection refused"}
+{"time":"2026-04-07T22:51:08.862122231+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": dial tcp: lookup api.wandb.ai on [::1]:53: read udp [::1]:59611->[::1]:53: read: connection refused"}
+{"time":"2026-04-07T22:51:24.866269506+02:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": dial tcp: lookup api.wandb.ai on [::1]:53: read udp [::1]:50661->[::1]:53: read: connection refused"}
