@@ -1,6 +1,0 @@
-{"time":"2026-03-26T19:24:03.925288967+01:00","level":"INFO","msg":"stream: starting","core version":"0.25.0"}
-{"time":"2026-03-26T19:24:04.342330668+01:00","level":"INFO","msg":"stream: created new stream","id":"smgy05nb"}
-{"time":"2026-03-26T19:24:04.342459877+01:00","level":"INFO","msg":"handler: started","stream_id":"smgy05nb"}
-{"time":"2026-03-26T19:24:04.342650245+01:00","level":"INFO","msg":"stream: started","id":"smgy05nb"}
-{"time":"2026-03-26T19:24:04.342673971+01:00","level":"INFO","msg":"sender: started","stream_id":"smgy05nb"}
-{"time":"2026-03-26T19:24:04.342677976+01:00","level":"INFO","msg":"writer: started","stream_id":"smgy05nb"}

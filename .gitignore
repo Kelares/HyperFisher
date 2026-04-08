@@ -3,3 +3,4 @@ venv*
 *.pkl
 *pyc
 data/
+wandb/

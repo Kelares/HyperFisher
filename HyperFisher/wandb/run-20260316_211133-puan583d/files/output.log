@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/home/kelares/Desktop/thesis/HyperFisher/main.py", line 94, in <module>
-    hyper_network = HyperNetwork(
-  File "/home/kelares/Desktop/thesis/HyperFisher/hyper_network.py", line 42, in __init__
-    self._setup_optimizer_groups()
-  File "/home/kelares/Desktop/thesis/venv_f_h/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1965, in __getattr__
-    raise AttributeError(
-AttributeError: 'HyperNetwork' object has no attribute '_setup_optimizer_groups'
