@@ -8,7 +8,7 @@ import copy
 import torch
 import torch.nn as nn
 import wandb
-from optimizers.fopng import train_fopng
+from optimizers.fopng import train_fopng, train_fopng_plus
 from optimizers.adam import train_adam
 from optimizers.ewc import train_ewc
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         nargs='+', 
         required=False,
         default=["fopng", "adam"],
-        choices=["sgd", "adam", "ogd", "fopng", "fopng_prefisher", "fng", "ewc"],
+        choices=["sgd", "adam", "ogd", "fopng", "fopng_plus", "fopng_prefisher", "fng", "ewc"],
     )
     # LEARNING SPECIFIC
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -160,6 +160,22 @@ if __name__ == "__main__":
                 
                 wandb.log({"fopng/eval/average_accuracy": average_accuracy})
 
+            case "fopng_plus":
+                print("--- Starting FOPNG+ Training ---")
+                results = train_fopng_plus(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+                    first_task_optimizer_cls=torch.optim.Adam,
+                    fisher_samples=config.fisher_samples,
+                    task_classes=getattr(task_config, 'task_classes', None)
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                wandb.log({"fopng_plus/eval/average_accuracy": average_accuracy})
+
             case "ewc":
                 print("\n--- Starting EWC Training ---")
 
@@ -170,7 +186,7 @@ if __name__ == "__main__":
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
-                average_accuracy = sum(final_accuracies) / len(finaltask1_lr_accuracies)
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
                 
                 wandb.log({"ewc/eval/average_accuracy": average_accuracy})
 

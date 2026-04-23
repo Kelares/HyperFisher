@@ -30,3 +30,10 @@ python main.py --task=split_cifar10 \
   --methods fopng \
   --task_embedding_dim=32 \
   --chunk_embedding_dim=32
+
+
+  python main.py --task=split_cifar10   --chunk_size=1000   --hyper_hidden_dim=200   --lr=5e-3 --epochs=40  --max_epochs=15   --lam=1e-1   --alpha=0.3   --grads_per_task=400   --max_directions=800   --methods=fopng   --task_embedding_dim=4   --chunk_embedding_dim=32   --fisher_samples=1024 
+
+
+  python main.py --task=split_cifar10   --chunk_size=500   --hyper_hidden_dim=50   --lr=1e-3 --epochs=30  --max_epochs=40   --lam=1e-3   --alpha=0.3   --grads_per_task=300   --max_directions=600   --metho
+ds=fopng   --task_embedding_dim=32   --chunk_embedding_dim=32   --fisher_samples=1024 

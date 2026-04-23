@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.func import functional_call
 from math import ceil
-
+from typing import List
 
 class HyperNetwork(nn.Module):
     def __init__(self, config, target_network_template: nn.Module, device: torch.device):
@@ -90,3 +90,20 @@ class HyperNetwork(nn.Module):
             param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
             pointer += num_param
         return param_dict
+
+    # ── FIX 2: Only shared parameters should be projected ────────────────────
+    # task_emb rows are task-specific — row t cannot affect task t'≠t, so
+    # including them wastes projection budget on parameters that cannot cause
+    # cross-task interference.
+    @staticmethod
+    def _shared_params(model: nn.Module) -> List[nn.Parameter]:
+        """Return only the parameters shared across ALL tasks.
+
+        Excludes task_emb because each task owns an independent embedding row
+        and updates to that row can never affect any other task's output.
+        Including it in the projection subspace would:
+          (a) distort the Fisher diagonal with gradients that carry no
+              cross-task interference signal, and
+          (b) waste columns in G on directions that do not need protecting.
+        """
+        return list(model.layers.parameters()) + [model.chunk_emb.weight]

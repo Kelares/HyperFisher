@@ -152,7 +152,7 @@ class TaskGenerator:
         max_directions=400,
     )
 
-    target_network = DummyCIFARTarget()#ResNet18()
+    target_network = DummyCIFARTarget()#ResNet18() #
 
     _train_data: datasets.CIFAR10 | None = None
     _test_data:  datasets.CIFAR10 | None = None
