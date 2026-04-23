@@ -614,7 +614,7 @@ def train_fopng(
             loss_repeat = 0
             max_epochs = max_epochs if max_epochs else epochs
             epoch = 0
-            while best_loss >= 0.25 and loss_repeat < 3 and epoch < max_epochs:
+            while best_loss >= 0.25 and loss_repeat < 5 and epoch < max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss = 0.0
@@ -906,7 +906,7 @@ def train_fopng_plus(
             _max_epochs = max_epochs if max_epochs else epochs
             epoch = 0
 
-            while best_loss >= 0.25 and loss_repeat < 3 and epoch < _max_epochs:
+            while best_loss >= 0.25 and loss_repeat < 5 and epoch < _max_epochs:
                 F_new = fopng_plus.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng_plus.prepare_epoch(F_new)
                 total_loss = 0.0
