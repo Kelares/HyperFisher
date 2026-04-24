@@ -40,6 +40,8 @@ class FOPNG:
         self._device: Optional[torch.device] = None
         self.debug = 1
         self.fisher_after_task = {}
+        self.momentum_buffer = None
+
 
     # ── FIX 2: Only shared parameters should be projected ────────────────────
     # task_emb rows are task-specific — row t cannot affect task t'≠t, so
@@ -227,23 +229,29 @@ class FOPNG:
 
         model.zero_grad()
 
+        # weighted_rho: correct metric — retention in Fisher-important subspace
+        # correction_norm: absolute gradient mass removed
+        # raw_rho: kept for reference but misleading (≈1 by design in FOPNG)
         # ── 3. Project g_θ and compute natural-gradient step in θ-space ──
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
             g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new,
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
         )
 
-        # ── 4. Apply FOPNG update to shared θ only ────────────────────────
+        # 4. Accumulate Momentum in the projected subspace
+        if self.momentum_buffer is None:
+            self.momentum_buffer = torch.zeros_like(v_star_theta)
+        
+        # beta = 0.9
+        self.momentum_buffer = 0.9 * self.momentum_buffer + v_star_theta
+        
+        # 5. Apply the update using the buffer
         pointer = 0
         with torch.no_grad():
-            for p in shared:
+            for p in self._shared_params(model):
                 n = p.numel()
-                p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
+                p.data.add_(self.momentum_buffer[pointer : pointer + n].view_as(p))
                 pointer += n
-
-        # weighted_rho: correct metric — retention in Fisher-important subspace
-        # correction_norm: absolute gradient mass removed
-        # raw_rho: kept for reference but misleading (≈1 by design in FOPNG)
         return weighted_rho, correction_norm, raw_rho
 
     def after_task(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
@@ -267,8 +275,14 @@ class FOPNG:
             self.F_old = F_new.detach().cpu()
         else:
             # Weighted average
-            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
+            # self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
+
+
+            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
+            n = task_id+1
+            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().cpu()
             
+
             # NEW: Re-normalize so the most important parameter always has a weight of 1.0
             # Same percentile-clipped normalization as compute_fisher_diag.
             # The weighted average can accumulate the same outlier bias,
@@ -298,7 +312,10 @@ class FOPNG:
                 device=self.G.device
             )
             self.G = self.G[:, indices]
-
+        
+        self.momentum_buffer = None 
+        print("  [FOPNG+] Momentum buffer reset for next task.")
+        
         f_nonzero = self.F_old[self.F_old > 0]
         logs = {
             "fopng/fisher/min": self.F_old.min().item(),
