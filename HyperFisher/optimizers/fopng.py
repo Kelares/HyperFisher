@@ -412,8 +412,8 @@ class FOPNG:
         raw_rho        = (Pg.norm() / (g_cpu.norm() + eps)).item()
 
         # ── 3. STABLE Natural Gradient ───────────────────────────────────────
-        # Use a floor (e.g., 0.1) to prevent the 1000x amplification
-        F_new_inv = 1.0 / (torch.sqrt(F_new + 0.1)) 
+        # Use a floor (e.g., 0.2) to prevent the 1000x amplification
+        F_new_inv = 1.0 / (torch.sqrt(F_new + 0.2)) 
         v_raw = F_new_inv * Pg
         
         # ── 4. MANDATORY CLIPPING ────────────────────────────────────────────
