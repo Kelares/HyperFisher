@@ -41,7 +41,7 @@ class FOPNG:
         self.debug = 1
         self.fisher_after_task = {}
         self.momentum_buffer = None
-
+        self.damping = 0.05
 
     # ── FIX 2: Only shared parameters should be projected ────────────────────
     # task_emb rows are task-specific — row t cannot affect task t'≠t, so
@@ -238,11 +238,11 @@ class FOPNG:
             A_inv=self._A_inv, lr=self.lr, lam=self.lam,
         )
 
-        # 4. Accumulate Momentum in the projected subspace
+        # # 4. Accumulate Momentum in the projected subspace TODO, Add proper momentums later
         if self.momentum_buffer is None:
             self.momentum_buffer = torch.zeros_like(v_star_theta)
         
-        # beta = 0.9
+        # # beta = 0.9
         self.momentum_buffer = 0.9 * self.momentum_buffer + v_star_theta
         
         # 5. Apply the update using the buffer
@@ -279,7 +279,7 @@ class FOPNG:
 
 
             # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
-            n = task_id+1
+            n = task_id.item()+1
             self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().cpu()
             
 
@@ -411,46 +411,101 @@ class FOPNG:
         hyper_network.train()
         return torch.stack(grads, dim=1)    # [D_theta_shared, grads_per_task]
 
+    # def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
+    #     g_cpu = g.detach().cpu()
+        
+    #     # ── 1. Projection ────────────────────────────────────────────────────
+    #     F_old_g    = F_old * g_cpu
+    #     GtFg       = G.t() @ F_old_g
+    #     coeff      = A_inv @ GtFg
+    #     # RESTORE the F_old multiplier here for geometric consistency
+    #     correction = F_old * (G @ coeff)
+        
+    #     Pg = g_cpu - correction
+
+    #     # ── 2. Metrics ───────────────────────────────────────────────────────
+    #     F_sqrt         = F_old.clamp(min=0).sqrt()
+    #     weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_cpu).norm() + eps)).item()
+    #     correction_norm = correction.norm().item()
+    #     raw_rho        = (Pg.norm() / (g_cpu.norm() + eps)).item()
+
+    #     # # Original implementation in optimizers.py
+    #     # F_new_inv = 1.0 / (F_new + lam)
+    #     # F_new_inv_P_g = Pg * F_new_inv
+    #     # denom = torch.sqrt((Pg * F_new_inv_P_g).sum() + eps) # Fisher norm
+    #     # v_star = -lr * F_new_inv_P_g / (denom + eps) # Explicit normalization
+
+    #     # ── 3. STABLE Natural Gradient ───────────────────────────────────────
+    #     # Use a floor (e.g., 0.2) to prevent the 1000x amplification
+    #     F_new_inv = 1.0 / (torch.sqrt(F_new + 0.01))
+    #     v_raw = F_new_inv * Pg
+        
+    #     # ── 4. MANDATORY CLIPPING ────────────────────────────────────────────
+    #     # This prevents the "corr" from destroying Task 1
+    #     max_norm = 0.5 
+    #     v_norm = torch.norm(v_raw)
+    #     if v_norm > max_norm:
+    #         v_raw = v_raw * (max_norm / v_norm)
+
+    #     v_star = -lr * v_raw
+    #     return v_star.to(g.device), weighted_rho, correction_norm, raw_rho
     def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
         g_cpu = g.detach().cpu()
         
-        # ── 1. Projection ────────────────────────────────────────────────────
-        F_old_g    = F_old * g_cpu
-        GtFg       = G.t() @ F_old_g
+        # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
+        # We must include the Natural Gradient metric (1/F_new) in the 
+        # numerator to match the scale of the inversion matrix A.
+        F_weight   = F_old / (F_new + self.damping)
+        GtFg       = G.t() @ (F_weight * g_cpu)
         coeff      = A_inv @ GtFg
-        correction = G @ coeff 
         
+        # We multiply by F_old here to apply the correction specifically 
+        # to the parameters Task 1 cares about.
+        correction = F_old * (G @ coeff) 
         Pg = g_cpu - correction
 
-        # ── 2. Metrics ───────────────────────────────────────────────────────
+       # ── 2. Metrics ───────────────────────────────────────────────────────
         F_sqrt         = F_old.clamp(min=0).sqrt()
         weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_cpu).norm() + eps)).item()
         correction_norm = correction.norm().item()
         raw_rho        = (Pg.norm() / (g_cpu.norm() + eps)).item()
 
-        # ── 3. STABLE Natural Gradient ───────────────────────────────────────
-        # Use a floor (e.g., 0.2) to prevent the 1000x amplification
-        F_new_inv = 1.0 / (torch.sqrt(F_new + 0.2)) 
+        # ── 2. NATURAL GRADIENT STEP ──────────────────────────────────────
+        F_new_inv = 1.0 / (F_new + self.damping) 
         v_raw = F_new_inv * Pg
         
-        # ── 4. MANDATORY CLIPPING ────────────────────────────────────────────
-        # This prevents the "corr" from destroying Task 1
+        # ── 3. MANDATORY CLIPPING ─────────────────────────────────────────
         max_norm = 0.5 
         v_norm = torch.norm(v_raw)
         if v_norm > max_norm:
             v_raw = v_raw * (max_norm / v_norm)
 
-        update_direction = -lr * v_raw
-        return update_direction.to(g.device), weighted_rho, correction_norm, raw_rho
-
+        return (-lr * v_raw).to(g.device), weighted_rho, correction_norm, raw_rho
 
     def _build_A_inv(self, G, F_old, F_new, lam):
-        # Use F_old as the primary metric. Scale G by F_old once.
-        scale = F_old  # Dropped the square power for better signal-to-noise
+        # A_inv correctly uses F_old^2 / F_new
+        scale = (F_old ** 2) / (F_new + self.damping) 
         scaled_G = scale.unsqueeze(1) * G
         A = G.t() @ scaled_G
-        A = A + lam * torch.eye(A.shape[0], device=A.device)
-        return torch.linalg.pinv(A)          
+        # Use a stable lambda (1e-4) to prevent noise amplification
+        A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
+        return torch.linalg.pinv(A)
+
+    # def _build_A_inv(self, G, F_old, F_new, lam):
+    #     # Use F_old as the primary metric. Scale G by F_old once.
+    #     scale = F_old  # Dropped the square power for better signal-to-noise
+    #     scaled_G = scale.unsqueeze(1) * G
+    #     A = G.t() @ scaled_G
+    #     A = A + lam * torch.eye(A.shape[0], device=A.device)
+    #     return torch.linalg.pinv(A)       
+
+    # def _build_A_inv(self, G, F_old, F_new, lam):
+    #     # Weighted scaling: (F_old^2) / (F_new + lam)
+    #     scale = (F_old ** 2) / (F_new + 0.01)
+    #     scaled_G = scale.unsqueeze(1) * G
+    #     A = G.t() @ scaled_G
+    #     A = A + lam * torch.eye(A.shape[0], device=A.device)
+    #     return torch.linalg.pinv(A)   
     
     def _cosine_similarity(self, F_a, F_b):
         # Even though Fisher Matrix would have a different norm form if I used a full matrix,
@@ -800,7 +855,9 @@ class FOPNGPlus(FOPNG):
         if self.F_old is None:
             self.F_old = F_new.detach().cpu()
         else:
-            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
+            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
+            n = task_id.item()+1
+            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().cpu()
             f_nonzero = self.F_old[self.F_old > 0]
             if len(f_nonzero) > 0:
                 p99 = torch.quantile(f_nonzero, 0.99)

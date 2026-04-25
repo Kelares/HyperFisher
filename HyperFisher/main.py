@@ -15,6 +15,7 @@ from optimizers.ewc import train_ewc
 import importlib
 from utils import stress_test_fopng_memory
 
+# THE INITIAL STABILITY OF THE TRAINING (FIRST TASK) SEEMS VERY IMPORTANT FOR SETTING A STABLE SPACE FOR CL ARCHITECTURES TO MOVE IN
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Continual Learning Experiments CLI")
     
