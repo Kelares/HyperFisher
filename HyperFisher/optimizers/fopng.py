@@ -129,7 +129,7 @@ class FOPNG:
 
         hyper_network.zero_grad()
         hyper_network.train()
-
+        # REMOVE THOSE NORMALIZATIONS FOR DENOM ######################################################
         # Percentile-clipped normalization to fix Jᵀ amplification bias.
         #
         # WHY the old `fisher / fisher.max()` was broken:
@@ -146,18 +146,20 @@ class FOPNG:
         #   This neutralises the chunk-accumulation amplification while
         #   preserving the relative importance ordering within each
         #   parameter group. The resulting Fisher has mean ≈ 0.1–0.3
-        #   instead of 0.0002, making the projection actually meaningful.
-        fisher_nonzero = fisher[fisher > 0]
-        if len(fisher_nonzero) > 0:
-            p99 = torch.quantile(fisher_nonzero, 0.99)
-            fisher = fisher.clamp(max=p99.item())
-        if fisher.max() > 0:
-            fisher = fisher / fisher.max()
+        # #   instead of 0.0002, making the projection actually meaningful.
+        # fisher_nonzero = fisher[fisher > 0]
+        # if len(fisher_nonzero) > 0:
+        #     p99 = torch.quantile(fisher_nonzero, 0.99)
+        #     fisher = fisher.clamp(max=p99.item())
+        # if fisher.max() > 0:
+        #     fisher = fisher / fisher.max()
 
-            # Add a small floor (e.g., 1e-4) so the projection doesn't ignore 98% of the MLP
-        fisher = fisher + 1e-4 
-        if fisher.max() > 0:
-            fisher = fisher / fisher.max()
+        #     # Add a small floor (e.g., 1e-4) so the projection doesn't ignore 98% of the MLP
+        # fisher = fisher + 1e-4 
+        # if fisher.max() > 0:
+        #     fisher = fisher / fisher.max()
+        # REMOVE THOSE NORMALIZATIONS FOR DENOM ######################################################
+
         return fisher
 
     def prepare_epoch(self, F_new: Tensor) -> None:
@@ -234,8 +236,7 @@ class FOPNG:
         # raw_rho: kept for reference but misleading (≈1 by design in FOPNG)
         # ── 3. Project g_θ and compute natural-gradient step in θ-space ──
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
-            g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new,
-            A_inv=self._A_inv, lr=self.lr, lam=self.lam,
+            g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new, lr=self.lr, lam=self.lam,
         )
 
         # # 4. Accumulate Momentum in the projected subspace TODO, Add proper momentums later
@@ -401,8 +402,8 @@ class FOPNG:
                     g_theta = torch.cat([
                         p.grad.view(-1) for p in shared if p.grad is not None
                     ])
-                    # ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
-                    g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
+                    # REMOVE THIS LINE FOR DENOM IMPLEMENTATION ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
+                    # g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
 
                     grads.append(g_theta.detach().cpu())
                     hyper_network.zero_grad()
@@ -411,84 +412,44 @@ class FOPNG:
         hyper_network.train()
         return torch.stack(grads, dim=1)    # [D_theta_shared, grads_per_task]
 
-    # def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
-    #     g_cpu = g.detach().cpu()
-        
-    #     # ── 1. Projection ────────────────────────────────────────────────────
-    #     F_old_g    = F_old * g_cpu
-    #     GtFg       = G.t() @ F_old_g
-    #     coeff      = A_inv @ GtFg
-    #     # RESTORE the F_old multiplier here for geometric consistency
-    #     correction = F_old * (G @ coeff)
-        
-    #     Pg = g_cpu - correction
-
-    #     # ── 2. Metrics ───────────────────────────────────────────────────────
-    #     F_sqrt         = F_old.clamp(min=0).sqrt()
-    #     weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_cpu).norm() + eps)).item()
-    #     correction_norm = correction.norm().item()
-    #     raw_rho        = (Pg.norm() / (g_cpu.norm() + eps)).item()
-
-    #     # # Original implementation in optimizers.py
-    #     # F_new_inv = 1.0 / (F_new + lam)
-    #     # F_new_inv_P_g = Pg * F_new_inv
-    #     # denom = torch.sqrt((Pg * F_new_inv_P_g).sum() + eps) # Fisher norm
-    #     # v_star = -lr * F_new_inv_P_g / (denom + eps) # Explicit normalization
-
-    #     # ── 3. STABLE Natural Gradient ───────────────────────────────────────
-    #     # Use a floor (e.g., 0.2) to prevent the 1000x amplification
-    #     F_new_inv = 1.0 / (torch.sqrt(F_new + 0.01))
-    #     v_raw = F_new_inv * Pg
-        
-    #     # ── 4. MANDATORY CLIPPING ────────────────────────────────────────────
-    #     # This prevents the "corr" from destroying Task 1
-    #     max_norm = 0.5 
-    #     v_norm = torch.norm(v_raw)
-    #     if v_norm > max_norm:
-    #         v_raw = v_raw * (max_norm / v_norm)
-
-    #     v_star = -lr * v_raw
-    #     return v_star.to(g.device), weighted_rho, correction_norm, raw_rho
-    def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
+    def _fopng_update(self, g, G, F_old, F_new, lr, lam, eps=1e-8):
         g_cpu = g.detach().cpu()
+        F_old_sqrt = torch.sqrt(F_old + 1e-10)
+        g_fisher = F_old_sqrt * g_cpu
         
-        # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
-        # We must include the Natural Gradient metric (1/F_new) in the 
-        # numerator to match the scale of the inversion matrix A.
-        F_weight   = F_old / (F_new + self.damping)
-        GtFg       = G.t() @ (F_weight * g_cpu)
-        coeff      = A_inv @ GtFg
+        F_new_inv_diag = 1.0 / (F_new + 0.05)
         
-        # We multiply by F_old here to apply the correction specifically 
-        # to the parameters Task 1 cares about.
-        correction = F_old * (G @ coeff) 
-        Pg = g_cpu - correction
+        # Original projection logic
+        F_old_g = F_old * g_cpu
+        G_T_F_old_g = G.T @ F_old_g
+        A_inv_G_T_F_old_g = self._A_inv @ G_T_F_old_g
+        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old.squeeze()
+        P_g = g_cpu - correction
+        
+        # Projected gradient in Fisher space: F_old^{1/2} * P_g
+        P_g_fisher = F_old_sqrt * P_g
+        
+        F_new_inv_P_g = P_g * F_new_inv_diag
+        denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
+        v_star = -lr * F_new_inv_P_g / (denom + 1e-8)
 
-       # ── 2. Metrics ───────────────────────────────────────────────────────
-        F_sqrt         = F_old.clamp(min=0).sqrt()
-        weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_cpu).norm() + eps)).item()
+        # ── 2. Metrics ───────────────────────────────────────────────────────
+        weighted_rho   = ((F_old_sqrt * P_g).norm() / ((F_old_sqrt * g_cpu).norm() + eps)).item()
         correction_norm = correction.norm().item()
-        raw_rho        = (Pg.norm() / (g_cpu.norm() + eps)).item()
+        raw_rho        = (P_g.norm() / (g_cpu.norm() + eps)).item()
 
-        # ── 2. NATURAL GRADIENT STEP ──────────────────────────────────────
-        F_new_inv = 1.0 / (F_new + self.damping) 
-        v_raw = F_new_inv * Pg
-        
-        # ── 3. MANDATORY CLIPPING ─────────────────────────────────────────
-        max_norm = 0.5 
-        v_norm = torch.norm(v_raw)
-        if v_norm > max_norm:
-            v_raw = v_raw * (max_norm / v_norm)
+        return v_star.to(g.device), weighted_rho, correction_norm, raw_rho
 
-        return (-lr * v_raw).to(g.device), weighted_rho, correction_norm, raw_rho
 
     def _build_A_inv(self, G, F_old, F_new, lam):
-        # A_inv correctly uses F_old^2 / F_new
-        scale = (F_old ** 2) / (F_new + self.damping) 
-        scaled_G = scale.unsqueeze(1) * G
-        A = G.t() @ scaled_G
-        # Use a stable lambda (1e-4) to prevent noise amplification
-        A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
+
+        F_new_inv_diag = 1.0 / (F_new + lam)
+        F_old_diag = F_old.view(-1, 1)
+        F_old_G = F_old_diag * G
+        weighted_G = F_old_diag * (F_new_inv_diag.view(-1, 1) * F_old_G)
+        A = G.T @ weighted_G + 1e-7 * torch.eye(G.size(1), device=F_old.device)
+        # Also store A for condition number check
+        self.A = A
         return torch.linalg.pinv(A)
 
     # def _build_A_inv(self, G, F_old, F_new, lam):
@@ -499,14 +460,6 @@ class FOPNG:
     #     A = A + lam * torch.eye(A.shape[0], device=A.device)
     #     return torch.linalg.pinv(A)       
 
-    # def _build_A_inv(self, G, F_old, F_new, lam):
-    #     # Weighted scaling: (F_old^2) / (F_new + lam)
-    #     scale = (F_old ** 2) / (F_new + 0.01)
-    #     scaled_G = scale.unsqueeze(1) * G
-    #     A = G.t() @ scaled_G
-    #     A = A + lam * torch.eye(A.shape[0], device=A.device)
-    #     return torch.linalg.pinv(A)   
-    
     def _cosine_similarity(self, F_a, F_b):
         # Even though Fisher Matrix would have a different norm form if I used a full matrix,
         #  a diagonal one has the default euclidian form as it is just a vector.
@@ -1030,8 +983,8 @@ def train_fopng_plus(
                     print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} "
                           f"w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e}")
                 epoch += 1
-
-            fopng_plus.after_task(hyper_network, task_id, loader, criterion)
+            if t != 0 or t != len(train_loaders) - 1:
+                fopng_plus.after_task(hyper_network, task_id, loader, criterion)
 
         # ── Evaluate on ALL tasks ─────────────────────────────────────────
         results[t + 1] = []
