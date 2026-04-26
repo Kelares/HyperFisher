@@ -41,7 +41,7 @@ class FOPNG:
         self.debug = 1
         self.fisher_after_task = {}
         self.momentum_buffer = None
-        self.damping = 0.2
+        self.damping = 1e-3
 
     # ── FIX 2: Only shared parameters should be projected ────────────────────
     # task_emb rows are task-specific — row t cannot affect task t'≠t, so
@@ -149,8 +149,8 @@ class FOPNG:
         #   instead of 0.0002, making the projection actually meaningful.
         fisher_nonzero = fisher[fisher > 0]
         if len(fisher_nonzero) > 0:
-            p99 = torch.quantile(fisher_nonzero, 0.99)
-            fisher = fisher.clamp(max=p99.item())
+            p95 = torch.quantile(fisher_nonzero, 0.95)
+            fisher = fisher.clamp(max=p95.item())
         if fisher.max() > 0:
             fisher = fisher / fisher.max()
 
@@ -686,7 +686,7 @@ def train_fopng(
             loss_repeat = 0
             max_epochs = max_epochs if max_epochs else epochs
             epoch = 0
-            while best_loss >= 0.25 and loss_repeat < 5 and epoch < max_epochs:
+            while best_loss >= 0.13 and loss_repeat < 5 and epoch < max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss = 0.0
