@@ -40,10 +40,8 @@ class FOPNG:
         self._device: Optional[torch.device] = None
         self.debug = 1
         self.fisher_after_task = {}
-        self.momentum_buffer = None
-        self.damping = 0.05
 
-    # ── FIX 2: Only shared parameters should be projected ────────────────────
+    # ── Only shared parameters should be projected ──────────────────────────
     # task_emb rows are task-specific — row t cannot affect task t'≠t, so
     # including them wastes projection budget on parameters that cannot cause
     # cross-task interference.
@@ -75,14 +73,14 @@ class FOPNG:
         """
         Compute diagonal Fisher in θ-space over shared parameters only.
 
-        FIX 4 — why θ-space instead of w-space:
+        Why θ-space instead of w-space:
             G and the Fisher must live in the same space as the parameter
             updates that step() applies. step() updates θ directly, so the
             Fisher used in _fopng_update must also be in θ-space. If F were
             in w-space and the update in θ-space, the natural-gradient
             metric would be geometrically inconsistent.
 
-        FIX 2 — why shared params only:
+        Why shared params only:
             task_emb is excluded via _shared_params(). See that docstring.
 
         Implementation:
@@ -93,6 +91,8 @@ class FOPNG:
         The double-spawn pattern (spawn → grad w.r.t. w, then spawn →
         backward onto θ) creates two independent computation graphs so
         no retain_graph=True is needed.
+
+        Returns raw accumulated Fisher — no normalization — matching the paper.
         """
         hyper_network.eval()
         shared = self._shared_params(hyper_network)
@@ -129,38 +129,18 @@ class FOPNG:
 
         hyper_network.zero_grad()
         hyper_network.train()
-        # REMOVE THOSE NORMALIZATIONS FOR DENOM ######################################################
-        # Percentile-clipped normalization to fix Jᵀ amplification bias.
-        #
-        # WHY the old `fisher / fisher.max()` was broken:
-        #   In θ-space, MLP parameters accumulate Jᵀ gradient contributions
-        #   from every chunk (~206×), while chunk_emb[k] only accumulates
-        #   from one chunk. This creates a ~206× dynamic range BEFORE
-        #   normalization. Dividing by max then makes chunk_emb weights
-        #   effectively zero (≈ 1/206 of max), collapsing the Fisher to a
-        #   near-delta-function on a handful of MLP parameters.
-        #   With mean ≈ 0.0002 and max = 1.0, the projection formula
-        #   F_old * g ≈ 0 everywhere, so correction ≈ 0 and rho ≈ 1.
-        #
-        # FIX — clip the 99th-percentile outliers before normalizing:
-        #   This neutralises the chunk-accumulation amplification while
-        #   preserving the relative importance ordering within each
-        #   parameter group. The resulting Fisher has mean ≈ 0.1–0.3
-        # #   instead of 0.0002, making the projection actually meaningful.
-        # fisher_nonzero = fisher[fisher > 0]
-        # if len(fisher_nonzero) > 0:
-        #     p99 = torch.quantile(fisher_nonzero, 0.99)
-        #     fisher = fisher.clamp(max=p99.item())
-        # if fisher.max() > 0:
-        #     fisher = fisher / fisher.max()
-
-        #     # Add a small floor (e.g., 1e-4) so the projection doesn't ignore 98% of the MLP
-        # fisher = fisher + 1e-4 
-        # if fisher.max() > 0:
-        #     fisher = fisher / fisher.max()
-        # REMOVE THOSE NORMALIZATIONS FOR DENOM ######################################################
-
-        return fisher
+        
+        # Ensure the signal can compete with lambda
+        fisher_nonzero = fisher[fisher > 0]
+        if len(fisher_nonzero) > 0:
+            # 99th percentile clip prevents single outliers from drowning out the rest
+            p90 = torch.quantile(fisher_nonzero, 0.90)
+            fisher = fisher.clamp(max=p90.item())
+        
+        if fisher.max() > 0:
+            fisher = fisher / fisher.max()
+            
+        return fisher + 1e-6 # Small floor for thickness        return fisher
 
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
@@ -172,26 +152,16 @@ class FOPNG:
         g_w : [D_w] gradient of loss w.r.t. generated weights w,
               computed by the training loop via autograd.grad(loss, w).
 
-        FIX 4 — everything now lives in θ-space:
-            Before: project in w-space → translate to θ via Jᵀ → rescale norm
-            After:  translate g_w to θ-space first → project in θ-space →
-                    apply directly to shared θ params
+        Everything lives in θ-space:
+            Translate g_w to θ-space first → project in θ-space →
+            apply directly to shared θ params.
 
-            Why this is more consistent:
             G and F_old/F_new are built in θ-space (see compute_fisher_diag
             and _collect_gradients). Running _fopng_update with a g that is
-            in a *different* space than G would make the inner products
-            Gᵀ F g geometrically meaningless. All three tensors must live in
-            the same space.
+            in a different space than G would make the inner products
+            Gᵀ F g geometrically meaningless.
 
-        FIX 3 — the norm rescaling is removed:
-            The old rescaling (scale = ‖v_star_w‖ / ‖Jᵀv_star_w‖) was needed
-            because projection was in w-space but the update landed in θ-space,
-            causing a magnitude mismatch. Moving everything to θ-space removes
-            that mismatch entirely. lr inside _fopng_update already controls
-            the step size.
-
-        FIX 2 — only shared params are updated:
+        Only shared params are updated:
             task_emb is excluded. Its rows are task-specific so they cannot
             cause cross-task forgetting and need no protection.
         """
@@ -210,20 +180,11 @@ class FOPNG:
         ]).to(g_w.device)
 
         # ── 2. Update task_emb NOW, before zero_grad clears it ────────────
-        # WHY task_emb needs a gradient step here:
-        #   _shared_params() correctly excludes task_emb from the FOPNG
-        #   projection because row t of task_emb only affects task t's
-        #   spawn() output and can never cause cross-task forgetting.
-        #   BUT that exclusion also means step() previously never updated
-        #   task_emb at all for tasks 2+. The embedding for the current task
-        #   stayed frozen at its random initialisation, forcing the shared
-        #   MLP layers to compensate entirely — causing both slow convergence
-        #   (task 2 stalls at ~0.47 loss vs task 1's ~0.19) and extra
-        #   forgetting (shared layers pushed away from old-task solutions).
-        #
-        # WHY plain SGD (not projected):
-        #   Projection is unnecessary because task_emb[t] cannot interfere
-        #   with any other task. A simple lr-scaled gradient step is correct.
+        # _shared_params() correctly excludes task_emb from the FOPNG
+        # projection because row t of task_emb only affects task t's
+        # spawn() output and can never cause cross-task forgetting.
+        # BUT that exclusion means step() never updates task_emb for tasks 2+.
+        # A simple lr-scaled gradient step is correct here — no projection needed.
         with torch.no_grad():
             te_grad = model.task_emb.weight.grad
             if te_grad is not None:
@@ -231,28 +192,20 @@ class FOPNG:
 
         model.zero_grad()
 
-        # weighted_rho: correct metric — retention in Fisher-important subspace
-        # correction_norm: absolute gradient mass removed
-        # raw_rho: kept for reference but misleading (≈1 by design in FOPNG)
         # ── 3. Project g_θ and compute natural-gradient step in θ-space ──
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
-            g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new, lr=self.lr, lam=self.lam,
+            g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new,
+            A_inv=self._A_inv, lr=self.lr, lam=self.lam,
         )
 
-        # # 4. Accumulate Momentum in the projected subspace TODO, Add proper momentums later
-        if self.momentum_buffer is None:
-            self.momentum_buffer = torch.zeros_like(v_star_theta)
-        
-        # # beta = 0.9
-        self.momentum_buffer = 0.9 * self.momentum_buffer + v_star_theta
-        
-        # 5. Apply the update using the buffer
+        # ── 4. Apply the update directly — no momentum ────────────────────
         pointer = 0
         with torch.no_grad():
             for p in self._shared_params(model):
                 n = p.numel()
-                p.data.add_(self.momentum_buffer[pointer : pointer + n].view_as(p))
+                p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
+
         return weighted_rho, correction_norm, raw_rho
 
     def after_task(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
@@ -260,9 +213,9 @@ class FOPNG:
         self._device = device
 
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
-        self.fisher_after_task[task_id.item()] = F_new 
-        # 1. CALCULATE OVERLAP BEFORE UPDATING F_OLD
-        # At task 0, F_old is None, so we log 1.0 (perfect correlation with itself) or 0.0
+        self.fisher_after_task[task_id.item()] = F_new
+
+        # ── 1. Overlap diagnostics BEFORE updating F_old ─────────────────
         if self.F_old is not None:
             cosine_sim = self._cosine_similarity(self.F_old, F_new)
             pearson_corr = self._pearson_correlation(self.F_old, F_new)
@@ -272,58 +225,34 @@ class FOPNG:
             pearson_corr = 1.0
             topk_iou = 1.0
 
+        # ── 2. Update F_old — paper's fixed exponential moving average ────
+        # No p99 clip, no floor, no renormalization. Matches paper's after_task:
+        #   self.F_old = (1 - w) * self.F_old + w * F_current
         if self.F_old is None:
             self.F_old = F_new.detach().cpu()
         else:
-            # Weighted average
-            # self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
+            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
 
-
-            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
-            n = task_id.item()+1
-            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().cpu()
-            
-
-            # NEW: Re-normalize so the most important parameter always has a weight of 1.0
-            # Same percentile-clipped normalization as compute_fisher_diag.
-            # The weighted average can accumulate the same outlier bias,
-            # so we clip before normalizing here too.
-            f_nonzero = self.F_old[self.F_old > 0]
-            if len(f_nonzero) > 0:
-                p99 = torch.quantile(f_nonzero, 0.99)
-                self.F_old = self.F_old.clamp(max=p99.item())
-            f_max = self.F_old.max()
-            if f_max > 0:
-                self.F_old = self.F_old / f_max
-
+        # ── 3. Collect gradient directions ───────────────────────────────
         new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
         self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
         if self.G.shape[1] > self.max_directions:
             if self.debug:
-                print("MAX N OF G REACHED: ", self.G.shape[1], "\n ##########################  \n", self.G)
-
-                    
-            # Uniformly sample indices across the entire chronological history. THE COLUMNS
-            # This ensures every task gets an equal slice of the max_directions budget. Because the order is chronological
+                print("MAX N OF G REACHED: ", self.G.shape[1])
             indices = torch.linspace(
-                0, self.G.shape[1] - 1, 
-                steps=self.max_directions, 
-                dtype=torch.long, 
+                0, self.G.shape[1] - 1,
+                steps=self.max_directions,
+                dtype=torch.long,
                 device=self.G.device
             )
             self.G = self.G[:, indices]
-        
-        self.momentum_buffer = None 
-        print("  [FOPNG+] Momentum buffer reset for next task.")
-        
+
         f_nonzero = self.F_old[self.F_old > 0]
         logs = {
             "fopng/fisher/min": self.F_old.min().item(),
             "fopng/fisher/max": self.F_old.max().item(),
             "fopng/fisher/mean": self.F_old.mean().item(),
-            # mean over non-zero entries — should be 0.1–0.4 with healthy Fisher
-            # (was 0.0002 with /max normalization, indicating near-delta distribution)
             "fopng/fisher/mean_nonzero": f_nonzero.mean().item() if len(f_nonzero) > 0 else 0.0,
             "fopng/fisher/frac_nonzero": (len(f_nonzero) / len(self.F_old.view(-1))),
             "fopng/memory/G_cols": self.G.shape[1],
@@ -333,7 +262,6 @@ class FOPNG:
             "task_completed": task_id.item() + 1
         }
         print(logs)
-
         wandb.log(logs)
         torch.cuda.empty_cache()
         gc.collect()
@@ -402,182 +330,132 @@ class FOPNG:
                     g_theta = torch.cat([
                         p.grad.view(-1) for p in shared if p.grad is not None
                     ])
-                    # REMOVE THIS LINE FOR DENOM IMPLEMENTATION ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
-                    # g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
-
+                    # Raw directions — matches paper's GradientMemory mode='raw'
                     grads.append(g_theta.detach().cpu())
                     hyper_network.zero_grad()
-
 
         hyper_network.train()
         return torch.stack(grads, dim=1)    # [D_theta_shared, grads_per_task]
 
-    def _fopng_update(self, g, G, F_old, F_new, lr, lam, eps=1e-8):
-        g_cpu = g.detach().cpu()
-        F_old_sqrt = torch.sqrt(F_old + 1e-10)
-        g_fisher = F_old_sqrt * g_cpu
-        
-        F_new_inv_diag = 1.0 / (F_new + 0.05)
-        
-        # Original projection logic
-        F_old_g = F_old * g_cpu
-        G_T_F_old_g = G.T @ F_old_g
-        A_inv_G_T_F_old_g = self._A_inv @ G_T_F_old_g
-        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old.squeeze()
-        P_g = g_cpu - correction
-        
-        # Projected gradient in Fisher space: F_old^{1/2} * P_g
-        P_g_fisher = F_old_sqrt * P_g
-        
-        F_new_inv_P_g = P_g * F_new_inv_diag
-        denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
-        v_star = -lr * F_new_inv_P_g / (denom + 1e-8)
+    def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
+        """
+        Paper's _compute_update (diagonal case), translated to this codebase.
 
-        # ── 2. Metrics ───────────────────────────────────────────────────────
-        weighted_rho   = ((F_old_sqrt * P_g).norm() / ((F_old_sqrt * g_cpu).norm() + eps)).item()
+        Projection:
+            F_old_g           = F_old * g
+            G_T_F_old_g       = Gᵀ @ F_old_g                  [K]
+            A_inv_G_T_F_old_g = A_inv @ G_T_F_old_g            [K]
+            correction        = (G @ A_inv_G_T_F_old_g) * F_old [D]
+            P_g               = g - correction
+
+        Natural gradient step with Fisher-norm denominator:
+            F_new_inv_P_g = P_g / (F_new + lam)
+            denom         = sqrt( P_g · F_new_inv_P_g )
+            v_star        = -lr * F_new_inv_P_g / denom
+        """
+        g_cpu   = g.detach().cpu()
+        F_old   = F_old.view(-1)
+        F_new   = F_new.view(-1)
+        F_new_inv_diag = 1.0 / (F_new + lam)
+
+        # ── Projection ───────────────────────────────────────────────────
+        F_old_g           = F_old * g_cpu                          # [D]
+        weighted_g       =  F_old * (F_new_inv_diag * F_old_g) # THE MISSING LINE
+        G_T_weighted_g    = G.T @ weighted_g
+
+        A_inv_G_T_F_old_g = A_inv @ G_T_weighted_g                    # [K]
+        correction        = (G @ A_inv_G_T_F_old_g).view(-1) * F_old  # [D]
+        P_g               = g_cpu - correction                     # [D]
+
+        # ── Natural gradient step ─────────────────────────────────────────
+        F_new_inv_diag = 1.0 / (F_new + lam)                       # [D]
+        F_new_inv_P_g  = P_g * F_new_inv_diag                      # [D]
+        denom          = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
+        v_star         = -lr * F_new_inv_P_g / (denom + 1e-8)      # [D]
+
+        # ── Metrics ───────────────────────────────────────────────────────
+        F_sqrt          = F_old.clamp(min=0).sqrt()
+        weighted_rho    = ((F_sqrt * P_g).norm() / ((F_sqrt * g_cpu).norm() + eps)).item()
         correction_norm = correction.norm().item()
-        raw_rho        = (P_g.norm() / (g_cpu.norm() + eps)).item()
+        raw_rho         = (P_g.norm() / (g_cpu.norm() + eps)).item()
 
         return v_star.to(g.device), weighted_rho, correction_norm, raw_rho
 
-
     def _build_A_inv(self, G, F_old, F_new, lam):
+        """
+        Paper's _compute_update_prep (diagonal case).
 
-        F_new_inv_diag = 1.0 / (F_new + lam)
-        F_old_diag = F_old.view(-1, 1)
-        F_old_G = F_old_diag * G
-        weighted_G = F_old_diag * (F_new_inv_diag.view(-1, 1) * F_old_G)
-        A = G.T @ weighted_G + 1e-7 * torch.eye(G.size(1), device=F_old.device)
-        # Also store A for condition number check
-        self.A = A
+        A = Gᵀ (F_old² / F_new) G + lam * I
+
+        This is precomputed once per epoch and cached so that per-batch
+        _fopng_update calls are cheap.
+        """
+        F_old = F_old.view(-1)
+        F_new = F_new.view(-1)
+        F_new_inv_diag = 1.0 / (F_new + lam)                        # [D]
+        F_old_diag     = F_old.view(-1, 1)                           # [D, 1]
+        F_old_G        = F_old_diag * G                              # [D, K]
+        weighted_G     = F_old_diag * (F_new_inv_diag.view(-1, 1) * F_old_G)  # [D, K] = F_old²/F_new * G
+        A = G.T @ weighted_G + 1e-7 * torch.eye(G.size(1), device=G.device)    # [K, K]
         return torch.linalg.pinv(A)
 
-    # def _build_A_inv(self, G, F_old, F_new, lam):
-    #     # Use F_old as the primary metric. Scale G by F_old once.
-    #     scale = F_old  # Dropped the square power for better signal-to-noise
-    #     scaled_G = scale.unsqueeze(1) * G
-    #     A = G.t() @ scaled_G
-    #     A = A + lam * torch.eye(A.shape[0], device=A.device)
-    #     return torch.linalg.pinv(A)       
-
     def _cosine_similarity(self, F_a, F_b):
-        # Even though Fisher Matrix would have a different norm form if I used a full matrix,
-        #  a diagonal one has the default euclidian form as it is just a vector.
-        #   F_a o F_B    /
-        #||F_a||||F_b||
         F_a_flat = F_a.detach().cpu().view(-1)
         F_b_flat = F_b.detach().cpu().view(-1)
-        
         dot_product = torch.dot(F_a_flat, F_b_flat)
         norm_a = torch.norm(F_a_flat, p=2)
         norm_b = torch.norm(F_b_flat, p=2)
-        
         return (dot_product / (norm_a * norm_b)).item()
-    
 
     def _pearson_correlation(self, F_a, F_b):
-        """
-        Calculates the Pearson correlation coefficient between two tensors on the GPU.
-        Pure PyTorch implementation
-        """
-        # 1. Flatten the tensors
         F_a_flat = F_a.detach().cpu().view(-1)
         F_b_flat = F_b.detach().cpu().view(-1)
-        
-        # 2. Calculate the means
         mean_a = torch.mean(F_a_flat)
         mean_b = torch.mean(F_b_flat)
-        
-        # 3. Mean-center the tensors
         A_centered = F_a_flat - mean_a
         B_centered = F_b_flat - mean_b
-        
-        # 4. Calculate covariance (numerator) and variances (denominator components)
         covariance = torch.sum(A_centered * B_centered)
         var_a = torch.sum(A_centered ** 2)
         var_b = torch.sum(B_centered ** 2)
-        
-        # 5. Calculate final coefficient (adding 1e-8 to avoid division by zero)
         pearson_r = covariance / (torch.sqrt(var_a * var_b) + 1e-8)
-        
-        # Return as a standard Python float
         return pearson_r.item()
 
     def _calculate_topk_iou(self, F_a, F_b, k_fraction=0.10):
-        """
-        Calculates the IoU of the top K important parameters between two Fisher matrices.
-        
-        Args:
-            F_a (torch.Tensor): 1D tensor of diagonal Fisher values for Task A.
-            F_b (torch.Tensor): 1D tensor of diagonal Fisher values for Task B.
-            k_fraction (float): The percentage of total parameters to consider as "Top K".
-                                Default is 0.10 (Top 10%).
-                                
-        Returns:
-            float: The Intersection over Union (IoU) score between 0.0 and 1.0.
-        """
-        # 1. Flatten tensors to 1D (assuming they are diagonal approximations)
         F_a_flat = F_a.detach().cpu().view(-1)
         F_b_flat = F_b.detach().cpu().view(-1)
-        
         assert F_a_flat.shape == F_b_flat.shape, "Fisher vectors must have the same size."
-        
-        # 2. Determine K based on the total number of parameters
         total_params = F_a_flat.numel()
         k = int(total_params * k_fraction)
-        
         if k == 0:
             return 0.0
-        
-        # 3. Get the indices of the Top K values for both tasks
-        # torch.topk returns a tuple of (values, indices). We only need the indices.
         _, indices_a = torch.topk(F_a_flat, k)
         _, indices_b = torch.topk(F_b_flat, k)
-        
-        # 4. Calculate Intersection using pure PyTorch (Fast on GPU)
-        # Concatenate the two index tensors
         combined_indices = torch.cat((indices_a, indices_b))
-        
-        # Count how many times each index appears
-        # An index appearing 2 times means it exists in both Top-K sets (Intersection)
         _, counts = combined_indices.unique(return_counts=True)
         intersection_size = (counts > 1).sum().item()
-        
-        # 5. Calculate Union and IoU
         union_size = (2 * k) - intersection_size
-        
-        iou = intersection_size / union_size
-        
-        return iou
+        return intersection_size / union_size
 
-    def frechet(self, F_1, F_2): # TODO FINISH FRECHET
-        # Normalize to unit trace
+    def frechet(self, F_1, F_2):
         F_1_norm = F_1 / (F_1.sum() + 1e-8)
         F_2_norm = F_2 / (F_2.sum() + 1e-8)
-
-        # Frechet distance (squared) for diagonal matrices
-        # d^2 = 0.5 * sum( (sqrt(F1) - sqrt(F2))^2 )
         d_squared = 0.5 * torch.sum((torch.sqrt(F_1_norm) - torch.sqrt(F_2_norm))**2)
+        return 1.0 - d_squared.item()
 
-        fisher_overlap = 1.0 - d_squared.item()
-        return fisher_overlap
-    
     def compute_overlap_matrix(self):
         keys = list(self.fisher_after_task.keys())
         n = len(keys)
-        # Initialize a symmetric matrix with 1s on the diagonal
         matrix = np.eye(n)
-
         for i in range(n):
             for j in range(i + 1, n):
                 overlap = self.frechet(
-                    self.fisher_after_task[keys[i]], 
+                    self.fisher_after_task[keys[i]],
                     self.fisher_after_task[keys[j]]
                 )
                 matrix[i, j] = overlap
-                matrix[j, i] = overlap  # Symmetry
-                
+                matrix[j, i] = overlap
         return matrix, keys
+
 
 def train_fopng(
     hyper_network: nn.Module,
@@ -609,7 +487,7 @@ def train_fopng(
 
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
-        
+
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
             opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
@@ -625,7 +503,7 @@ def train_fopng(
                     loss.backward()
                     opt.step()
                     total_loss += loss.item()
-                
+
                 avg_loss = total_loss / len(loader)
                 wandb.log({"fopng/train/loss": avg_loss, "fopng/global_epoch": global_epoch, "task": t+1})
                 global_epoch += 1
@@ -679,13 +557,8 @@ def train_fopng(
 
                 wandb.log({
                     "fopng/train/loss":             avg_loss,
-                    # weighted_rho: projection quality within Fisher-important subspace
-                    # (the correct metric for FOPNG — want this LOW, close to 0)
                     "fopng/train/weighted_rho":     avg_weighted_rho,
-                    # correction_norm: absolute gradient mass removed per step
-                    # (want this non-trivially large relative to g_norm)
                     "fopng/train/correction_norm":  avg_correction_norm,
-                    # raw_rho: ‖Pg‖/‖g‖ — kept for reference but ≈1 by design in FOPNG
                     "fopng/train/raw_rho":          avg_raw_rho,
                     "fopng/global_epoch":           global_epoch,
                     "task":                         t + 1,
@@ -694,58 +567,48 @@ def train_fopng(
 
                 if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}")
                 epoch += 1
+            if t != len(train_loaders) - 1:
+                fopng.after_task(hyper_network, task_id, loader, criterion)
 
-            fopng.after_task(hyper_network, task_id, loader, criterion)
-                
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results[t+1] = []
         eval_metrics = {"task_completed": t+1}
-        
-        # CHANGED: Iterate over every single task, seen or unseen!
-        for i in range(len(test_loaders)): 
+
+        for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
             tc = task_classes[i] if task_classes is not None else None
             acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id, task_classes=tc)
             results[t+1].append(acc)
             eval_metrics[f"fopng/eval/acc_task_{i+1}"] = acc
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
-            
+
         if t != 0:
             bwt = calc_bwt(results, task_id=t+1)
             eval_metrics["fopng/eval/bwt"] = bwt
             if verbose: print(f"BWT at task {t+1}: {bwt:.4f}")
-                    # Normalize to unit trace
-
 
         wandb.log(eval_metrics)
 
-    tasks_completed = sorted(list(results.keys())) # [1, 2, 3]
+    tasks_completed = sorted(list(results.keys()))
     num_eval_tasks = len(test_loaders)
 
     matrix, keys = fopng.compute_overlap_matrix()
     heat_map = plot_overlap(matrix, keys)
     wandb.log({"FOPNG FRECHET CORR MATRIX": wandb.Image(heat_map)})
-    # 1. Log the overlapping FOPNG chart
+
     plt.figure(figsize=(10, 6))
-    
-    # Define a clean, distinct color palette
     cmap = plt.get_cmap('gist_rainbow')
     colors = [cmap(i) for i in np.linspace(0, 1, num_eval_tasks)]
-    
     for i in range(num_eval_tasks):
         accs = [results[t][i] for t in tasks_completed]
-        # Force solid line (linestyle='-') and cycle through colors
-        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5, 
+        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5,
                  color=colors[i % len(colors)], label=f"{i+1}")
-
     plt.title("FOPNG Hypernetwork: All Tasks", fontsize=14, fontweight='bold')
     plt.xlabel("Tasks Completed", fontsize=12)
     plt.ylabel("Test Accuracy", fontsize=12)
     plt.xticks(tasks_completed)
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend(title="Evaluated Task", loc="lower left")
-    
-    # Log the cleanly colored plot directly to W&B
     wandb.log({"FOPNG Overlapping Accuracies (Colored)": wandb.Image(plt)})
     plt.close()
 
@@ -780,8 +643,6 @@ class FOPNGPlus(FOPNG):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Stores (task_id_tensor, loader) for every completed task so we can
-        # re-collect gradients under the updated θ at each task boundary.
         self._task_history: List[tuple] = []
 
     def after_task(
@@ -794,30 +655,22 @@ class FOPNGPlus(FOPNG):
         device = next(hyper_network.parameters()).device
         self._device = device
 
-        # ── 1. Fisher update (identical to FOPNG) ────────────────────────
+        # ── 1. Fisher update ─────────────────────────────────────────────
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
         self.fisher_after_task[task_id.item()] = F_new
 
         if self.F_old is not None:
-            cosine_sim  = self._cosine_similarity(self.F_old, F_new)
+            cosine_sim   = self._cosine_similarity(self.F_old, F_new)
             pearson_corr = self._pearson_correlation(self.F_old, F_new)
-            topk_iou    = self._calculate_topk_iou(self.F_old, F_new)
+            topk_iou     = self._calculate_topk_iou(self.F_old, F_new)
         else:
             cosine_sim = pearson_corr = topk_iou = 1.0
 
+        # Paper's fixed exponential moving average — no clip, no renorm
         if self.F_old is None:
             self.F_old = F_new.detach().cpu()
         else:
-            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
-            n = task_id.item()+1
-            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().cpu()
-            f_nonzero = self.F_old[self.F_old > 0]
-            if len(f_nonzero) > 0:
-                p99 = torch.quantile(f_nonzero, 0.99)
-                self.F_old = self.F_old.clamp(max=p99.item())
-            f_max = self.F_old.max()
-            if f_max > 0:
-                self.F_old = self.F_old / f_max
+            self.F_old = (1.0 - self.alpha) * self.F_old + self.alpha * F_new.detach().cpu()
 
         # ── 2. Store this task for future Jacobian refreshes ─────────────
         self._task_history.append((task_id.clone(), loader))
@@ -835,7 +688,6 @@ class FOPNGPlus(FOPNG):
 
         G_fresh = torch.cat(all_cols, dim=1)   # [D_theta_shared, total_cols]
 
-        # Apply max_directions budget — spread evenly across tasks
         if G_fresh.shape[1] > self.max_directions:
             indices = torch.linspace(
                 0, G_fresh.shape[1] - 1,
@@ -983,8 +835,8 @@ def train_fopng_plus(
                     print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} "
                           f"w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e}")
                 epoch += 1
-            if t != 0 or t != len(train_loaders) - 1:
-                fopng_plus.after_task(hyper_network, task_id, loader, criterion)
+
+            fopng_plus.after_task(hyper_network, task_id, loader, criterion)
 
         # ── Evaluate on ALL tasks ─────────────────────────────────────────
         results[t + 1] = []
