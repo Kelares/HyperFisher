@@ -1,0 +1,52 @@
+name: fopng_denom_search
+project: HyperFisher
+program: main.py
+method: random
+metric:
+  name: fopng/eval/average_accuracy
+  goal: maximize
+
+parameters:
+  # Fixed Parameters (from baseline)
+  task:
+    value: "split_cifar10"
+  model:
+    value: "HyperNetwork"
+  methods:
+    value: "fopng"
+  task_embedding_dim:
+    value: 32
+  chunk_embedding_dim:
+    value: 32
+
+  # Large Variates (Subspace & Fisher precision)
+  grads_per_task:
+    values: [400, 1000, 4000, 12000]
+  max_directions:
+    values: [8000, 12000, 48000]
+  fisher_samples:
+    values: [1048, 4096, 8192]
+
+  # Varied "A Bit" (Architectural Bottlenecks)
+  chunk_size:
+   values: [500, 1000, 1500]
+  hyper_hidden_dim:
+    values: [32, 64, 128, 256]
+  
+  # Learning Parameters (Centered on baseline 1e-3)
+  lr:
+    values: [0.0005, 0.001, 0.002, 0.005]
+  lam:
+    values: [0.0001, 0.001, 0.01, 0.1]
+
+  # Training Duration ("Not a lot" of change)
+  epochs:
+    values: [35, 40, 45]
+  max_epochs:
+    values: [45, 50, 55]
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}
