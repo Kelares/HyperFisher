@@ -62,6 +62,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)
 
+    parser.add_argument("--device_mode", type=str, default="hybrid", choices=["cpu", "gpu", "hybrid"])
 
     args = parser.parse_args()
 
@@ -153,7 +154,8 @@ if __name__ == "__main__":
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, max_epochs=config.max_epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
                     fisher_samples=config.fisher_samples,
-                    task_classes = getattr(task_config, 'task_classes', None)
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    device_mode = config.device_mode
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]

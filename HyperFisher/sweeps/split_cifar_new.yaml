@@ -1,0 +1,52 @@
+name: hyperfisher_custom_clipping_sweep
+project: HyperFisher
+program: main.py
+method: random
+metric:
+  name: fopng/eval/average_accuracy
+  goal: maximize
+
+parameters:
+  # 1. CORE METHODS (Compare standard vs Jacobian Refresh)
+  methods:
+    values: ["fopng", "fopng_plus"]
+
+  # 2. ARCHITECTURAL CAPACITY (Testing the "Embedding Stabilization" theory)
+  task_embedding_dim:
+    values: [128, 256, 312, 512]
+  chunk_embedding_dim:
+    values: [64, 128, 312]
+  hyper_hidden_dim:
+    values: [64, 128, 256]
+  chunk_size:
+    values: [500, 1000, 5000]
+  # 3. PROJECTION PRECISION (Subspace Volume)
+  max_directions:
+    values: [800, 1400, 2500, 4000]
+  grads_per_task:
+    values: [400, 800, 1200]
+  fisher_samples:
+    values: [1024, 2048]
+
+  # 4. OPTIMIZATION HYPERPARAMETERS (Plasticity vs. Stability)
+  lr:
+    values: [0.0005, 0.001, 0.002]
+  lam:
+    values: [0.0001, 0.001, 0.01]
+  
+  # 5. FIXED ENVIRONMENT PARAMETERS
+  task:
+    value: "split_cifar10"
+  model:
+    value: "HyperNetwork"
+  epochs:
+    value: 40
+  max_epochs:
+    value: 50
+
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}
