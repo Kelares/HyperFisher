@@ -25,7 +25,7 @@ class FOPNG:
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 0.05,
+        damping: int = 0.2,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid"
 
     ):
@@ -713,11 +713,14 @@ def train_fopng(
 
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
-        
+        best_loss = inf
+        loss_repeat = 0
+        _max_epochs = max_epochs if max_epochs else epochs
+        epoch = 0
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
             opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
-            for epoch in range(epochs):
+            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
                 total_loss = 0.0
                 hyper_network.train()
                 for x, y in loader:
@@ -734,16 +737,20 @@ def train_fopng(
                 wandb.log({"fopng/train/loss": avg_loss, "fopng/global_epoch": global_epoch, "task": t+1})
                 global_epoch += 1
                 if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
+
+                if best_loss < avg_loss:
+                    loss_repeat += 1
+                else:
+                    loss_repeat = 0
+                    best_loss = avg_loss
+                epoch += 1
             fopng.after_task(hyper_network, task_id, loader, criterion)
 
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
 
-            best_loss = inf
-            loss_repeat = 0
-            max_epochs = max_epochs if max_epochs else epochs
-            epoch = 0
-            while best_loss >= 0.13 and loss_repeat < 5 and epoch < max_epochs:
+
+            while best_loss >= 0.13 and loss_repeat < 5 and epoch < _max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss = 0.0
@@ -1009,36 +1016,44 @@ def train_fopng_plus(
 
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
-
+        best_loss = inf
+        loss_repeat = 0
+        _max_epochs = max_epochs if max_epochs else epochs
+        epoch = 0
         if t == 0:
-            if verbose: print(f"[FOPNG+] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
-            for epoch in range(epochs):
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
-                avg_loss = total_loss / len(loader)
-                wandb.log({"fopng_plus/train/loss": avg_loss, "fopng_plus/global_epoch": global_epoch, "task": t + 1})
-                global_epoch += 1
-                if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
-            fopng_plus.after_task(hyper_network, task_id, loader, criterion)
+            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
+                if verbose: print(f"[FOPNG+] Task 1 – {first_task_optimizer_cls.__name__}")
+                opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
+                for epoch in range(epochs):
+                    total_loss = 0.0
+                    hyper_network.train()
+                    for x, y in loader:
+                        x, y = x.to(device), y.to(device)
+                        opt.zero_grad()
+                        hyper_network.spawn(task_id)
+                        output = hyper_network(x)
+                        loss = criterion(output, y)
+                        loss.backward()
+                        opt.step()
+                        total_loss += loss.item()
+                    avg_loss = total_loss / len(loader)
+                    wandb.log({"fopng_plus/train/loss": avg_loss, "fopng_plus/global_epoch": global_epoch, "task": t + 1})
+                    global_epoch += 1
+                    if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
+
+                    if best_loss < avg_loss:
+                        loss_repeat += 1
+                    else:
+                        loss_repeat = 0
+                        best_loss = avg_loss
+
+                fopng_plus.after_task(hyper_network, task_id, loader, criterion)
 
         else:
             if verbose: print(f"\n[FOPNG+] Task {t+1}")
-            best_loss = inf
-            loss_repeat = 0
-            _max_epochs = max_epochs if max_epochs else epochs
-            epoch = 0
 
-            while best_loss >= 0.1 and loss_repeat < 5 and epoch < _max_epochs:
+
+            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
                 F_new = fopng_plus.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng_plus.prepare_epoch(F_new)
                 total_loss = 0.0
