@@ -19,14 +19,16 @@ from math import inf
 class FOPNG:
     def __init__(
         self,
+        num_tasks,
         lr: float = 1e-3,
         lam: float = 1e-3,
         alpha: float = 0.5,
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 0.2,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid"
+        damping: int = 0.1,
+        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
+        
 
     ):
         self.lr            = lr
@@ -43,6 +45,8 @@ class FOPNG:
         #            per-step momentum buffer and parameter update run on GPU.
         self.device_mode = device_mode
 
+        self.num_tasks = num_tasks
+        
         self.F_old: Optional[Tensor] = None
         self.G:     Optional[Tensor] = None
         self._F_new: Optional[Tensor] = None
@@ -52,70 +56,74 @@ class FOPNG:
         self.fisher_after_task = {}
         self.momentum_buffer = None
         self.damping = damping
+        self.beta_decay = 0.9
+        self.task_momentum = None
+        self.quantile = 0.95
 
-    def _get_target_device(self, model_device: torch.device) -> torch.device:
+    def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
         """
-        Returns the device where FOPNG's persistent matrices (F_old, G, A_inv)
-        should be stored and where their corresponding computations should run.
+        Compute the projected natural-gradient update.
 
-        cpu    → CPU  (everything on CPU)
-        gpu    → GPU  (model_device; everything on GPU)
-        hybrid → CPU  (big matrices stored on CPU; per-step work moves to GPU
-                       in step() before momentum accumulation and parameter
-                       application)
+        All heavy matrix operations (G.t() @ ..., A_inv @ ..., G @ ...) run
+        on the device where G lives, which is determined by _get_target_device:
+          cpu    → CPU
+          gpu    → GPU
+          hybrid → CPU  (G/F/A_inv are on CPU)
+
+        g is moved to G's device at the start, and the result is returned on
+        G's device. The caller (step()) is responsible for moving it onward
+        to the momentum/application device.
         """
-        if self.device_mode == "cpu":
-            return torch.device("cpu")
-        if self.device_mode == "gpu":
-            return model_device
-        # hybrid: large matrices on CPU
-        return torch.device("cpu")
+        # All computation on the device where the FOPNG matrices live.
+        comp_dev = G.device
+        g_comp = g.to(comp_dev)
 
-    def _get_compute_device(self, model_device: torch.device) -> torch.device:
-        """
-        Returns the device where per-step lightweight computations (momentum
-        buffer accumulation, parameter application) should run.
+        # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
+        # We must include the Natural Gradient metric (1/F_new) in the 
+        # numerator to match the scale of the inversion matrix A.
+        F_weight   = F_old / (F_new + self.damping)
+        GtFg       = G.t() @ (F_weight * g_comp)
+        coeff      = A_inv @ GtFg
+        
+        # We multiply by F_old here to apply the correction specifically 
+        # to the parameters Task 1 cares about.
+        correction = F_old * (G @ coeff) 
+        Pg = g_comp - correction
 
-        cpu    → CPU  (stay on CPU; parameters are still applied to model_device
-                       via the .to(model_device) call in step())
-        gpu    → GPU  (model_device; no transfers needed)
-        hybrid → GPU  (model_device; momentum and application run on GPU even
-                       though the matrix math ran on CPU)
-        """
-        if self.device_mode == "cpu":
-            return torch.device("cpu")
-        # gpu and hybrid both run momentum/application on GPU
-        return model_device
+       # ── 2. Metrics ───────────────────────────────────────────────────────
+        F_sqrt         = F_old.clamp(min=0).sqrt()
+        weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_comp).norm() + eps)).item()
+        correction_norm = correction.norm().item()
+        raw_rho        = (Pg.norm() / (g_comp.norm() + eps)).item()
 
-    # ── FIX 2: Only shared parameters should be projected ────────────────────
-    # task_emb rows are task-specific — row t cannot affect task t'≠t, so
-    # including them wastes projection budget on parameters that cannot cause
-    # cross-task interference.
-    @staticmethod
-    def _shared_params(model: nn.Module) -> List[nn.Parameter]:
-        """Return only the parameters shared across ALL tasks.
+        # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
+        F_new_inv = 1.0 / (F_new + self.damping) 
+        v_raw = F_new_inv * Pg
+        step_vector = v_raw
 
-        Excludes task_emb because each task owns an independent embedding row
-        and updates to that row can never affect any other task's output.
-        Including it in the projection subspace would:
-          (a) distort the Fisher diagonal with gradients that carry no
-              cross-task interference signal, and
-          (b) waste columns in G on directions that do not need protecting.
-        """
-        return list(model.layers.parameters()) + [model.chunk_emb.weight]
+        # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
+        max_norm = 0.5
+        v_norm = torch.norm(step_vector)
+        if v_norm > max_norm:
+            v_star = step_vector * (max_norm / v_norm)
+        else:
+            v_star = step_vector
+        # Result lives on comp_dev (== G.device == target_dev).
+        return -(lr * v_star), weighted_rho, correction_norm, raw_rho
+
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
 
     def compute_fisher_diag(
-        self,
-        hyper_network: nn.Module,
-        task_id,
-        loader: DataLoader,
-        criterion: Callable,
-        device: torch.device,
-        max_samples: int = 1024,
-    ) -> Tensor:
+            self,
+            hyper_network: nn.Module,
+            task_id,
+            loader: DataLoader,
+            criterion: Callable,
+            device: torch.device,
+            max_samples: int = 1024,
+        ) -> Tensor:
         """
         Compute diagonal Fisher in θ-space over shared parameters only.
 
@@ -204,8 +212,8 @@ class FOPNG:
         #   instead of 0.0002, making the projection actually meaningful.
         fisher_nonzero = fisher[fisher > 0]
         if len(fisher_nonzero) > 0:
-            p95 = torch.quantile(fisher_nonzero, 0.95)
-            fisher = fisher.clamp(max=p95.item())
+            p = torch.quantile(fisher_nonzero, self.quantile)
+            fisher = fisher.clamp(max=p.item())
         if fisher.max() > 0:
             fisher = fisher / fisher.max()
 
@@ -293,12 +301,12 @@ class FOPNG:
         # WHY plain SGD (not projected):
         #   Projection is unnecessary because task_emb[t] cannot interfere
         #   with any other task. A simple lr-scaled gradient step is correct.
+
+        # 2. In FOPNG.step, update the task_emb logic:
         with torch.no_grad():
             te_grad = model.task_emb.weight.grad
             if te_grad is not None:
                 model.task_emb.weight.data.add_(-self.lr * te_grad)
-
-        model.zero_grad()
 
         # weighted_rho: correct metric — retention in Fisher-important subspace
         # correction_norm: absolute gradient mass removed
@@ -318,23 +326,23 @@ class FOPNG:
         #   cpu    → stays on CPU  (compute_dev == CPU)
         #   gpu    → no-op         (compute_dev == GPU == target_dev)
         #   hybrid → moves CPU→GPU (compute_dev == GPU, target_dev == CPU)
-        v_on_compute = v_star_theta.to(compute_dev)
+        v_star_theta = v_star_theta.to(compute_dev)
 
-        if self.momentum_buffer is None:
-            self.momentum_buffer = torch.zeros_like(v_on_compute)
+        # if self.momentum_buffer is None:
+        #     self.momentum_buffer = torch.zeros_like(v_on_compute)
 
-        self.momentum_buffer = 0.9 * self.momentum_buffer + v_on_compute
+        # self.momentum_buffer = self.beta_decay * self.momentum_buffer + v_on_compute
 
         # ── 5. Apply update to model parameters ──────────────────────────
         # For cpu mode: move CPU buffer → model_device (GPU).
         # For gpu/hybrid: buffer is already on model_device; .to() is a no-op.
-        update = self.momentum_buffer.to(model_device)
+        # update = self.momentum_buffer.to(model_device)
 
         pointer = 0
         with torch.no_grad():
             for p in model._shared_params(model):
                 n = p.numel()
-                p.data.add_(update[pointer : pointer + n].view_as(p))
+                p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
         return weighted_rho, correction_norm, raw_rho
 
@@ -364,28 +372,18 @@ class FOPNG:
             self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().to(target_dev)
             
 
-            # NEW: Re-normalize so the most important parameter always has a weight of 1.0
-            # Same percentile-clipped normalization as compute_fisher_diag.
-            # The weighted average can accumulate the same outlier bias,
-            # so we clip before normalizing here too.
-            f_nonzero = self.F_old[self.F_old > 0]
-            if len(f_nonzero) > 0:
-                p99 = torch.quantile(f_nonzero, 0.99)
-                self.F_old = self.F_old.clamp(max=p99.item())
-            f_max = self.F_old.max()
-            if f_max > 0:
-                self.F_old = self.F_old / f_max
-
+        # 1. Collect the raw gradients for the current task
         new_cols = self._collect_gradients(hyper_network, task_id, loader, criterion)
-        self.G   = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
+        # 2. Safely append to the global memory G FIRST
+        self.G = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
+
+        # 3. Check if the total memory exceeds the maximum budget
         if self.G.shape[1] > self.max_directions:
             if self.debug:
-                print("MAX N OF G REACHED: ", self.G.shape[1], "\n ##########################  \n", self.G)
+                print(f"[FOPNG] MAX N OF G REACHED: {self.G.shape[1]}. Downsampling to {self.max_directions}...")
 
-                    
-            # Uniformly sample indices across the entire chronological history. THE COLUMNS
-            # This ensures every task gets an equal slice of the max_directions budget. Because the order is chronological
+            # Downsample the ENTIRE memory bank G globally
             indices = torch.linspace(
                 0, self.G.shape[1] - 1, 
                 steps=self.max_directions, 
@@ -393,9 +391,13 @@ class FOPNG:
                 device=self.G.device
             )
             self.G = self.G[:, indices]
-        
+
+        if self.debug:
+            print(f"[FOPNG] Current G memory size: {self.G.shape[1]} / {self.max_directions}")
+
         self.momentum_buffer = None 
-        print("  [FOPNG+] Momentum buffer reset for next task.")
+        self.task_momentum = None
+        print("  [FOPNG] Momentum buffer reset for next task.")
         
         f_nonzero = self.F_old[self.F_old > 0]
         logs = {
@@ -417,6 +419,17 @@ class FOPNG:
         wandb.log(logs)
         torch.cuda.empty_cache()
         gc.collect()
+
+    def _build_A_inv(self, G, F_old, F_new, lam):
+        # A_inv correctly uses F_old^2 / F_new
+        # All inputs share the same device (target_dev), so the result also
+        # lives on target_dev — no explicit device placement needed.
+        scale = (F_old ** 2) / (F_new + self.damping) 
+        scaled_G = scale.unsqueeze(1) * G
+        A = G.t() @ scaled_G
+        # Use a stable lambda (1e-4) to prevent noise amplification
+        A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
+        return torch.linalg.pinv(A)
 
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
@@ -491,7 +504,7 @@ class FOPNG:
                         p.grad.view(-1) for p in shared if p.grad is not None
                     ])
                     # ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
-                    g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
+                    # g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
 
                     # Move to target_dev (no-op when model is already on target_dev).
                     grads.append(g_theta.detach().to(target_dev))
@@ -500,66 +513,6 @@ class FOPNG:
 
         hyper_network.train()
         return torch.stack(grads, dim=1)    # [D_theta_shared, grads_per_task]
-
-    def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
-        """
-        Compute the projected natural-gradient update.
-
-        All heavy matrix operations (G.t() @ ..., A_inv @ ..., G @ ...) run
-        on the device where G lives, which is determined by _get_target_device:
-          cpu    → CPU
-          gpu    → GPU
-          hybrid → CPU  (G/F/A_inv are on CPU)
-
-        g is moved to G's device at the start, and the result is returned on
-        G's device. The caller (step()) is responsible for moving it onward
-        to the momentum/application device.
-        """
-        # All computation on the device where the FOPNG matrices live.
-        comp_dev = G.device
-        g_comp = g.to(comp_dev)
-
-        # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
-        # We must include the Natural Gradient metric (1/F_new) in the 
-        # numerator to match the scale of the inversion matrix A.
-        F_weight   = F_old / (F_new + self.damping)
-        GtFg       = G.t() @ (F_weight * g_comp)
-        coeff      = A_inv @ GtFg
-        
-        # We multiply by F_old here to apply the correction specifically 
-        # to the parameters Task 1 cares about.
-        correction = F_old * (G @ coeff) 
-        Pg = g_comp - correction
-
-       # ── 2. Metrics ───────────────────────────────────────────────────────
-        F_sqrt         = F_old.clamp(min=0).sqrt()
-        weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_comp).norm() + eps)).item()
-        correction_norm = correction.norm().item()
-        raw_rho        = (Pg.norm() / (g_comp.norm() + eps)).item()
-
-        # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
-        F_new_inv = 1.0 / (F_new + self.damping) 
-        v_raw = F_new_inv * Pg
-        
-        # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
-        max_norm = 0.5 
-        v_norm = torch.norm(v_raw)
-        if v_norm > max_norm:
-            v_raw = v_raw * (max_norm / v_norm)
-
-        # Result lives on comp_dev (== G.device == target_dev).
-        return (-lr * v_raw), weighted_rho, correction_norm, raw_rho
-
-    def _build_A_inv(self, G, F_old, F_new, lam):
-        # A_inv correctly uses F_old^2 / F_new
-        # All inputs share the same device (target_dev), so the result also
-        # lives on target_dev — no explicit device placement needed.
-        scale = (F_old ** 2) / (F_new + self.damping) 
-        scaled_G = scale.unsqueeze(1) * G
-        A = G.t() @ scaled_G
-        # Use a stable lambda (1e-4) to prevent noise amplification
-        A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
-        return torch.linalg.pinv(A)
 
     def _cosine_similarity(self, F_a, F_b):
         # Even though Fisher Matrix would have a different norm form if I used a full matrix,
@@ -680,6 +633,40 @@ class FOPNG:
                 
         return matrix, keys
 
+    def _get_target_device(self, model_device: torch.device) -> torch.device:
+        """
+        Returns the device where FOPNG's persistent matrices (F_old, G, A_inv)
+        should be stored and where their corresponding computations should run.
+
+        cpu    → CPU  (everything on CPU)
+        gpu    → GPU  (model_device; everything on GPU)
+        hybrid → CPU  (big matrices stored on CPU; per-step work moves to GPU
+                       in step() before momentum accumulation and parameter
+                       application)
+        """
+        if self.device_mode == "cpu":
+            return torch.device("cpu")
+        if self.device_mode == "gpu":
+            return model_device
+        # hybrid: large matrices on CPU
+        return torch.device("cpu")
+
+    def _get_compute_device(self, model_device: torch.device) -> torch.device:
+        """
+        Returns the device where per-step lightweight computations (momentum
+        buffer accumulation, parameter application) should run.
+
+        cpu    → CPU  (stay on CPU; parameters are still applied to model_device
+                       via the .to(model_device) call in step())
+        gpu    → GPU  (model_device; no transfers needed)
+        hybrid → GPU  (model_device; momentum and application run on GPU even
+                       though the matrix math ran on CPU)
+        """
+        if self.device_mode == "cpu":
+            return torch.device("cpu")
+        # gpu and hybrid both run momentum/application on GPU
+        return model_device
+
 def train_fopng(
     hyper_network: nn.Module,
     train_loaders: List[DataLoader],
@@ -705,7 +692,8 @@ def train_fopng(
         grads_per_task=grads_per_task,
         max_directions=max_directions,
         fisher_samples=fisher_samples,
-        device_mode=device_mode
+        device_mode=device_mode,
+        num_tasks=len(train_loaders)
         
     )
     results = {}
@@ -716,11 +704,12 @@ def train_fopng(
         best_loss = inf
         loss_repeat = 0
         _max_epochs = max_epochs if max_epochs else epochs
+        lr_patience_counter = 0
         epoch = 0
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
-            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
+            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=1e-3)
+            while best_loss >= 0.2 and loss_repeat < 5 and epoch < _max_epochs:
                 total_loss = 0.0
                 hyper_network.train()
                 for x, y in loader:
@@ -736,7 +725,7 @@ def train_fopng(
                 avg_loss = total_loss / len(loader)
                 wandb.log({"fopng/train/loss": avg_loss, "fopng/global_epoch": global_epoch, "task": t+1})
                 global_epoch += 1
-                if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
+                if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
 
                 if best_loss < avg_loss:
                     loss_repeat += 1
@@ -748,9 +737,8 @@ def train_fopng(
 
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
-
-
-            while best_loss >= 0.13 and loss_repeat < 5 and epoch < _max_epochs:
+            base_lr = fopng.lr
+            while best_loss >= 0.15 and loss_repeat < 10 and epoch < _max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss = 0.0
@@ -758,7 +746,6 @@ def train_fopng(
                 total_correction_norm = 0.0
                 total_raw_rho = 0.0
                 hyper_network.train()
-
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
@@ -782,6 +769,21 @@ def train_fopng(
                 avg_correction_norm= total_correction_norm/ n_batches
                 avg_raw_rho        = total_raw_rho        / n_batches
 
+                # 2. INTELLIGENT LOSS TRACKING
+                # Require a meaningful improvement (e.g., 0.0001) to reset patience
+                if avg_loss < best_loss - 1e-4:
+                    best_loss = avg_loss
+                    lr_patience_counter = 0
+                else:
+                    lr_patience_counter += 1
+
+                # 3. REDUCE LR ON PLATEAU
+                # If loss hasn't improved for 3 epochs, cut speed in half
+                if lr_patience_counter >= 3:
+                    fopng.lr = fopng.lr - 0.5
+                    lr_patience_counter = 0 # Reset so we don't decay again immediately
+                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr:.6f}")
+
                 if best_loss < avg_loss:
                     loss_repeat += 1
                 else:
@@ -803,11 +805,13 @@ def train_fopng(
                 })
                 global_epoch += 1
 
-                if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}")
+                if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={fopng.lr}")
                 epoch += 1
 
             fopng.after_task(hyper_network, task_id, loader, criterion)
-                
+            fopng.lr = base_lr 
+            fopng.after_task(hyper_network, task_id, loader, criterion)
+            
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results[t+1] = []
         eval_metrics = {"task_completed": t+1}
@@ -920,16 +924,15 @@ class FOPNGPlus(FOPNG):
         if self.F_old is None:
             self.F_old = F_new.detach().to(target_dev)
         else:
-            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
-            n = task_id.item()+1
-            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().to(target_dev)
-            f_nonzero = self.F_old[self.F_old > 0]
-            if len(f_nonzero) > 0:
-                p99 = torch.quantile(f_nonzero, 0.99)
-                self.F_old = self.F_old.clamp(max=p99.item())
-            f_max = self.F_old.max()
-            if f_max > 0:
-                self.F_old = self.F_old / f_max
+            # Instead of linspace on the whole array, downsample the NEW columns 
+            # so they fit exactly into their designated slice of the budget.
+            budget_per_task = self.max_directions // num_tasks
+            
+            if new_cols.shape[1] > budget_per_task:
+                indices = torch.linspace(0, new_cols.shape[1] - 1, steps=budget_per_task, dtype=torch.long)
+                new_cols = new_cols[:, indices]
+             
+        self.G = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
         # ── 2. Store this task for future Jacobian refreshes ─────────────
         self._task_history.append((task_id.clone(), loader))
