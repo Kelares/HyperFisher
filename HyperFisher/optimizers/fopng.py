@@ -810,7 +810,8 @@ def train_fopng(
 
                 if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={fopng.lr}")
                 epoch += 1
-            hyper_network.load_state_dict(best_parameters)
+
+            hyper_network.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.
             fopng.after_task(hyper_network, task_id, loader, criterion)
             fopng.lr = base_lr 
             fopng.after_task(hyper_network, task_id, loader, criterion)
