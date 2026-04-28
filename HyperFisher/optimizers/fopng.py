@@ -26,7 +26,7 @@ class FOPNG:
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 0.1,
+        damping: int = 1e-2,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         
 
@@ -705,6 +705,8 @@ def train_fopng(
         loss_repeat = 0
         _max_epochs = max_epochs if max_epochs else epochs
         lr_patience_counter = 0
+        best_parameters = None
+
         epoch = 0
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
@@ -780,15 +782,16 @@ def train_fopng(
                 # 3. REDUCE LR ON PLATEAU
                 # If loss hasn't improved for 3 epochs, cut speed in half
                 if lr_patience_counter >= 3:
-                    fopng.lr = fopng.lr - 0.5
+                    fopng.lr = fopng.lr * 0.5
                     lr_patience_counter = 0 # Reset so we don't decay again immediately
                     if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr:.6f}")
-
+    
                 if best_loss < avg_loss:
                     loss_repeat += 1
                 else:
                     loss_repeat = 0
                     best_loss = avg_loss
+                    best_parameters = model.state_dict()
 
                 wandb.log({
                     "fopng/train/loss":             avg_loss,
@@ -807,7 +810,7 @@ def train_fopng(
 
                 if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={fopng.lr}")
                 epoch += 1
-
+            hyper_network.load_state_dict(best_parameters)
             fopng.after_task(hyper_network, task_id, loader, criterion)
             fopng.lr = base_lr 
             fopng.after_task(hyper_network, task_id, loader, criterion)
