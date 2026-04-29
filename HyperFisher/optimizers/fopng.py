@@ -26,7 +26,7 @@ class FOPNG:
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 1e-2,
+        damping: int = 0.2,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         
 
@@ -667,6 +667,22 @@ class FOPNG:
         # gpu and hybrid both run momentum/application on GPU
         return model_device
 
+def get_magnitude_decay_lr(current_lr: float) -> float:
+    """
+    Decays LR perfectly through magnitudes:
+    1e-2 -> 5e-3 -> 1e-3 -> 5e-4 -> 1e-4 ...
+    """
+    # Format to strict scientific notation to avoid float precision drift
+    sci_str = f"{current_lr:.1e}"  # e.g., '1.0e-02' or '5.0e-03'
+    mantissa, exp = sci_str.split('e')
+    mantissa = float(mantissa)
+    exp = int(exp)
+    
+    if mantissa >= 4.9: # If current LR starts with 5 (e.g., 0.05) -> drop to 0.01
+        return 1.0 * (10 ** exp)
+    else:               # If current LR starts with 1 (e.g., 0.01) -> drop to 0.005
+        return 5.0 * (10 ** (exp - 1))
+
 def train_fopng(
     hyper_network: nn.Module,
     train_loaders: List[DataLoader],
@@ -782,7 +798,7 @@ def train_fopng(
                 # 3. REDUCE LR ON PLATEAU
                 # If loss hasn't improved for 3 epochs, cut speed in half
                 if lr_patience_counter >= 3:
-                    fopng.lr = fopng.lr * 0.5
+                    fopng.lr = get_magnitude_decay_lr(fopng.lr)
                     lr_patience_counter = 0 # Reset so we don't decay again immediately
                     if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr:.6f}")
     
@@ -791,7 +807,7 @@ def train_fopng(
                 else:
                     loss_repeat = 0
                     best_loss = avg_loss
-                    best_parameters = model.state_dict()
+                    best_parameters = hyper_network.state_dict()
 
                 wandb.log({
                     "fopng/train/loss":             avg_loss,
@@ -812,7 +828,6 @@ def train_fopng(
                 epoch += 1
 
             hyper_network.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.
-            fopng.after_task(hyper_network, task_id, loader, criterion)
             fopng.lr = base_lr 
             fopng.after_task(hyper_network, task_id, loader, criterion)
             
