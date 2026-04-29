@@ -1,0 +1,49 @@
+name: hyperfisher-fopng-optimization
+program: main.py
+method: bayes
+metric:
+  name: fopng/eval/average_accuracy
+  goal: maximize
+parameters:
+  # Static configuration from your run
+  task:
+    value: "split_cifar10"
+  model:
+    value: "HyperNetwork"
+  methods:
+    value: "fopng"
+  device_mode:
+    value: "gpu"
+  chunk_size:
+    values: [500,1000]
+  hyper_hidden_dim:
+    values: [64,128,512]
+  task_embedding_dim:
+    value: 256
+  chunk_embedding_dim:
+    value: 256
+  max_epochs:
+    value: 300
+  fisher_samples:
+    value: 1024
+  max_directions:
+    value: 10000
+  # Search space for hyperparameters
+  lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.1
+  lam:
+    distribution: log_uniform_values
+    min: 0.001
+    max: 0.2
+
+  grads_per_task:
+    values: [400, 600, 1000, 4000]
+  max_epochs:
+    values: [300,600,900]
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}

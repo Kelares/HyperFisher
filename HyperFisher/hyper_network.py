@@ -29,6 +29,7 @@ class HyperNetwork(nn.Module):
         ##########
 
         # 2. Task Embeddings 
+        self.task_embedding_lr = 0.05
         self.task_emb = nn.Embedding(
             num_embeddings=config.num_tasks, 
             embedding_dim=config.task_embedding_dim
@@ -95,8 +96,8 @@ class HyperNetwork(nn.Module):
     # task_emb rows are task-specific — row t cannot affect task t'≠t, so
     # including them wastes projection budget on parameters that cannot cause
     # cross-task interference.
-    @staticmethod
-    def _shared_params(model: nn.Module) -> List[nn.Parameter]:
+    @property
+    def _shared_params(self) -> List[nn.Parameter]:
         """Return only the parameters shared across ALL tasks.
 
         Excludes task_emb because each task owns an independent embedding row
@@ -106,4 +107,4 @@ class HyperNetwork(nn.Module):
               cross-task interference signal, and
           (b) waste columns in G on directions that do not need protecting.
         """
-        return list(model.layers.parameters()) + [model.chunk_emb.weight]
+        return list(self.layers.parameters()) + [self.chunk_emb.weight]

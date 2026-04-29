@@ -26,7 +26,7 @@ class FOPNG:
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 0.2,
+        damping: int = 1e-3,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         
 
@@ -185,7 +185,7 @@ class FOPNG:
             metric would be geometrically inconsistent.
 
         FIX 2 — why shared params only:
-            task_emb is excluded via _shared_params(). See that docstring.
+            task_emb is excluded via _shared_params. See that docstring.
 
         Implementation:
             g_w  = ∂L/∂w   (one autograd.grad call in w-space)
@@ -207,7 +207,7 @@ class FOPNG:
         target_dev = self._get_target_device(device)
 
         hyper_network.eval()
-        shared = hyper_network._shared_params(hyper_network)
+        shared = hyper_network._shared_params
         D_theta = sum(p.numel() for p in shared)
         fisher = torch.zeros(D_theta, device=target_dev)
         n_seen = 0
@@ -323,7 +323,7 @@ class FOPNG:
         compute_dev  = self._get_compute_device(model_device)
 
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
-        shared = model._shared_params(model)
+        shared = model._shared_params
         
         # ── 1. Translate g_w → g_θ via Jᵀ ───────────────────────────────
         # model.w.backward() populates .grad for EVERY parameter in spawn()'s
@@ -338,7 +338,7 @@ class FOPNG:
 
         # ── 2. Update task_emb NOW, before zero_grad clears it ────────────
         # WHY task_emb needs a gradient step here:
-        #   _shared_params() correctly excludes task_emb from the FOPNG
+        #   _shared_params correctly excludes task_emb from the FOPNG
         #   projection because row t of task_emb only affects task t's
         #   spawn() output and can never cause cross-task forgetting.
         #   BUT that exclusion also means step() previously never updated
@@ -356,7 +356,7 @@ class FOPNG:
         with torch.no_grad():
             te_grad = model.task_emb.weight.grad
             if te_grad is not None:
-                model.task_emb.weight.data.add_(-self.lr * te_grad)
+                model.task_emb.weight.data.add_(-model.task_embedding_lr * te_grad)
 
         # weighted_rho: correct metric — retention in Fisher-important subspace
         # correction_norm: absolute gradient mass removed
@@ -390,7 +390,7 @@ class FOPNG:
 
         pointer = 0
         with torch.no_grad():
-            for p in model._shared_params(model):
+            for p in model._shared_params:
                 n = p.numel()
                 p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
@@ -433,14 +433,12 @@ class FOPNG:
             if self.debug:
                 print(f"[FOPNG] MAX N OF G REACHED: {self.G.shape[1]}. Downsampling to {self.max_directions}...")
 
-            # Downsample the ENTIRE memory bank G globally
-            indices = torch.linspace(
-                0, self.G.shape[1] - 1, 
-                steps=self.max_directions, 
-                dtype=torch.long, 
-                device=self.G.device
-            )
-            self.G = self.G[:, indices]
+            # Perform Singular Value Decomposition on the GPU
+            # U contains the orthonormal principal components of the subspace
+            U, S, Vh = torch.linalg.svd(self.G, full_matrices=False)
+            
+            # Keep only the top 'max_directions' principal components
+            self.G = U[:, :self.max_directions]
 
         if self.debug:
             print(f"[FOPNG] Current G memory size: {self.G.shape[1]} / {self.max_directions}")
@@ -522,7 +520,7 @@ class FOPNG:
             retention needed), then translate via Jᵀ to get g_θ.
 
         WHY SHARED PARAMS ONLY:
-            task_emb excluded via _shared_params(). See that docstring.
+            task_emb excluded via _shared_params. See that docstring.
 
         Returns
         -------
@@ -538,7 +536,7 @@ class FOPNG:
         target_dev = self._get_target_device(self._device)
         grads: List[Tensor] = []
         hyper_network.eval()
-        shared = hyper_network._shared_params(hyper_network)
+        shared = hyper_network._shared_params
 
         with torch.enable_grad():
             while len(grads) < self.grads_per_task:
@@ -782,12 +780,14 @@ def train_fopng(
         _max_epochs = max_epochs if max_epochs else epochs
         lr_patience_counter = 0
         best_parameters = None
+        base_lr = lr
 
         epoch = 0
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=5e-3)
-            while best_loss >= 0.2 and loss_repeat < 5 and epoch < _max_epochs:
+            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
+            loss_to_achieve =  0.2
+            while best_loss >= loss_to_achieve and loss_repeat < 8 and epoch < _max_epochs:
                 total_loss = 0.0
                 hyper_network.train()
                 for x, y in loader:
@@ -805,20 +805,62 @@ def train_fopng(
                 global_epoch += 1
                 if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
 
+
+                # 3. REDUCE LR ON PLATEAU
+                # If loss hasn't improved for 5 epochs, cut speed in half
+                if lr_patience_counter >= 5:
+                    for g in opt.param_groups:
+                        g['lr'] = get_magnitude_decay_lr(g['lr'])
+                    lr_patience_counter = 0 # Reset so we don't decay again immediately
+                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {g['lr']}")
+    
                 if best_loss < avg_loss:
                     loss_repeat += 1
+                    lr_patience_counter += 1
                 else:
                     loss_repeat = 0
+                    lr_patience_counter = 0
+
                     best_loss = avg_loss
+                    best_parameters = hyper_network.state_dict()
+
                 epoch += 1
             
-            reason = f"best_loss: {best_loss}" if best_loss < 0.2 else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
+            reason = f"best_loss: {best_loss}" if best_loss < loss_to_achieve else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
             print(f"Task 1 Finished: {reason}")
             fopng.after_task(hyper_network, task_id, loader, criterion)
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
-            base_lr = fopng.lr
-            while best_loss >= 0.15 and loss_repeat < 10 and epoch < _max_epochs:
+            # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
+            for param in hyper_network._shared_params:
+                param.requires_grad = False
+            ####################################################################
+            active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
+            opt = first_task_optimizer_cls(active_params, lr=base_lr, weight_decay=1e-4)
+
+            for i in range(5):
+                total_loss = 0.0
+                hyper_network.train()
+                for x, y in loader:
+                    x, y = x.to(device), y.to(device)
+                    opt.zero_grad()
+                    hyper_network.spawn(task_id)
+                    output = hyper_network(x)
+                    loss = criterion(output, y)
+                    loss.backward()
+                    opt.step()
+                    total_loss += loss.item()
+                
+                avg_loss = total_loss / len(loader)
+                if verbose: print(f"  embedding layer warm up {i+1}/{5} loss={avg_loss:.4f}")
+
+            # UNFREEZING SHARED_PARAMS #
+            for param in hyper_network._shared_params:
+                param.requires_grad = True
+            ############################
+
+            loss_to_achieve = 0.15 
+            while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
                 total_loss = 0.0
@@ -826,6 +868,7 @@ def train_fopng(
                 total_correction_norm = 0.0
                 total_raw_rho = 0.0
                 hyper_network.train()
+
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
@@ -849,13 +892,6 @@ def train_fopng(
                 avg_correction_norm= total_correction_norm/ n_batches
                 avg_raw_rho        = total_raw_rho        / n_batches
 
-                # 2. INTELLIGENT LOSS TRACKING
-                # Require a meaningful improvement (e.g., 0.0001) to reset patience
-                if avg_loss < best_loss - 1e-4:
-                    best_loss = avg_loss
-                    lr_patience_counter = 0
-                else:
-                    lr_patience_counter += 1
 
                 # 3. REDUCE LR ON PLATEAU
                 # If loss hasn't improved for 5 epochs, cut speed in half
@@ -866,8 +902,11 @@ def train_fopng(
     
                 if best_loss < avg_loss:
                     loss_repeat += 1
+                    lr_patience_counter += 1
                 else:
                     loss_repeat = 0
+                    lr_patience_counter = 0
+
                     best_loss = avg_loss
                     best_parameters = hyper_network.state_dict()
 
@@ -892,7 +931,7 @@ def train_fopng(
             hyper_network.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.
             fopng.lr = base_lr 
             fopng.after_task(hyper_network, task_id, loader, criterion)
-            
+        
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results[t+1] = []
         eval_metrics = {"task_completed": t+1}
