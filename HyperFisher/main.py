@@ -152,7 +152,7 @@ if __name__ == "__main__":
                     model, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
-                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True, first_task_optimizer_cls=torch.optim.Adam,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True, first_task_optimizer_cls=torch.optim.SGD,
                     fisher_samples=config.fisher_samples,
                     task_classes = getattr(task_config, 'task_classes', None),
                     device_mode = config.device_mode

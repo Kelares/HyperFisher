@@ -60,6 +60,57 @@ class FOPNG:
         self.task_momentum = None
         self.quantile = 0.95
 
+    # def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
+    #     """
+    #     Compute the projected natural-gradient update.
+
+    #     All heavy matrix operations (G.t() @ ..., A_inv @ ..., G @ ...) run
+    #     on the device where G lives, which is determined by _get_target_device:
+    #       cpu    → CPU
+    #       gpu    → GPU
+    #       hybrid → CPU  (G/F/A_inv are on CPU)
+
+    #     g is moved to G's device at the start, and the result is returned on
+    #     G's device. The caller (step()) is responsible for moving it onward
+    #     to the momentum/application device.
+    #     """
+    #     # All computation on the device where the FOPNG matrices live.
+    #     comp_dev = G.device
+    #     g_comp = g.to(comp_dev)
+
+    #     # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
+    #     # We must include the Natural Gradient metric (1/F_new) in the 
+    #     # numerator to match the scale of the inversion matrix A.
+    #     F_weight   = F_old / (F_new + self.damping)
+    #     GtFg       = G.t() @ (F_weight * g_comp)
+    #     coeff      = A_inv @ GtFg
+        
+    #     # We multiply by F_old here to apply the correction specifically 
+    #     # to the parameters Task 1 cares about.
+    #     correction = F_old * (G @ coeff) 
+    #     Pg = g_comp - correction
+
+    #    # ── 2. Metrics ───────────────────────────────────────────────────────
+    #     F_sqrt         = F_old.clamp(min=0).sqrt()
+    #     weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_comp).norm() + eps)).item()
+    #     correction_norm = correction.norm().item()
+    #     raw_rho        = (Pg.norm() / (g_comp.norm() + eps)).item()
+
+    #     # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
+    #     F_new_inv = 1.0 / (F_new + self.damping) 
+    #     v_raw = F_new_inv * Pg
+    #     step_vector = v_raw
+
+    #     # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
+    #     max_norm = 0.5
+    #     v_norm = torch.norm(step_vector)
+    #     if v_norm > max_norm:
+    #         v_star = step_vector * (max_norm / v_norm)
+    #     else:
+    #         v_star = step_vector
+    #     # Result lives on comp_dev (== G.device == target_dev).
+    #     return -(lr * v_star), weighted_rho, correction_norm, raw_rho
+
     def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
         """
         Compute the projected natural-gradient update.
@@ -74,6 +125,8 @@ class FOPNG:
         G's device. The caller (step()) is responsible for moving it onward
         to the momentum/application device.
         """
+        F_new_inv = 1.0 / (F_new + self.damping) 
+
         # All computation on the device where the FOPNG matrices live.
         comp_dev = G.device
         g_comp = g.to(comp_dev)
@@ -81,13 +134,12 @@ class FOPNG:
         # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
         # We must include the Natural Gradient metric (1/F_new) in the 
         # numerator to match the scale of the inversion matrix A.
-        F_weight   = F_old / (F_new + self.damping)
-        GtFg       = G.t() @ (F_weight * g_comp)
+        GtFg       = G.t() @ (F_new_inv * g_comp)
         coeff      = A_inv @ GtFg
         
         # We multiply by F_old here to apply the correction specifically 
         # to the parameters Task 1 cares about.
-        correction = F_old * (G @ coeff) 
+        correction = (G @ coeff) 
         Pg = g_comp - correction
 
        # ── 2. Metrics ───────────────────────────────────────────────────────
@@ -97,7 +149,6 @@ class FOPNG:
         raw_rho        = (Pg.norm() / (g_comp.norm() + eps)).item()
 
         # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
-        F_new_inv = 1.0 / (F_new + self.damping) 
         v_raw = F_new_inv * Pg
         step_vector = v_raw
 
@@ -110,7 +161,6 @@ class FOPNG:
             v_star = step_vector
         # Result lives on comp_dev (== G.device == target_dev).
         return -(lr * v_star), weighted_rho, correction_norm, raw_rho
-
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -424,12 +474,22 @@ class FOPNG:
         # A_inv correctly uses F_old^2 / F_new
         # All inputs share the same device (target_dev), so the result also
         # lives on target_dev — no explicit device placement needed.
-        scale = (F_old ** 2) / (F_new + self.damping) 
+        scale = 1.0 / (F_new + self.damping) 
         scaled_G = scale.unsqueeze(1) * G
         A = G.t() @ scaled_G
         # Use a stable lambda (1e-4) to prevent noise amplification
         A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
         return torch.linalg.pinv(A)
+    # def _build_A_inv(self, G, F_old, F_new, lam):
+    #     # A_inv correctly uses F_old^2 / F_new
+    #     # All inputs share the same device (target_dev), so the result also
+    #     # lives on target_dev — no explicit device placement needed.
+    #     scale = (F_old ** 2) / (F_new + self.damping) 
+    #     scaled_G = scale.unsqueeze(1) * G
+    #     A = G.t() @ scaled_G
+    #     # Use a stable lambda (1e-4) to prevent noise amplification
+    #     A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
+    #     return torch.linalg.pinv(A)
 
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
@@ -697,7 +757,7 @@ def train_fopng(
     fisher_samples: int = 1024,
     epochs: int = 5,
     max_epochs: int = None,
-    first_task_optimizer_cls=torch.optim.Adam,
+    first_task_optimizer_cls=torch.optim.SGD,
     task_classes: Optional[list] = None,
     verbose: bool = True,
     device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
@@ -726,7 +786,7 @@ def train_fopng(
         epoch = 0
         if t == 0:
             if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=1e-3)
+            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=5e-3)
             while best_loss >= 0.2 and loss_repeat < 5 and epoch < _max_epochs:
                 total_loss = 0.0
                 hyper_network.train()
@@ -751,8 +811,10 @@ def train_fopng(
                     loss_repeat = 0
                     best_loss = avg_loss
                 epoch += 1
+            
+            reason = f"best_loss: {best_loss}" if best_loss < 0.2 else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
+            print(f"Task 1 Finished: {reason}")
             fopng.after_task(hyper_network, task_id, loader, criterion)
-
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
             base_lr = fopng.lr
@@ -796,11 +858,11 @@ def train_fopng(
                     lr_patience_counter += 1
 
                 # 3. REDUCE LR ON PLATEAU
-                # If loss hasn't improved for 3 epochs, cut speed in half
-                if lr_patience_counter >= 3:
+                # If loss hasn't improved for 5 epochs, cut speed in half
+                if lr_patience_counter >= 5:
                     fopng.lr = get_magnitude_decay_lr(fopng.lr)
                     lr_patience_counter = 0 # Reset so we don't decay again immediately
-                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr:.6f}")
+                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr}")
     
                 if best_loss < avg_loss:
                     loss_repeat += 1
