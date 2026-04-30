@@ -25,7 +25,7 @@ class FOPNG:
         grads_per_task: int = 80,
         max_directions: int = 400,
         fisher_samples: int = 1024,
-        damping: int = 1e-3,
+        damping: int = 0.2,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         
 
@@ -511,6 +511,13 @@ class FOPNG:
                     ])
                     # ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
                     # g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
+                    
+                    
+                    # 🛑 CRITICAL FIX: THE BOUNCER 🛑
+                    # If this specific batch produced a NaN or Inf, skip it!
+                    if torch.isnan(g_theta).any() or torch.isinf(g_theta).any():
+                        hyper_network.zero_grad()
+                        continue
 
                     # Move to target_dev (no-op when model is already on target_dev).
                     grads.append(g_theta.detach().to(target_dev))
