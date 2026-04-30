@@ -170,7 +170,6 @@ if __name__ == "__main__":
                     lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
-                    first_task_optimizer_cls=torch.optim.Adam,
                     fisher_samples=config.fisher_samples,
                     task_classes=getattr(task_config, 'task_classes', None)
                 )
