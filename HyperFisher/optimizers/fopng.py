@@ -59,7 +59,7 @@ class FOPNG:
         self.quantile = 0.95
 
 
-    def _fopng_update(self, g, G, F_old, F_new, A_inv, lr, lam, eps=1e-8):
+    def _fopng_update(self, g, G, F_old, F_new, A_inv, eps=1e-8):
         """
         Compute the projected natural-gradient update.
 
@@ -108,7 +108,7 @@ class FOPNG:
         else:
             v_star = step_vector
         # Result lives on comp_dev (== G.device == target_dev).
-        return -(lr * v_star), weighted_rho, correction_norm, raw_rho
+        return -(self.lr * v_star), weighted_rho, correction_norm, raw_rho
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -224,7 +224,7 @@ class FOPNG:
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
         self._F_new = F_new
-        self._A_inv = self._build_A_inv(self.G, self.F_old, self._F_new, self.lam)
+        self._A_inv = self._build_A_inv(self.G, self.F_old, self._F_new)
 
     def step(self, model: nn.Module, task_id, g_w: Tensor) -> float:
         """
@@ -316,7 +316,7 @@ class FOPNG:
         # returns the update tensor on target_dev.
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
             g=g_theta.to(target_dev), G=self.G, F_old=self.F_old, F_new=self._F_new,
-            A_inv=self._A_inv, lr=self.lr, lam=self.lam,
+            A_inv=self._A_inv,
         )
 
         # ── 4. Accumulate momentum ────────────────────────────────────────
@@ -416,7 +416,7 @@ class FOPNG:
         torch.cuda.empty_cache()
         gc.collect()
 
-    def _build_A_inv(self, G, F_old, F_new, lam):
+    def _build_A_inv(self, G, F_old, F_new):
         # A_inv correctly uses F_old^2 / F_new
         # All inputs share the same device (target_dev), so the result also
         # lives on target_dev — no explicit device placement needed.
@@ -424,18 +424,8 @@ class FOPNG:
         scaled_G = scale.unsqueeze(1) * G
         A = G.t() @ scaled_G
         # Use a stable lambda (1e-4) to prevent noise amplification
-        A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
+        A = A + self.lam * torch.eye(A.shape[0], device=A.device)
         return torch.linalg.pinv(A)
-    # def _build_A_inv(self, G, F_old, F_new, lam):
-    #     # A_inv correctly uses F_old^2 / F_new
-    #     # All inputs share the same device (target_dev), so the result also
-    #     # lives on target_dev — no explicit device placement needed.
-    #     scale = (F_old ** 2) / (F_new + self.damping) 
-    #     scaled_G = scale.unsqueeze(1) * G
-    #     A = G.t() @ scaled_G
-    #     # Use a stable lambda (1e-4) to prevent noise amplification
-    #     A = A + 1e-4 * torch.eye(A.shape[0], device=A.device)
-    #     return torch.linalg.pinv(A)
 
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
@@ -704,6 +694,7 @@ def train_fopng(
     *,
     lr: float = 1e-3,
     lam: float = 1e-3,
+    damping: float = 0.2,
     alpha: float = 0.5,
     grads_per_task: int = 80,
     max_directions: int = 400,
@@ -717,7 +708,7 @@ def train_fopng(
 ) -> FOPNG:
     device = next(hyper_network.parameters()).device
     fopng = FOPNG(
-        lr=lr, lam=lam, alpha=alpha,
+        lr=lr, lam=lam, damping=damping, alpha=alpha,
         grads_per_task=grads_per_task,
         max_directions=max_directions,
         fisher_samples=fisher_samples,
@@ -790,9 +781,9 @@ def train_fopng(
                 param.requires_grad = False
             ####################################################################
             active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
-            opt = first_task_optimizer_cls(active_params, lr=base_lr, weight_decay=1e-4)
-
-            for i in range(5):
+            opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
+            warmup_n = 15
+            for i in range(warmup_n):
                 total_loss = 0.0
                 hyper_network.train()
                 for x, y in loader:
@@ -806,7 +797,7 @@ def train_fopng(
                     total_loss += loss.item()
                 
                 avg_loss = total_loss / len(loader)
-                if verbose: print(f"  embedding layer warm up {i+1}/{5} loss={avg_loss:.4f}")
+                if verbose: print(f"embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
 
             # UNFREEZING SHARED_PARAMS #
             for param in hyper_network._shared_params:
@@ -1059,6 +1050,7 @@ def train_fopng_plus(
     lr: float = 1e-3,
     lam: float = 1e-3,
     alpha: float = 0.5,
+    damping: float = 0.02,
     grads_per_task: int = 80,
     max_directions: int = 400,
     fisher_samples: int = 1024,
@@ -1078,6 +1070,7 @@ def train_fopng_plus(
     device = next(hyper_network.parameters()).device
     fopng_plus = FOPNGPlus(
         lr=lr, lam=lam, alpha=alpha,
+        damping=damping,
         grads_per_task=grads_per_task,
         max_directions=max_directions,
         fisher_samples=fisher_samples,

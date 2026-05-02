@@ -45,6 +45,8 @@ if __name__ == "__main__":
     # LEARNING SPECIFIC
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--lam", type=float, default=1e-3)
+    parser.add_argument("--damping", type=float, default=0.01)
+
     parser.add_argument("--alpha", type=float, default=0.3)
     parser.add_argument("--fisher_samples", type=float, default=1024)
     parser.add_argument("--grads_per_task", type=int, default=40)
@@ -150,7 +152,7 @@ if __name__ == "__main__":
                 # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
                 results = train_fopng(
                     model, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, max_epochs=config.max_epochs, verbose=True, first_task_optimizer_cls=torch.optim.SGD,
                     fisher_samples=config.fisher_samples,
@@ -167,7 +169,7 @@ if __name__ == "__main__":
                 print("--- Starting FOPNG+ Training ---")
                 results = train_fopng_plus(
                     model, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
                     fisher_samples=config.fisher_samples,
