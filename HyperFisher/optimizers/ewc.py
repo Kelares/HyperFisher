@@ -69,24 +69,27 @@ class EWC:
         return (self.lam / 2.0) * loss
 
     def _penalty_hypernetwork(self, model: nn.Module) -> Tensor:
-        device = next(model.parameters()).device
-        loss   = torch.tensor(0.0, device=device)
-        
-        for tid, task_id_tensor in self._tid_tensors.items():
-            t_emb = model.task_emb(task_id_tensor).view(-1)
-            t_vec = t_emb.repeat(model.num_of_chunks, 1)
+            device = next(model.parameters()).device
+            loss   = torch.tensor(0.0, device=device)
             
-            chunk_ids = torch.arange(model.num_of_chunks, device=device)
-            c_vec = model.chunk_emb(chunk_ids)
-            
-            x = torch.cat([t_vec, c_vec], dim=1)
-            flat_w = model.layers(x).view(-1)
-            w = flat_w[:model.num_target_params] 
-            
-            diff  = w - self.anchors[tid]         
-            loss  = loss + (self.fishers[tid] * diff.pow(2)).sum()
-            
-        return (self.lam / 2.0) * loss / len(self.fishers)
+            for tid, task_id_tensor in self._tid_tensors.items():
+                t_emb = model.task_emb(task_id_tensor).view(-1)
+                t_vec = t_emb.repeat(model.num_of_chunks, 1)
+                
+                chunk_ids = torch.arange(model.num_of_chunks, device=device)
+                c_vec = model.chunk_emb(chunk_ids)
+                
+                x = torch.cat([t_vec, c_vec], dim=1)
+                flat_w = model.layers(x).view(-1)
+                w = flat_w[:model.num_target_params] 
+                
+                diff  = w - self.anchors[tid]         
+                
+                # THE FIX: Use .mean() instead of .sum() to prevent the 
+                # 102,602 parameter sum from causing a massive gradient explosion.
+                loss  = loss + (self.fishers[tid] * diff.pow(2)).mean()
+                
+            return (self.lam / 2.0) * loss / len(self.fishers)
 
     # ── after_task ────────────────────────────────────────────────────────────
 
