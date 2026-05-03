@@ -122,7 +122,7 @@ class FOPNG:
         #     v_star = v_raw * (max_norm / v_norm)
         # else:
         #     v_star = v_raw
-        v_star = -lr * v_raw / (denom + 1e-8)
+        v_star = -self.lr * v_raw / (denom + 1e-8)
         # Result lives on comp_dev (== G.device == target_dev).
         return v_star, weighted_rho, correction_norm, raw_rho
 
