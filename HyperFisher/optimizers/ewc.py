@@ -35,7 +35,6 @@ def get_magnitude_decay_lr(current_lr: float) -> float:
     else:
         return 5.0 * (10 ** (exp - 1))
 
-
 class EWC:
     def __init__(
         self,
@@ -46,8 +45,8 @@ class EWC:
         self.fisher_samples = fisher_samples
 
         self.fishers:  Dict[int, Tensor] = {}  # task_id -> diagonal Fisher [D]
-        self.anchors:  Dict[int, Tensor] = {}  # task_id -> flat params / generated weights
-        self._tid_tensors: Dict[int, Tensor] = {}  # task_id -> task_id tensor (hypernetwork only)
+        self.anchors:  Dict[int, Tensor] = {}  # task_id -> flat params
+        self._tid_tensors: Dict[int, Tensor] = {}  
 
     # ── penalty ───────────────────────────────────────────────────────────────
 
@@ -69,27 +68,18 @@ class EWC:
         return (self.lam / 2.0) * loss
 
     def _penalty_hypernetwork(self, model: nn.Module) -> Tensor:
-            device = next(model.parameters()).device
-            loss   = torch.tensor(0.0, device=device)
+        # ── FIX: EWC natively in θ-space ──────────────────────────────────────
+        # We directly regularize the hypernetwork's shared parameters.
+        # This completely bypasses the Jacobian amplifier, allowing us to safely
+        # use .sum() so the EWC penalty maintains its proper mathematical scale.
+        theta = torch.cat([p.view(-1) for p in model._shared_params])
+        loss   = torch.tensor(0.0, device=theta.device)
+        
+        for tid in self.fishers:
+            diff = theta - self.anchors[tid]         
+            loss = loss + (self.fishers[tid] * diff.pow(2)).sum()
             
-            for tid, task_id_tensor in self._tid_tensors.items():
-                t_emb = model.task_emb(task_id_tensor).view(-1)
-                t_vec = t_emb.repeat(model.num_of_chunks, 1)
-                
-                chunk_ids = torch.arange(model.num_of_chunks, device=device)
-                c_vec = model.chunk_emb(chunk_ids)
-                
-                x = torch.cat([t_vec, c_vec], dim=1)
-                flat_w = model.layers(x).view(-1)
-                w = flat_w[:model.num_target_params] 
-                
-                diff  = w - self.anchors[tid]         
-                
-                # THE FIX: Use .mean() instead of .sum() to prevent the 
-                # 102,602 parameter sum from causing a massive gradient explosion.
-                loss  = loss + (self.fishers[tid] * diff.pow(2)).mean()
-                
-            return (self.lam / 2.0) * loss / len(self.fishers)
+        return (self.lam / 2.0) * loss
 
     # ── after_task ────────────────────────────────────────────────────────────
 
@@ -161,22 +151,15 @@ class EWC:
         loader: DataLoader,
         device: torch.device,
     ) -> None:
-        with torch.no_grad():
-            t_emb = model.task_emb(task_id_tensor).view(-1)
-            t_vec = t_emb.repeat(model.num_of_chunks, 1)
-            
-            chunk_ids = torch.arange(model.num_of_chunks, device=device)
-            c_vec = model.chunk_emb(chunk_ids)
-            
-            x = torch.cat([t_vec, c_vec], dim=1)
-            flat_w = model.layers(x).view(-1)
-            anchor = flat_w[:model.num_target_params].clone()
-            
-        self.anchors[task_id]      = anchor
+        # 1. Anchor = the flat _shared_params (θ) for this task, detached
+        self.anchors[task_id] = torch.cat(
+            [p.detach().clone().view(-1) for p in model._shared_params]
+        )
         self._tid_tensors[task_id] = task_id_tensor
 
-        D_target = anchor.numel()
-        fisher   = torch.zeros(D_target, device=device)
+        # 2. Fisher in θ-space!
+        D_theta = self.anchors[task_id].numel()
+        fisher   = torch.zeros(D_theta, device=device)
         n_seen   = 0
 
         for x_batch, _ in loader:
@@ -185,30 +168,25 @@ class EWC:
                 if n_seen >= self.fisher_samples:
                     break
 
-                with torch.no_grad():
-                    model.spawn(task_id_tensor)
-                    logits = model(xi.unsqueeze(0))
-                    y_hat  = torch.distributions.Categorical(logits=logits).sample()
-
-                from torch.func import functional_call
+                # Spawn creates the w graph natively tied to θ
                 model.zero_grad(set_to_none=True)
-                
-                t_emb = model.task_emb(task_id_tensor).view(-1)
-                t_vec = t_emb.repeat(model.num_of_chunks, 1)
-                c_vec = model.chunk_emb(torch.arange(model.num_of_chunks, device=device))
-                
-                x_cat = torch.cat([t_vec, c_vec], dim=1)
-                w = model.layers(x_cat).view(-1)[:model.num_target_params]
+                model.spawn(task_id_tensor)
+                logits = model(xi.unsqueeze(0))
 
-                logits = functional_call(
-                    model.target_network,
-                    model.get_params_dict(w),
-                    xi.unsqueeze(0),
-                )
+                with torch.no_grad():
+                    y_hat = torch.distributions.Categorical(logits=logits).sample()
+
+                # Backward natively flows through the functional call, into w, into θ
                 loss = F.cross_entropy(logits, y_hat)
-                (w_grad,) = torch.autograd.grad(loss, w)
-                fisher   += w_grad.detach().pow(2)
-                n_seen   += 1
+                loss.backward()
+
+                # Accumulate the diagonal Fisher strictly for the shared params
+                g_theta = torch.cat([
+                    p.grad.view(-1) if p.grad is not None else torch.zeros_like(p).view(-1)
+                    for p in model._shared_params
+                ])
+                fisher += g_theta.pow(2)
+                n_seen += 1
 
             if n_seen >= self.fisher_samples:
                 break
@@ -217,10 +195,8 @@ class EWC:
         model.zero_grad(set_to_none=True)
 
         self.fishers[task_id] = fisher
-        print(f"[EWC/HyperNet] task {task_id} Fisher — "
+        print(f"[EWC/HyperNet] task {task_id} Fisher (θ-space) — "
               f"min: {fisher.min():.2e}  max: {fisher.max():.2e}  mean: {fisher.mean():.2e}")
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # train_ewc
 # ─────────────────────────────────────────────────────────────────────────────
