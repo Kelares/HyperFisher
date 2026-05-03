@@ -98,17 +98,33 @@ class FOPNG:
 
         # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
         v_raw = F_new_inv * Pg
-        step_vector = v_raw
 
-        # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
-        max_norm = 0.5
-        v_norm = torch.norm(step_vector)
-        if v_norm > max_norm:
-            v_star = step_vector * (max_norm / v_norm)
-        else:
-            v_star = step_vector
+        # # ── 4. RIEMANNIAN TRUST-REGION CLIPPING ───────────────────────────
+        # # Your mathematically correct Riemannian norm
+        # denom = torch.sqrt((Pg * v_raw).sum() + 1e-8)
+        
+        # # Define the maximum allowed change in distribution (KL divergence limit)
+        # max_kl = 0.5 
+        
+        # # The crucial fix: Only scale DOWN. Never scale UP.
+        # if denom > max_kl:
+        #     v_star = v_raw * (max_kl / denom)
+        # else:
+        #     v_star = v_raw
+            
+        # # Apply learning rate
+        # v_star = -self.lr * v_star
+        
+        # # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
+        # max_norm = 0.5
+        # v_norm = torch.norm(v_raw)
+        # if v_norm > max_norm:
+        #     v_star = v_raw * (max_norm / v_norm)
+        # else:
+        #     v_star = v_raw
+        v_star = -lr * v_raw / (denom + 1e-8)
         # Result lives on comp_dev (== G.device == target_dev).
-        return -(self.lr * v_star), weighted_rho, correction_norm, raw_rho
+        return v_star, weighted_rho, correction_norm, raw_rho
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
