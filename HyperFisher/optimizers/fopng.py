@@ -101,7 +101,7 @@ class FOPNG:
 
         # # ── 4. RIEMANNIAN TRUST-REGION CLIPPING ───────────────────────────
         # # Your mathematically correct Riemannian norm
-        # denom = torch.sqrt((Pg * v_raw).sum() + 1e-8)
+        denom = torch.sqrt((Pg * v_raw).sum() + 1e-8)
         
         # # Define the maximum allowed change in distribution (KL divergence limit)
         # max_kl = 0.5 
