@@ -668,12 +668,13 @@ def train_fopng(
         fisher_samples: int = 1024,
         epochs: int = 5,
         max_epochs: int = None,
-        first_task_optimizer_cls=torch.optim.SGD,
+        first_task_optimizer_cls=torch.optim.Adam,
         task_classes: Optional[list] = None,
         verbose: bool = True,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         damping = 1e-3,
-        saved = True
+        saved = False,
+        warmup = False
     ) -> FOPNG:
     device = next(hyper_network.parameters()).device
     fopng = FOPNG(
@@ -686,22 +687,23 @@ def train_fopng(
     )
     results = {}
     global_epoch = 0
+    loss_to_achieve = 0.15 
+    _max_epochs = max_epochs if max_epochs else epochs
+    base_lr = lr
 
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
         best_loss = inf
         loss_repeat = 0
-        _max_epochs = max_epochs if max_epochs else epochs
         lr_patience_counter = 0
         best_parameters = None
-        base_lr = lr
 
         epoch = 0
         if t == 0:
             if not saved:
                 if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
                 opt = first_task_optimizer_cls(hyper_network.parameters(), lr=5e-3)
-                while best_loss >= 0.2 and loss_repeat < 5 and epoch < _max_epochs:
+                while best_loss >= loss_to_achieve and loss_repeat < 5 and epoch < _max_epochs:
                     total_loss = 0.0
                     hyper_network.train()
                     for x, y in loader:
@@ -741,35 +743,35 @@ def train_fopng(
 
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
-            # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
-            for param in hyper_network._shared_params:
-                param.requires_grad = False
-            ####################################################################
-            active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
-            opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
-            warmup_n = 5
-            for i in range(warmup_n):
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
-                
-                avg_loss = total_loss / len(loader)
-                if verbose: print(f"embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
+            if warmup:
+                # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
+                for param in hyper_network._shared_params:
+                    param.requires_grad = False
+                ####################################################################
+                active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
+                opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
+                warmup_n = 5
+                for i in range(warmup_n):
+                    total_loss = 0.0
+                    hyper_network.train()
+                    for x, y in loader:
+                        x, y = x.to(device), y.to(device)
+                        opt.zero_grad()
+                        hyper_network.spawn(task_id)
+                        output = hyper_network(x)
+                        loss = criterion(output, y)
+                        loss.backward()
+                        opt.step()
+                        total_loss += loss.item()
+                    
+                    avg_loss = total_loss / len(loader)
+                    if verbose: print(f"embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
 
-            # UNFREEZING SHARED_PARAMS #
-            for param in hyper_network._shared_params:
-                param.requires_grad = True
-            ############################
+                # UNFREEZING SHARED_PARAMS #
+                for param in hyper_network._shared_params:
+                    param.requires_grad = True
+                ############################
 
-            loss_to_achieve = 0.15 
             while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                 F_new = fopng.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng.prepare_epoch(F_new)
