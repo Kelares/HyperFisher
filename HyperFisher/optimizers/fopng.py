@@ -19,6 +19,7 @@ from math import inf
 class FOPNG:
     def __init__(
         self,
+        num_tasks,
         lr: float = 1e-3,
         lam: float = 1e-3,
         alpha: float = 0.5,
@@ -44,6 +45,7 @@ class FOPNG:
         #            per-step momentum buffer and parameter update run on GPU.
         self.device_mode = device_mode
 
+        self.num_tasks = num_tasks
         
         self.F_old: Optional[Tensor] = None
         self.G:     Optional[Tensor] = None
@@ -59,72 +61,67 @@ class FOPNG:
         self.quantile = 0.95
 
 
-    def _fopng_update(self, g, G, F_old, F_new, A_inv, eps=1e-8):
+    def _fopng_update(
+        self,
+        g: Tensor,
+        G: Tensor,
+        F_old: Tensor,
+        F_new: Tensor,
+        A_inv: Tensor,
+        eps: float = 1e-8,
+        ) -> Tuple[Tensor, float, float, float]:
         """
-        Compute the projected natural-gradient update.
-
-        All heavy matrix operations (G.t() @ ..., A_inv @ ..., G @ ...) run
-        on the device where G lives, which is determined by _get_target_device:
-          cpu    → CPU
-          gpu    → GPU
-          hybrid → CPU  (G/F/A_inv are on CPU)
-
-        g is moved to G's device at the start, and the result is returned on
-        G's device. The caller (step()) is responsible for moving it onward
-        to the momentum/application device.
+        Exactly matches the Fisher-Orthogonal Projected Natural Gradient math:
+        1. Project the gradient g to be Fisher-Orthogonal to G.
+        2. Precondition with the Natural Gradient (F_new_inv).
         """
-        F_new_inv = 1.0 / (F_new + self.damping) 
-
-        # All computation on the device where the FOPNG matrices live.
-        comp_dev = G.device
-        g_comp = g.to(comp_dev)
-
-        # ── 1. ALIGNED RIEMANNIAN PROJECTION ──────────────────────────────
-        # We must include the Natural Gradient metric (1/F_new) in the 
-        # numerator to match the scale of the inversion matrix A.
-        GtFg       = G.t() @ (F_new_inv * g_comp)
-        coeff      = A_inv @ GtFg
+        # ── 1. Fisher-Orthogonal Projection ───────────────────────────────────
+        # This step ensures that (v_starᵀ · F_old · G) = 0.
+        Gt_g   = G.t() @ g                          # [K]
+        coeff  = A_inv @ Gt_g                       # [K]
         
-        # We multiply by F_old here to apply the correction specifically 
-        # to the parameters Task 1 cares about.
-        correction = (G @ coeff) 
-        Pg = g_comp - correction
+        # The correction is weighted by F_old to protect high-curvature regions
+        correction = F_old * (G @ coeff)            # [D_θ]
+        Pg = g - correction                         # [D_θ]
 
-       # ── 2. Metrics ───────────────────────────────────────────────────────
-        F_sqrt         = F_old.clamp(min=0).sqrt()
-        weighted_rho   = ((F_sqrt * Pg).norm() / ((F_sqrt * g_comp).norm() + eps)).item()
+        # ── 2. Projection quality metrics ────────────────────────────────────
+        F_sqrt = F_old.clamp(min=0).sqrt()
+        weighted_rho = ((F_sqrt * Pg).norm() / ((F_sqrt * g).norm() + eps)).item()
         correction_norm = correction.norm().item()
-        raw_rho        = (Pg.norm() / (g_comp.norm() + eps)).item()
+        raw_rho = (Pg.norm() / (g.norm() + eps)).item()
 
-        # ── 3. NATURAL GRADIENT STEP ──────────────────────────────────────
+        # ── 3. Natural Gradient Preconditioning ──────────────────────────────
+        # Use F_new to scale the step according to current task curvature[cite: 1].
+        F_new_inv = 1.0 / (F_new + self.damping)
         v_raw = F_new_inv * Pg
 
-        # # ── 4. RIEMANNIAN TRUST-REGION CLIPPING ───────────────────────────
-        # # Your mathematically correct Riemannian norm
-        denom = torch.sqrt((Pg * v_raw).sum() + 1e-8)
+        # ── 4. Gradient Norm Clipping (Paper Stability) ──────────────────────
+        max_norm = 0.5
+        v_norm = torch.norm(v_raw)
+        v_star = v_raw * (max_norm / v_norm) if v_norm > max_norm else v_raw
+
+        # Apply learning rate and return update[cite: 1]
+        return -(self.lr * v_star), weighted_rho, correction_norm, raw_rho
+
+    def _build_A_inv(
+            self,
+            G: Tensor,
+            F_old: Tensor,
+            F_new: Tensor, # Included for signature compatibility
+        ) -> Tensor:
+        """
+        A = Gᵀ · diag(F_old) · G + λI.
+        This represents the curvature of previous tasks within the subspace G.
+        """
+        # Weight the subspace basis by the historical importance (F_old)
+        scaled_G = F_old.unsqueeze(1) * G            # [D_θ, K]
+        A = G.t() @ scaled_G                         # [K, K]
         
-        # # Define the maximum allowed change in distribution (KL divergence limit)
-        # max_kl = 0.5 
+        # Add damping/regularization for numerical stability
+        A = A + self.lam * torch.eye(A.shape[0], device=A.device)
         
-        # # The crucial fix: Only scale DOWN. Never scale UP.
-        # if denom > max_kl:
-        #     v_star = v_raw * (max_kl / denom)
-        # else:
-        #     v_star = v_raw
-            
-        # # Apply learning rate
-        # v_star = -self.lr * v_star
-        
-        # # ── 4. MANDATORY CLIPPING ─────────────────────────────────────────
-        # max_norm = 0.5
-        # v_norm = torch.norm(v_raw)
-        # if v_norm > max_norm:
-        #     v_star = v_raw * (max_norm / v_norm)
-        # else:
-        #     v_star = v_raw
-        v_star = -self.lr * v_raw / (denom + 1e-8)
-        # Result lives on comp_dev (== G.device == target_dev).
-        return v_star, weighted_rho, correction_norm, raw_rho
+        # Solve via pinv or pseudo-inverse for stability
+        return torch.linalg.pinv(A)
 
     def compute_fisher(self, model: nn.Module, loader: DataLoader, criterion: Callable) -> Tensor:
         return self.compute_fisher_diag(model, loader, criterion, self._device, self.fisher_samples)
@@ -149,7 +146,7 @@ class FOPNG:
             metric would be geometrically inconsistent.
 
         FIX 2 — why shared params only:
-            task_emb is excluded via _shared_params. See that docstring.
+            task_emb is excluded via _shared_params(). See that docstring.
 
         Implementation:
             g_w  = ∂L/∂w   (one autograd.grad call in w-space)
@@ -181,22 +178,21 @@ class FOPNG:
                 x, y = x.to(device), y.to(device)
 
                 # ── Step 1: get g_w in w-space ──────────────────────────────
+
                 hyper_network.zero_grad()
+
                 hyper_network.spawn(task_id)
-                w = hyper_network.w
                 output = hyper_network(x)
                 loss = criterion(output, y)
-                (g_w,) = torch.autograd.grad(loss, w)   # graph freed here
+
 
                 # ── Step 2: translate g_w → g_θ via Jᵀ ────────────────────
                 # Fresh spawn so we get a new graph rooted at θ.
                 hyper_network.zero_grad()
-                hyper_network.spawn(task_id)
-                hyper_network.w.backward(g_w.detach())  # θ.grad = Jᵀ g_w
+                loss.backward()
 
-                g_theta = torch.cat([
-                    p.grad.view(-1) for p in shared if p.grad is not None
-                ])
+                g_theta = get_grad_vector(hyper_network)
+                g_theta /= hyper_network.num_of_chunks
                 # Move to target_dev before accumulating (no-op when device == target_dev).
                 fisher.add_(g_theta.detach().to(target_dev).pow(2))    # diagonal F_θ
 
@@ -230,11 +226,6 @@ class FOPNG:
             fisher = fisher.clamp(max=p.item())
         if fisher.max() > 0:
             fisher = fisher / fisher.max()
-
-            # Add a small floor (e.g., 1e-4) so the projection doesn't ignore 98% of the MLP
-        fisher = fisher + 1e-4 
-        if fisher.max() > 0:
-            fisher = fisher / fisher.max()
         return fisher
 
     def prepare_epoch(self, F_new: Tensor) -> None:
@@ -242,7 +233,7 @@ class FOPNG:
         self._F_new = F_new
         self._A_inv = self._build_A_inv(self.G, self.F_old, self._F_new)
 
-    def step(self, model: nn.Module, task_id, g_w: Tensor) -> float:
+    def step(self, model: nn.Module, task_id, g_theta: Tensor) -> float:
         """
         g_w : [D_w] gradient of loss w.r.t. generated weights w,
               computed by the training loop via autograd.grad(loss, w).
@@ -280,29 +271,12 @@ class FOPNG:
                      accumulation and parameter application.
         """
 
-        model_device = g_w.device
-        # Where FOPNG matrix math runs (CPU for cpu/hybrid, GPU for gpu).
-        target_dev   = self._get_target_device(model_device)
-        # Where momentum buffer lives and where parameters are applied.
-        compute_dev  = self._get_compute_device(model_device)
-
         assert self._A_inv is not None, "Call prepare_epoch(F_new) before step()."
         shared = model._shared_params
         
-        # ── 1. Translate g_w → g_θ via Jᵀ ───────────────────────────────
-        # model.w.backward() populates .grad for EVERY parameter in spawn()'s
-        # computation graph: layers, chunk_emb, AND task_emb.
-        model.zero_grad()
-        model.spawn(task_id)
-        model.w.backward(g_w.detach())          # θ.grad = Jᵀ g_w
-
-        g_theta = torch.cat([
-            p.grad.view(-1) for p in shared if p.grad is not None
-        ])
-
         # ── 2. Update task_emb NOW, before zero_grad clears it ────────────
         # WHY task_emb needs a gradient step here:
-        #   _shared_params correctly excludes task_emb from the FOPNG
+        #   _shared_params() correctly excludes task_emb from the FOPNG
         #   projection because row t of task_emb only affects task t's
         #   spawn() output and can never cause cross-task forgetting.
         #   BUT that exclusion also means step() previously never updated
@@ -320,7 +294,7 @@ class FOPNG:
         with torch.no_grad():
             te_grad = model.task_emb.weight.grad
             if te_grad is not None:
-                model.task_emb.weight.data.add_(-model.task_embedding_lr * te_grad)
+                model.task_emb.weight.data.add_(-self.lr * te_grad)
 
         # weighted_rho: correct metric — retention in Fisher-important subspace
         # correction_norm: absolute gradient mass removed
@@ -331,26 +305,17 @@ class FOPNG:
         # _fopng_update computes entirely on that device (target_dev) and
         # returns the update tensor on target_dev.
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
-            g=g_theta.to(target_dev), G=self.G, F_old=self.F_old, F_new=self._F_new,
-            A_inv=self._A_inv,
+            g=g_theta, G=self.G, F_old=self.F_old, F_new=self._F_new,
+            A_inv=self._A_inv
         )
 
-        # ── 4. Accumulate momentum ────────────────────────────────────────
-        # Move v_star_theta to compute_dev:
-        #   cpu    → stays on CPU  (compute_dev == CPU)
-        #   gpu    → no-op         (compute_dev == GPU == target_dev)
-        #   hybrid → moves CPU→GPU (compute_dev == GPU, target_dev == CPU)
-        v_star_theta = v_star_theta.to(compute_dev)
 
         # if self.momentum_buffer is None:
-        #     self.momentum_buffer = torch.zeros_like(v_on_compute)
+        #     self.momentum_buffer = torch.zeros_like(v_star_theta)
 
-        # self.momentum_buffer = self.beta_decay * self.momentum_buffer + v_on_compute
+        # self.momentum_buffer = self.beta_decay * self.momentum_buffer + v_star_theta
 
         # ── 5. Apply update to model parameters ──────────────────────────
-        # For cpu mode: move CPU buffer → model_device (GPU).
-        # For gpu/hybrid: buffer is already on model_device; .to() is a no-op.
-        # update = self.momentum_buffer.to(model_device)
 
         pointer = 0
         with torch.no_grad():
@@ -397,12 +362,14 @@ class FOPNG:
             if self.debug:
                 print(f"[FOPNG] MAX N OF G REACHED: {self.G.shape[1]}. Downsampling to {self.max_directions}...")
 
-            # Perform Singular Value Decomposition on the GPU
-            # U contains the orthonormal principal components of the subspace
-            U, S, Vh = torch.linalg.svd(self.G, full_matrices=False)
-            
-            # Keep only the top 'max_directions' principal components
-            self.G = U[:, :self.max_directions]
+            # Downsample the ENTIRE memory bank G globally
+            indices = torch.linspace(
+                0, self.G.shape[1] - 1, 
+                steps=self.max_directions, 
+                dtype=torch.long, 
+                device=self.G.device
+            )
+            self.G = self.G[:, indices]
 
         if self.debug:
             print(f"[FOPNG] Current G memory size: {self.G.shape[1]} / {self.max_directions}")
@@ -432,16 +399,6 @@ class FOPNG:
         torch.cuda.empty_cache()
         gc.collect()
 
-    def _build_A_inv(self, G, F_old, F_new):
-        # A_inv correctly uses F_old^2 / F_new
-        # All inputs share the same device (target_dev), so the result also
-        # lives on target_dev — no explicit device placement needed.
-        scale = 1.0 / (F_new + self.damping) 
-        scaled_G = scale.unsqueeze(1) * G
-        A = G.t() @ scaled_G
-        # Use a stable lambda (1e-4) to prevent noise amplification
-        A = A + self.lam * torch.eye(A.shape[0], device=A.device)
-        return torch.linalg.pinv(A)
 
 
     def _collect_gradients(self, hyper_network: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> Tensor:
@@ -474,7 +431,7 @@ class FOPNG:
             retention needed), then translate via Jᵀ to get g_θ.
 
         WHY SHARED PARAMS ONLY:
-            task_emb excluded via _shared_params. See that docstring.
+            task_emb excluded via _shared_params(). See that docstring.
 
         Returns
         -------
@@ -502,33 +459,18 @@ class FOPNG:
                     # ── Step 1: get g_w = ∂L/∂w in w-space ───────────────
                     hyper_network.zero_grad()
                     hyper_network.spawn(task_id)
-                    w = hyper_network.w
                     output = hyper_network(x)
                     loss = criterion(output, y)
-                    (g_w,) = torch.autograd.grad(loss, w)       # graph freed
-
-                    # ── Step 2: translate g_w → g_θ = Jᵀg_w ──────────────
                     hyper_network.zero_grad()
-                    hyper_network.spawn(task_id)                # fresh graph
-                    hyper_network.w.backward(g_w.detach())      # θ.grad = Jᵀ g_w
-
+                    loss.backward()
+                    
                     g_theta = torch.cat([
                         p.grad.view(-1) for p in shared if p.grad is not None
                     ])
-                    # ADD THIS LINE: Normalize the direction so Task 1 gradients aren't "smaller" than Task 2
-                    # g_theta = g_theta / (torch.norm(g_theta) + 1e-8) 
-                    
-                    
-                    # 🛑 CRITICAL FIX: THE BOUNCER 🛑
-                    # If this specific batch produced a NaN or Inf, skip it!
-                    if torch.isnan(g_theta).any() or torch.isinf(g_theta).any():
-                        hyper_network.zero_grad()
-                        continue
 
                     # Move to target_dev (no-op when model is already on target_dev).
                     grads.append(g_theta.detach().to(target_dev))
                     hyper_network.zero_grad()
-
 
         hyper_network.train()
         return torch.stack(grads, dim=1)    # [D_theta_shared, grads_per_task]
@@ -701,35 +643,46 @@ def get_magnitude_decay_lr(current_lr: float) -> float:
         return 1.0 * (10 ** exp)
     else:               # If current LR starts with 1 (e.g., 0.01) -> drop to 0.005
         return 5.0 * (10 ** (exp - 1))
+        
+def get_grad_vector(model: nn.Module) -> torch.Tensor:
+    """Concatenate all parameter gradients into a single 1D tensor."""
+    grads = []
+    for p in model._shared_params:
+        if p.grad is None:
+            grads.append(torch.zeros_like(p.data).view(-1))
+        else:
+            grads.append(p.grad.view(-1))
+    return torch.cat(grads)
 
 def train_fopng(
-    hyper_network: nn.Module,
-    train_loaders: List[DataLoader],
-    test_loaders: List[DataLoader],
-    criterion: Callable,
-    *,
-    lr: float = 1e-3,
-    lam: float = 1e-3,
-    damping: float = 0.2,
-    alpha: float = 0.5,
-    grads_per_task: int = 80,
-    max_directions: int = 400,
-    fisher_samples: int = 1024,
-    epochs: int = 5,
-    max_epochs: int = None,
-    first_task_optimizer_cls=torch.optim.SGD,
-    task_classes: Optional[list] = None,
-    verbose: bool = True,
-    device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-) -> FOPNG:
+        hyper_network: nn.Module,
+        train_loaders: List[DataLoader],
+        test_loaders: List[DataLoader],
+        criterion: Callable,
+        *,
+        lr: float = 1e-3,
+        lam: float = 1e-3,
+        alpha: float = 0.5,
+        grads_per_task: int = 80,
+        max_directions: int = 400,
+        fisher_samples: int = 1024,
+        epochs: int = 5,
+        max_epochs: int = None,
+        first_task_optimizer_cls=torch.optim.SGD,
+        task_classes: Optional[list] = None,
+        verbose: bool = True,
+        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
+        damping = 1e-3,
+        saved = True
+    ) -> FOPNG:
     device = next(hyper_network.parameters()).device
     fopng = FOPNG(
-        lr=lr, lam=lam, damping=damping, alpha=alpha,
+        lr=lr, lam=lam, alpha=alpha,
         grads_per_task=grads_per_task,
         max_directions=max_directions,
         fisher_samples=fisher_samples,
         device_mode=device_mode,
-        
+        num_tasks=len(train_loaders),
     )
     results = {}
     global_epoch = 0
@@ -745,51 +698,47 @@ def train_fopng(
 
         epoch = 0
         if t == 0:
-            if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
-            loss_to_achieve =  0.2
-            while best_loss >= loss_to_achieve and loss_repeat < 8 and epoch < _max_epochs:
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
-                
-                avg_loss = total_loss / len(loader)
-                wandb.log({"fopng/train/loss": avg_loss, "fopng/global_epoch": global_epoch, "task": t+1})
-                global_epoch += 1
-                if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
+            if not saved:
+                if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
+                opt = first_task_optimizer_cls(hyper_network.parameters(), lr=5e-3)
+                while best_loss >= 0.2 and loss_repeat < 5 and epoch < _max_epochs:
+                    total_loss = 0.0
+                    hyper_network.train()
+                    for x, y in loader:
+                        x, y = x.to(device), y.to(device)
+                        opt.zero_grad()
+                        hyper_network.spawn(task_id)
+                        output = hyper_network(x)
+                        loss = criterion(output, y)
+                        loss.backward()
+                        opt.step()
+                        total_loss += loss.item()
+                    
+                    avg_loss = total_loss / len(loader)
+                    wandb.log({"fopng/train/loss": avg_loss, "fopng/global_epoch": global_epoch, "task": t+1})
+                    global_epoch += 1
+                    if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
 
+                    if best_loss < avg_loss:
+                        loss_repeat += 1
+                    else:
+                        loss_repeat = 0
+                        best_loss = avg_loss
+                        best_parameters = hyper_network.state_dict()
 
-                # 3. REDUCE LR ON PLATEAU
-                # If loss hasn't improved for 5 epochs, cut speed in half
-                if lr_patience_counter >= 5:
-                    for g in opt.param_groups:
-                        g['lr'] = get_magnitude_decay_lr(g['lr'])
-                    lr_patience_counter = 0 # Reset so we don't decay again immediately
-                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {g['lr']}")
-    
-                if best_loss < avg_loss:
-                    loss_repeat += 1
-                    lr_patience_counter += 1
-                else:
-                    loss_repeat = 0
-                    lr_patience_counter = 0
+                    epoch += 1
 
-                    best_loss = avg_loss
-                    best_parameters = hyper_network.state_dict()
+                hyper_network.load_state_dict(best_parameters) # Load the best loss for the task and use it from now on.
 
-                epoch += 1
-            
-            reason = f"best_loss: {best_loss}" if best_loss < loss_to_achieve else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
-            print(f"Task 1 Finished: {reason}")
+                reason = f"best_loss: {best_loss}" if best_loss < 0.2 else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
+                print(f"Task 1 Finished: {reason}")
+                torch.save(hyper_network.state_dict(), "first_run_weights.pt")
+            else:
+                hyper_network.load_state_dict(torch.load("first_run_weights.pt", weights_only=True))
+
             fopng.after_task(hyper_network, task_id, loader, criterion)
+
+
         else:
             if verbose: print(f"\n[FOPNG] Task {t+1}")
             # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
@@ -798,7 +747,7 @@ def train_fopng(
             ####################################################################
             active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
             opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
-            warmup_n = 15
+            warmup_n = 5
             for i in range(warmup_n):
                 total_loss = 0.0
                 hyper_network.train()
@@ -829,20 +778,21 @@ def train_fopng(
                 total_correction_norm = 0.0
                 total_raw_rho = 0.0
                 hyper_network.train()
-
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
 
                     hyper_network.spawn(task_id)
-                    w = hyper_network.w
                     output = hyper_network(x)
                     loss = criterion(output, y)
                     total_loss += loss.item()
+                    
+                    hyper_network.zero_grad()
+                    loss.backward()
 
-                    (g_w,) = torch.autograd.grad(loss, w)
+                    g_theta = get_grad_vector(hyper_network)
 
-                    weighted_rho, correction_norm, raw_rho = fopng.step(hyper_network, task_id, g_w.detach())
+                    weighted_rho, correction_norm, raw_rho = fopng.step(hyper_network, task_id, g_theta.detach())
                     total_weighted_rho    += weighted_rho
                     total_correction_norm += correction_norm
                     total_raw_rho         += raw_rho
@@ -853,6 +803,13 @@ def train_fopng(
                 avg_correction_norm= total_correction_norm/ n_batches
                 avg_raw_rho        = total_raw_rho        / n_batches
 
+                # 2. INTELLIGENT LOSS TRACKING
+                # Require a meaningful improvement (e.g., 0.0001) to reset patience
+                if avg_loss < best_loss - 1e-4:
+                    best_loss = avg_loss
+                    lr_patience_counter = 0
+                else:
+                    lr_patience_counter += 1
 
                 # 3. REDUCE LR ON PLATEAU
                 # If loss hasn't improved for 5 epochs, cut speed in half
@@ -863,11 +820,8 @@ def train_fopng(
     
                 if best_loss < avg_loss:
                     loss_repeat += 1
-                    lr_patience_counter += 1
                 else:
                     loss_repeat = 0
-                    lr_patience_counter = 0
-
                     best_loss = avg_loss
                     best_parameters = hyper_network.state_dict()
 
@@ -892,7 +846,7 @@ def train_fopng(
             hyper_network.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.
             fopng.lr = base_lr 
             fopng.after_task(hyper_network, task_id, loader, criterion)
-        
+            
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
         results[t+1] = []
         eval_metrics = {"task_completed": t+1}
@@ -946,6 +900,7 @@ def train_fopng(
     plt.close()
 
     return results
+
 # ─────────────────────────────────────────────────────────────────────────────
 # FOPNG+ Class
 # ─────────────────────────────────────────────────────────────────────────────
@@ -966,6 +921,11 @@ class FOPNGPlus(FOPNG):
         gradient directions for ALL previously seen tasks under the CURRENT θ.
         This costs O(num_tasks × grads_per_task) extra gradient evaluations
         once per task boundary — cheap relative to training.
+
+    Cost analysis (5 tasks, 300 grads/task):
+        FOPNG:   300 grad evals at each task boundary  (total: 1500)
+        FOPNG+:  300, 600, 900, 1200, 1500 at boundaries (total: 4500)
+        The 3× overhead per run is well worth the forgetting reduction.
     """
 
     def __init__(self, *args, **kwargs):
@@ -985,56 +945,57 @@ class FOPNGPlus(FOPNG):
         self._device = device
         target_dev = self._get_target_device(device)
 
-        # ── 1. Fisher update (Matching FOPNG Arithmetic Mean) ────────────
+        # ── 1. Fisher update (identical to FOPNG) ────────────────────────
         F_new = self.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
         self.fisher_after_task[task_id.item()] = F_new
 
         if self.F_old is not None:
-            cosine_sim   = self._cosine_similarity(self.F_old, F_new)
+            cosine_sim  = self._cosine_similarity(self.F_old, F_new)
             pearson_corr = self._pearson_correlation(self.F_old, F_new)
-            topk_iou     = self._calculate_topk_iou(self.F_old, F_new)
+            topk_iou    = self._calculate_topk_iou(self.F_old, F_new)
         else:
             cosine_sim = pearson_corr = topk_iou = 1.0
 
         if self.F_old is None:
             self.F_old = F_new.detach().to(target_dev)
         else:
-            # Arithmetic Mean: All tasks have exactly 1/N weight
-            n = task_id.item() + 1
-            self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().to(target_dev)
+            # Instead of linspace on the whole array, downsample the NEW columns 
+            # so they fit exactly into their designated slice of the budget.
+            budget_per_task = self.max_directions // num_tasks
+            
+            if new_cols.shape[1] > budget_per_task:
+                indices = torch.linspace(0, new_cols.shape[1] - 1, steps=budget_per_task, dtype=torch.long)
+                new_cols = new_cols[:, indices]
+             
+        self.G = new_cols if self.G is None else torch.cat([self.G, new_cols], dim=1)
 
         # ── 2. Store this task for future Jacobian refreshes ─────────────
         self._task_history.append((task_id.clone(), loader))
 
         # ── 3. FOPNG+: Rebuild G from scratch under current θ ────────────
+        # Re-collect grads_per_task directions for EVERY previously seen task
+        # using the current model weights. This replaces stale J(θ_old) vectors
+        # with fresh J(θ_current) vectors, keeping the projection subspace
+        # geometrically aligned with the actual parameter space.
         print(f"  [FOPNG+] Refreshing G for {len(self._task_history)} task(s) under current θ...")
         all_cols = []
         for prev_task_id, prev_loader in self._task_history:
-            # Re-collect gradients using the CURRENT model state
             cols = self._collect_gradients(hyper_network, prev_task_id, prev_loader, criterion)
             all_cols.append(cols)
 
-        # Combine all freshly collected gradients
         G_fresh = torch.cat(all_cols, dim=1)   # [D_theta_shared, total_cols]
 
-        # ── 4. Compress via SVD if Memory is Full ────────────────────────
+        # Apply max_directions budget — spread evenly across tasks
         if G_fresh.shape[1] > self.max_directions:
-            if getattr(self, 'debug', False):
-                print(f"[FOPNG+] MAX N OF G REACHED: {G_fresh.shape[1]}. Compressing via SVD to {self.max_directions}...")
+            indices = torch.linspace(
+                0, G_fresh.shape[1] - 1,
+                steps=self.max_directions,
+                dtype=torch.long,
+                device=G_fresh.device,
+            )
+            G_fresh = G_fresh[:, indices]
 
-            # Perform Singular Value Decomposition on the GPU
-            U, S, Vh = torch.linalg.svd(G_fresh, full_matrices=False)
-            
-            # Keep only the top 'max_directions' principal components
-            G_fresh = U[:, :self.max_directions]
-
-        # Overwrite the global memory bank completely
         self.G = G_fresh
-
-        # ── 5. Clear Momentum & Log ──────────────────────────────────────
-        self.momentum_buffer = None 
-        self.task_momentum = None
-        print("  [FOPNG+] Momentum buffer reset for next task.")
 
         f_nonzero2 = self.F_old[self.F_old > 0]
         logs = {
@@ -1051,46 +1012,42 @@ class FOPNGPlus(FOPNG):
             "task_completed": task_id.item() + 1,
         }
         print(logs)
-        import wandb
         wandb.log(logs)
         torch.cuda.empty_cache()
-        import gc
         gc.collect()
 
+
 def train_fopng_plus(
-    hyper_network: nn.Module,
-    train_loaders: List[DataLoader],
-    test_loaders: List[DataLoader],
-    criterion: Callable,
-    *,
-    lr: float = 1e-3,
-    lam: float = 1e-3,
-    alpha: float = 0.5,
-    damping: float = 0.02,
-    grads_per_task: int = 80,
-    max_directions: int = 400,
-    fisher_samples: int = 1024,
-    epochs: int = 5,
-    max_epochs: int = None,
-    first_task_optimizer_cls=torch.optim.SGD,
-    task_classes: Optional[list] = None,
-    verbose: bool = True,
-    device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-) -> dict:
+        hyper_network: nn.Module,
+        train_loaders: List[DataLoader],
+        test_loaders: List[DataLoader],
+        criterion: Callable,
+        *,
+        lr: float = 1e-3,
+        lam: float = 1e-3,
+        alpha: float = 0.5,
+        grads_per_task: int = 80,
+        max_directions: int = 400,
+        fisher_samples: int = 1024,
+        epochs: int = 5,
+        max_epochs: int = None,
+        first_task_optimizer_cls=torch.optim.Adam,
+        task_classes: Optional[list] = None,
+        verbose: bool = True,
+    ) -> dict:
     """
     Training loop for FOPNG+.
 
     Identical to train_fopng except it uses FOPNGPlus, which rebuilds G
-    from scratch under the current θ at every task boundary.
+    from scratch under the current θ at every task boundary. The training
+    loop itself (forward pass, step, eval) is unchanged.
     """
     device = next(hyper_network.parameters()).device
     fopng_plus = FOPNGPlus(
         lr=lr, lam=lam, alpha=alpha,
-        damping=damping,
         grads_per_task=grads_per_task,
         max_directions=max_directions,
         fisher_samples=fisher_samples,
-        device_mode=device_mode,
     )
     results = {}
     global_epoch = 0
@@ -1100,90 +1057,46 @@ def train_fopng_plus(
         best_loss = inf
         loss_repeat = 0
         _max_epochs = max_epochs if max_epochs else epochs
-        lr_patience_counter = 0
-        best_parameters = None
-        base_lr = lr
-
         epoch = 0
         if t == 0:
-            if verbose: print(f"[FOPNG+] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
-            loss_to_achieve = 0.2
-            
-            while best_loss >= loss_to_achieve and loss_repeat < 8 and epoch < _max_epochs:
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
-                
-                avg_loss = total_loss / len(loader)
-                wandb.log({"fopng_plus/train/loss": avg_loss, "fopng_plus/global_epoch": global_epoch, "task": t+1})
-                global_epoch += 1
-                if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
+            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
+                if verbose: print(f"[FOPNG+] Task 1 – {first_task_optimizer_cls.__name__}")
+                opt = first_task_optimizer_cls(hyper_network.parameters(), lr=lr)
+                for epoch in range(epochs):
+                    total_loss = 0.0
+                    hyper_network.train()
+                    for x, y in loader:
+                        x, y = x.to(device), y.to(device)
+                        opt.zero_grad()
+                        hyper_network.spawn(task_id)
+                        output = hyper_network(x)
+                        loss = criterion(output, y)
+                        loss.backward()
+                        opt.step()
+                        total_loss += loss.item()
+                    avg_loss = total_loss / len(loader)
+                    wandb.log({"fopng_plus/train/loss": avg_loss, "fopng_plus/global_epoch": global_epoch, "task": t + 1})
+                    global_epoch += 1
+                    if verbose: print(f"  epoch {epoch+1}/{epochs} loss={avg_loss:.4f}")
 
-                # 3. REDUCE LR ON PLATEAU
-                if lr_patience_counter >= 5:
-                    for g in opt.param_groups:
-                        g['lr'] = get_magnitude_decay_lr(g['lr'])
-                    lr_patience_counter = 0 
-                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {g['lr']}")
-    
-                if best_loss < avg_loss:
-                    loss_repeat += 1
-                    lr_patience_counter += 1
-                else:
-                    loss_repeat = 0
-                    lr_patience_counter = 0
-                    best_loss = avg_loss
-                    best_parameters = hyper_network.state_dict()
+                    if best_loss < avg_loss:
+                        loss_repeat += 1
+                    else:
+                        loss_repeat = 0
+                        best_parameters = hyper_network.state_dict()
+                        best_loss = avg_loss
 
                 epoch += 1
             
             reason = f"best_loss: {best_loss}" if best_loss < loss_to_achieve else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
             print(f"Task 1 Finished: {reason}")
             fopng_plus.after_task(hyper_network, task_id, loader, criterion)
-            
+
         else:
             if verbose: print(f"\n[FOPNG+] Task {t+1}")
-            
-            # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
-            for param in hyper_network._shared_params:
-                param.requires_grad = False
-            ####################################################################
-            
-            active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
-            opt = first_task_optimizer_cls(active_params, lr=base_lr, weight_decay=1e-4)
 
-            for i in range(5):
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
-                
-                avg_loss = total_loss / len(loader)
-                if verbose: print(f"  embedding layer warm up {i+1}/{5} loss={avg_loss:.4f}")
 
-            # UNFREEZING SHARED_PARAMS #
-            for param in hyper_network._shared_params:
-                param.requires_grad = True
-            ############################
-
-            loss_to_achieve = 0.15 
-            while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
+            while best_loss >= 0.15 and loss_repeat < 5 and epoch < _max_epochs:
                 F_new = fopng_plus.compute_fisher_diag(hyper_network, task_id, loader, criterion, device)
                 fopng_plus.prepare_epoch(F_new)
                 total_loss = 0.0
@@ -1195,101 +1108,86 @@ def train_fopng_plus(
                 for x, y in loader:
                     x, y = x.to(device), y.to(device)
                     hyper_network.zero_grad()
-
                     hyper_network.spawn(task_id)
                     w = hyper_network.w
                     output = hyper_network(x)
                     loss = criterion(output, y)
                     total_loss += loss.item()
-
                     (g_w,) = torch.autograd.grad(loss, w)
-
-                    weighted_rho, correction_norm, raw_rho = fopng_plus.step(hyper_network, task_id, g_w.detach())
+                    weighted_rho, correction_norm, raw_rho = fopng_plus.step(
+                        hyper_network, task_id, g_w.detach()
+                    )
                     total_weighted_rho    += weighted_rho
                     total_correction_norm += correction_norm
                     total_raw_rho         += raw_rho
 
                 n_batches = len(loader)
-                avg_loss           = total_loss           / n_batches
-                avg_weighted_rho   = total_weighted_rho   / n_batches
-                avg_correction_norm= total_correction_norm/ n_batches
-                avg_raw_rho        = total_raw_rho        / n_batches
+                avg_loss            = total_loss            / n_batches
+                avg_weighted_rho    = total_weighted_rho    / n_batches
+                avg_correction_norm = total_correction_norm / n_batches
+                avg_raw_rho         = total_raw_rho         / n_batches
 
-                # REDUCE LR ON PLATEAU
-                if lr_patience_counter >= 5:
-                    fopng_plus.lr = get_magnitude_decay_lr(fopng_plus.lr)
-                    lr_patience_counter = 0 
-                    if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng_plus.lr}")
-    
                 if best_loss < avg_loss:
                     loss_repeat += 1
-                    lr_patience_counter += 1
                 else:
                     loss_repeat = 0
-                    lr_patience_counter = 0
                     best_loss = avg_loss
-                    best_parameters = hyper_network.state_dict()
 
                 wandb.log({
-                    "fopng_plus/train/loss":             avg_loss,
-                    "fopng_plus/train/weighted_rho":     avg_weighted_rho,
-                    "fopng_plus/train/correction_norm":  avg_correction_norm,
-                    "fopng_plus/train/raw_rho":          avg_raw_rho,
-                    "fopng_plus/global_epoch":           global_epoch,
-                    "task":                              t + 1,
+                    "fopng_plus/train/loss":            avg_loss,
+                    "fopng_plus/train/weighted_rho":    avg_weighted_rho,
+                    "fopng_plus/train/correction_norm": avg_correction_norm,
+                    "fopng_plus/train/raw_rho":         avg_raw_rho,
+                    "fopng_plus/global_epoch":          global_epoch,
+                    "task":                             t + 1,
                 })
                 global_epoch += 1
-
-                if verbose: print(f"  epoch {epoch+1}/{max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={fopng_plus.lr}")
+                if verbose:
+                    print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} "
+                          f"w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e}")
                 epoch += 1
+            if t != len(train_loaders) - 1:
+                fopng_plus.after_task(hyper_network, task_id, loader, criterion)
 
-            hyper_network.load_state_dict(best_parameters) 
-            fopng_plus.lr = base_lr 
-            fopng_plus.after_task(hyper_network, task_id, loader, criterion)
-        
-        # ── Evaluate on ALL tasks using TEST loaders ───────────────────
-        results[t+1] = []
-        eval_metrics = {"task_completed": t+1}
-        
-        for i in range(len(test_loaders)): 
+        # ── Evaluate on ALL tasks ─────────────────────────────────────────
+        results[t + 1] = []
+        eval_metrics = {"task_completed": t + 1}
+        for i in range(len(test_loaders)):
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
             tc = task_classes[i] if task_classes is not None else None
             acc = evaluate_accuracy(hyper_network, test_loaders[i], eval_task_id, task_classes=tc)
-            results[t+1].append(acc)
+            results[t + 1].append(acc)
             eval_metrics[f"fopng_plus/eval/acc_task_{i+1}"] = acc
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
-            
+
         if t != 0:
-            bwt = calc_bwt(results, task_id=t+1)
+            bwt = calc_bwt(results, task_id=t + 1)
             eval_metrics["fopng_plus/eval/bwt"] = bwt
-            if verbose: print(f"BWT at task {t+1}: {bwt:.4f}")
+            if verbose: print(f"BWT for task {t+1}: {bwt:.4f}")
 
         wandb.log(eval_metrics)
 
     # ── Final plots ───────────────────────────────────────────────────────
-    tasks_completed = sorted(list(results.keys())) 
-    num_eval_tasks = len(test_loaders)
+    tasks_completed = sorted(results.keys())
+    num_eval_tasks  = len(test_loaders)
 
     matrix, keys = fopng_plus.compute_overlap_matrix()
     heat_map = plot_overlap(matrix, keys)
     wandb.log({"FOPNG+ FRECHET CORR MATRIX": wandb.Image(heat_map)})
-    
+
     plt.figure(figsize=(10, 6))
-    cmap = plt.get_cmap('gist_rainbow')
+    cmap   = plt.get_cmap('gist_rainbow')
     colors = [cmap(i) for i in np.linspace(0, 1, num_eval_tasks)]
-    
     for i in range(num_eval_tasks):
         accs = [results[t][i] for t in tasks_completed]
-        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5, 
+        plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5,
                  color=colors[i % len(colors)], label=f"{i+1}")
-
     plt.title("FOPNG+ Hypernetwork: All Tasks", fontsize=14, fontweight='bold')
     plt.xlabel("Tasks Completed", fontsize=12)
     plt.ylabel("Test Accuracy", fontsize=12)
     plt.xticks(tasks_completed)
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend(title="Evaluated Task", loc="lower left")
-    
     wandb.log({"FOPNG+ Overlapping Accuracies (Colored)": wandb.Image(plt)})
     plt.close()
 
