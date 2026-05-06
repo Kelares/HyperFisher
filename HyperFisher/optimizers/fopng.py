@@ -58,7 +58,7 @@ class FOPNG:
         self.damping = damping
         self.beta_decay = 0.9
         self.task_momentum = None
-        self.quantile = 0.95
+        self.quantile = 0.98
 
 
     def _fopng_update(
@@ -94,11 +94,10 @@ class FOPNG:
         # Use F_new to scale the step according to current task curvature[cite: 1].
         F_new_inv = 1.0 / (F_new + self.damping)
         v_raw = F_new_inv * Pg
-
         # ── 4. Gradient Norm Clipping (Paper Stability) ──────────────────────
-        max_norm = 0.5
-        v_norm = torch.norm(v_raw)
-        v_star = v_raw * (max_norm / v_norm) if v_norm > max_norm else v_raw
+        max_kl = 0.5
+        denom = torch.sqrt((Pg * v_raw).sum() + 1e-8)
+        v_star = v_raw * (max_norm / denom) if denom > max_norm else v_raw
 
         # Apply learning rate and return update[cite: 1]
         return -(self.lr * v_star), weighted_rho, correction_norm, raw_rho
@@ -220,6 +219,7 @@ class FOPNG:
         #   preserving the relative importance ordering within each
         #   parameter group. The resulting Fisher has mean ≈ 0.1–0.3
         #   instead of 0.0002, making the projection actually meaningful.
+        fisher /= n_seen
         fisher_nonzero = fisher[fisher > 0]
         if len(fisher_nonzero) > 0:
             p = torch.quantile(fisher_nonzero, self.quantile)
@@ -673,7 +673,7 @@ def train_fopng(
         verbose: bool = True,
         device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
         damping = 1e-3,
-        saved = False,
+        saved = True,
         warmup = False
     ) -> FOPNG:
     device = next(hyper_network.parameters()).device
@@ -690,7 +690,8 @@ def train_fopng(
     loss_to_achieve = 0.15 
     _max_epochs = max_epochs if max_epochs else epochs
     base_lr = lr
-
+    save_label = "first_run_weights"
+    save_path = "first_run_weights.pt"
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
         best_loss = inf
@@ -734,9 +735,10 @@ def train_fopng(
 
                 reason = f"best_loss: {best_loss}" if best_loss < 0.2 else f"loss_repeat: {loss_repeat}" if loss_repeat < 10 else f"epoch: {epoch}"
                 print(f"Task 1 Finished: {reason}")
-                torch.save(hyper_network.state_dict(), "first_run_weights.pt")
+                save_path = f"{save_label}_{best_loss}_{hyper_network.hyper_hidden_dim}.pt"
+                torch.save(hyper_network.state_dict(), save_path)
             else:
-                hyper_network.load_state_dict(torch.load("first_run_weights.pt", weights_only=True))
+                hyper_network.load_state_dict(torch.load(save_path, weights_only=True))
 
             fopng.after_task(hyper_network, task_id, loader, criterion)
 
@@ -815,7 +817,7 @@ def train_fopng(
 
                 # 3. REDUCE LR ON PLATEAU
                 # If loss hasn't improved for 5 epochs, cut speed in half
-                if lr_patience_counter >= 5:
+                if lr_patience_counter >= 3:
                     fopng.lr = get_magnitude_decay_lr(fopng.lr)
                     lr_patience_counter = 0 # Reset so we don't decay again immediately
                     if verbose: print(f"    [Scheduler] Loss stalled. Halving LR to {fopng.lr}")
