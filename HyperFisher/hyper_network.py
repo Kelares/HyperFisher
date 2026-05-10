@@ -37,18 +37,18 @@ class HyperNetwork(nn.Module):
 
 
         # 3. Modular Hypernetwork Generator
-        # config.hyper_hidden_dim defines the bottleneck (e.g., 16)
-        bottleneck_dim = getattr(config, 'hyper_hidden_dim', 16)
+        # config.hyper_hidden_dim defines the bottleneck (e.g., 8)
+        self.hidden_dim = getattr(config, 'hyper_hidden_dim', 8)
         
         output_dim = self.chunk_size if self.chunk_size else self.num_target_params
         self.layers = nn.Sequential(
-            nn.Linear(config.task_embedding_dim + config.chunk_embedding_dim, bottleneck_dim),
+            nn.Linear(config.task_embedding_dim + config.chunk_embedding_dim, self.hidden_dim),
             nn.LeakyReLU(0.1),
 
-            nn.Linear(bottleneck_dim, bottleneck_dim*2),
+            nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.LeakyReLU(0.1), 
 
-            nn.Linear(bottleneck_dim*2, output_dim)
+            nn.Linear(self.hidden_dim, output_dim)
         ).to(self.device)
         
         self.num_hyper_params = sum(p.numel() for p in self.layers.parameters())
@@ -60,6 +60,7 @@ class HyperNetwork(nn.Module):
             torch.nn.init.normal_(self.layers[-1].bias, mean=0.0, std=0.01)
 
         self.target_params = None
+        self.num_shared_params = sum(p.numel() for p in self._shared_params)
         
     def spawn(self, task_id):
         # 1. Get the embedding and force it to be 1D (embedding_dim,)

@@ -8,8 +8,8 @@ import copy
 import torch
 import torch.nn as nn
 import wandb
-from optimizers.fopng import train_fopng, train_fopng_plus
-from optimizers.adam import train_adam
+from optimizers.fopng import train_fopng#, train_fopng_plus
+from optimizers.vanilla import train_vanilla
 from optimizers.ewc import train_ewc
 
 import importlib
@@ -48,7 +48,12 @@ if __name__ == "__main__":
     parser.add_argument("--damping", type=float, default=0.01)
 
     parser.add_argument("--alpha", type=float, default=0.3)
-    parser.add_argument("--fisher_samples", type=float, default=1024)
+    
+    parser.add_argument("--fisher_samples", type=int, default=1024)
+    parser.add_argument("--fisher_clipping", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--fisher_normalization", action=argparse.BooleanOptionalAction, default=False)
+
+
     parser.add_argument("--grads_per_task", type=int, default=40)
     parser.add_argument("--max_directions", type=int, default=80)
     # ------------------------------
@@ -65,7 +70,11 @@ if __name__ == "__main__":
     parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)
 
     parser.add_argument("--device_mode", type=str, default="hybrid", choices=["cpu", "gpu", "hybrid"])
-
+    
+    # TRAINING
+    parser.add_argument("--saved", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--warmup", action=argparse.BooleanOptionalAction, default=False)
+    # ------------------------------
     args = parser.parse_args()
 
     task = args.task
@@ -89,6 +98,7 @@ if __name__ == "__main__":
     task_config = Task.config
     criterion = nn.CrossEntropyLoss() if task_config.criterion is None else task_config.criterion
     target_network = Task.target_network
+    multihead = Task.multihead
     ########################
 
     if methods is None:
@@ -111,7 +121,7 @@ if __name__ == "__main__":
 
     # Unpack the returned tuples into separate lists
     datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]
-
+    
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
 
@@ -124,7 +134,7 @@ if __name__ == "__main__":
         target_network_template=target_network, 
         device=device, 
         config=config
-    ) if config.model == "HyperNetwork" else MLP(target_network, device=device)
+    ) if config.model == "HyperNetwork" else multihead(5, device) #MLP(target_network, device=device)
 
     config.update({"architecture": model})
     if config.model == "HyperNetwork":
@@ -154,10 +164,14 @@ if __name__ == "__main__":
                     model, train_loaders, test_loaders, criterion,
                     lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
-                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True, first_task_optimizer_cls=torch.optim.SGD,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
                     fisher_samples=config.fisher_samples,
                     task_classes = getattr(task_config, 'task_classes', None),
-                    device_mode = config.device_mode
+                    device_mode = config.device_mode,
+                    saved = config.saved,
+                    warmup = config.warmup,
+                    fisher_clipping = config.fisher_clipping,
+                    fisher_normalization = config.fisher_normalization,
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
@@ -165,20 +179,20 @@ if __name__ == "__main__":
                 
                 wandb.log({"fopng/eval/average_accuracy": average_accuracy})
 
-            case "fopng_plus":
-                print("--- Starting FOPNG+ Training ---")
-                results = train_fopng_plus(
-                    model, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
-                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
-                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
-                    fisher_samples=config.fisher_samples,
-                    task_classes=getattr(task_config, 'task_classes', None)
-                )
-                final_task_id = max(results.keys())
-                final_accuracies = results[final_task_id]
-                average_accuracy = sum(final_accuracies) / len(final_accuracies)
-                wandb.log({"fopng_plus/eval/average_accuracy": average_accuracy})
+            # case "fopng_plus":
+            #     print("--- Starting FOPNG+ Training ---")
+            #     results = train_fopng_plus(
+            #         model, train_loaders, test_loaders, criterion,
+            #         lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
+            #         grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+            #         epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+            #         fisher_samples=config.fisher_samples,
+            #         task_classes=getattr(task_config, 'task_classes', None)
+            #     )
+            #     final_task_id = max(results.keys())
+            #     final_accuracies = results[final_task_id]
+            #     average_accuracy = sum(final_accuracies) / len(final_accuracies)
+            #     wandb.log({"fopng_plus/eval/average_accuracy": average_accuracy})
 
             case "ewc":
                 print("\n--- Starting EWC Training ---")
@@ -196,12 +210,24 @@ if __name__ == "__main__":
 
             case "adam":
                 print("\n" + "=" * 60)
-                print("BASELINE COMPARISON (Hypernetwork + Adam)")
+                print("BASELINE COMPARISON (Adam)")
                 print("=" * 60)
 
-                train_adam(
+                train_vanilla(
                     model, train_loaders, test_loaders, criterion,
                     lr=config.lr, epochs=config.epochs, 
-                    task_classes = getattr(task_config, 'task_classes', None)
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    optim=torch.optim.Adam
 
+                )
+
+            case "SGD":
+                print("\n" + "=" * 60)
+                print("BASELINE COMPARISON (SGD)")
+                print("=" * 60)
+                train_vanilla(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, epochs=config.epochs, 
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    optim=torch.optim.SGD
                 )

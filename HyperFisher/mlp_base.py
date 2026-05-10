@@ -20,7 +20,8 @@ class MLP(nn.Module):
                 module.reset_parameters()
 
     def spawn(self, task_id):
+        self.task_id = task_id
         pass
 
     def forward(self, x):
-        return self.layers(x)
+        return self.layers(x, self.task_id)

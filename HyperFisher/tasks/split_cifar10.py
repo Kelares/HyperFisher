@@ -15,14 +15,14 @@ Interface is identical to permuted_mnist.TaskGenerator.
 """
 from __future__ import annotations
 
-from types import SimpleNamespace
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Subset
+
+from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
+from types import SimpleNamespace
+from typing import List, Tuple, Optional
 
 
 TASK_CLASSES = [
@@ -136,31 +136,165 @@ class DummyCIFARTarget(nn.Module):
         x = x.view(x.size(0), -1) # [batch, 128]
         return self.fc(x)
         
+class TargetCNN(nn.Module):
+    """
+    Tiny CNN used as the *template* for the HyperNetwork.
+    All parameters are overwritten at inference time via functional_call.
+
+    Input : 3 × 32 × 32
+    After conv1 + pool  →  16 × 16 × 16
+    After conv2 + pool  →  32 ×  8 ×  8
+    After conv3 + pool  →  32 ×  4 ×  4   (512 features)
+    FC1  →  64
+    FC2  →  num_classes (2 per task)
+
+    Total parameters: ~47 300
+    With chunk_size=256 → 185 chunks
+    """
+
+    def __init__(self, num_classes: int = 2):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3,  16, 3, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
+        self.conv3 = nn.Conv2d(32, 32, 3, padding=1)
+        self.fc1   = nn.Linear(32 * 4 * 4, 64)
+        self.fc2   = nn.Linear(64, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))   # 16 × 16
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))   #  8 ×  8
+        x = F.relu(F.max_pool2d(self.conv3(x), 2))   #  4 ×  4
+        x = x.view(x.size(0), -1)                    # 512
+        x = F.relu(self.fc1(x))                       #  64
+        return self.fc2(x)                            #   2
 
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from typing import List
+
+class MultiHeadTargetCNN(nn.Module):
+    """
+    Multi-head version of TargetCNN that stores task state internally.
+    Backbone (Conv1 -> FC1) is shared; FC2 is task-specific.
+    """
+    def __init__(self, num_tasks: int, device, num_classes_per_task: int = 2):
+        super().__init__()
+        # 1. Shared Backbone (Protected by FOPNG)
+        self.conv1 = nn.Conv2d(3,  16, 3, padding=1).to(device)
+        self.conv2 = nn.Conv2d(16, 32, 3, padding=1).to(device)
+        self.conv3 = nn.Conv2d(32, 32, 3, padding=1).to(device)
+        self.fc1   = nn.Linear(32 * 4 * 4, 64).to(device)
+
+        # 2. Task-specific Heads (Individual binary classifiers)
+        self.heads = nn.ModuleList([
+            nn.Linear(64, num_classes_per_task) for _ in range(num_tasks)
+        ]).to(device)
+        
+        # Internal state to track the active task
+        self.register_buffer("_active_task_id", torch.tensor(0, dtype=torch.long))
+
+    @property
+    def _shared_params(self) -> List[nn.Parameter]:
+        """Returns the list of backbone parameters for the FOPNG projection."""
+        return list(self.conv1.parameters()) + \
+               list(self.conv2.parameters()) + \
+               list(self.conv3.parameters()) + \
+               list(self.fc1.parameters())
+
+    @property
+    def num_shared_params(self) -> int:
+        """Required for Fisher information estimation loops."""
+        return sum(p.numel() for p in self._shared_params)
+
+    def spawn(self, task_id: torch.Tensor | int):
+        """
+        Saves the task_id internally. 
+        Gradients now naturally flow to the correct head during the next forward pass.
+        """
+        if torch.is_tensor(task_id):
+            self._active_task_id.fill_(task_id.item())
+        else:
+            self._active_task_id.fill_(task_id)
+
+    def update_task_specific_params(self, lr: float):
+        """Manually updates the active head using standard SGD/Adam logic."""
+        with torch.no_grad():
+            active_head = self.heads[self._active_task_id.item()]
+            for p in active_head.parameters():
+                if p.grad is not None:
+                    p.data.add_(-lr * p.grad)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass using the internally saved task_id.
+        Matches the standard nn.Module interface.
+        """
+        # Feature Extraction (Backbone)
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))   # Output: 16x16
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))   # Output: 8x8
+        x = F.relu(F.max_pool2d(self.conv3(x), 2))   # Output: 4x4
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        
+        # Classification (Active Task Head)
+        t_id = self._active_task_id.item()
+        return self.heads[t_id](x)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper Dataset for Multi-Head Remapping
+# ─────────────────────────────────────────────────────────────────────────────
+class RemappedSubset(Dataset):
+    """Filters a dataset by classes and remaps them to 0...k-1."""
+    def __init__(self, base_dataset, allowed_classes: List[int]):
+        self.base = base_dataset
+        # Mapping: e.g., {2: 0, 3: 1}
+        self.class_to_new = {c: i for i, c in enumerate(sorted(allowed_classes))}
+        
+        # Pre-filter indices
+        self.indices = [
+            i for i, (_, lbl) in enumerate(base_dataset)
+            if int(lbl) in self.class_to_new
+        ]
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx):
+        img, lbl = self.base[self.indices[idx]]
+        # Return image and the remapped local label (0 or 1)
+        return img, self.class_to_new[int(lbl)]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Task Generator
+# ─────────────────────────────────────────────────────────────────────────────
 class TaskGenerator:
-
-    TASK_CLASSES = TASK_CLASSES
+    TASK_CLASSES = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
 
     config = SimpleNamespace(
         input_dim=3072,
-        num_classes=10,
+        num_classes=2,        # Multi-head: each task has 2 local classes
         num_tasks=5,
         criterion=nn.CrossEntropyLoss(),
         task_classes=TASK_CLASSES,
-        grads_per_task=80,
-        max_directions=400,
+        grads_per_task=150,
+        max_directions=750,
     )
 
-    target_network = DummyCIFARTarget()#ResNet18() #
+    # Note: TargetCNN should be defined elsewhere in your code
+    target_network = TargetCNN(num_classes=2) 
+    multihead = MultiHeadTargetCNN
 
-    _train_data: datasets.CIFAR10 | None = None
-    _test_data:  datasets.CIFAR10 | None = None
+    _train_data: Optional[datasets.CIFAR10] = None
+    _test_data:  Optional[datasets.CIFAR10] = None
 
     @classmethod
     def _load(cls) -> None:
+        """Loads and normalizes the base CIFAR-10 datasets once."""
         if cls._train_data is not None:
             return
+            
         tf = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -168,8 +302,9 @@ class TaskGenerator:
                 (0.2470, 0.2435, 0.2616),
             ),
         ])
+        
         cls._train_data = datasets.CIFAR10(
-            root="./data", train=True,  download=True, transform=tf
+            root="./data", train=True, download=True, transform=tf
         )
         cls._test_data = datasets.CIFAR10(
             root="./data", train=False, download=True, transform=tf
@@ -179,40 +314,42 @@ class TaskGenerator:
     def _make_split(
         cls,
         dataset: datasets.CIFAR10,
-        class_a: int,
-        class_b: int,
-        batch_size: int = 256,
+        allowed_classes: List[int],
+        batch_size: int = 64,
         shuffle: bool = True,
     ) -> DataLoader:
-        targets = torch.tensor(dataset.targets)
-        mask    = (targets == class_a) | (targets == class_b)
-        indices = mask.nonzero(as_tuple=True)[0].tolist()
-        subset  = Subset(dataset, indices)
+        """Creates a DataLoader for specific classes with remapped labels."""
+        # Use the helper class to filter and remap labels to [0, 1]
+        subset = RemappedSubset(dataset, allowed_classes)
 
         return DataLoader(
             subset,
             batch_size=batch_size,
             shuffle=shuffle,
+            num_workers=2,
+            pin_memory=True
         )
 
     @classmethod
     def generate(
         cls,
         task_id: int,
-        batch_size: int = 256,
+        batch_size: int = 64,
     ) -> Tuple[DataLoader, DataLoader]:
+        """Returns (train_loader, test_loader) for a specific task."""
         assert 0 <= task_id < cls.config.num_tasks, \
             f"task_id must be in [0, {cls.config.num_tasks}), got {task_id}"
 
         cls._load()
-        class_a, class_b = cls.TASK_CLASSES[task_id]
+        allowed_classes = cls.TASK_CLASSES[task_id]
 
         train_loader = cls._make_split(
-            cls._train_data, class_a, class_b,
+            cls._train_data, allowed_classes,
             batch_size=batch_size, shuffle=True,
         )
         test_loader = cls._make_split(
-            cls._test_data, class_a, class_b,
+            cls._test_data, allowed_classes,
             batch_size=batch_size, shuffle=False,
         )
+        
         return train_loader, test_loader
