@@ -46,7 +46,6 @@ class DiagonalFisherEstimator(FisherEstimator):
         self.quantile = 0.95
         self.clipping = clipping
         self.normalization = normalization
-        print("ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", self.normalization)
 
     def estimate(
         self,
@@ -102,15 +101,27 @@ class DiagonalFisherEstimator(FisherEstimator):
                 model.zero_grad()
                 if hasattr(model, "spawn"):
                     model.spawn(task_id)
+                w = model.w
                 loss = criterion(model(x[i : i + 1]), y[i : i + 1])
-                loss.backward()
+                (g_w,) = torch.autograd.grad(loss, w)
 
-                g      = get_grad_vector(model)   # [D_shared]
-                fisher += g * g
+                # ── Step 2: translate g_w → g_θ = Jᵀg_w ──────────────
+                model.zero_grad()
+                model.spawn(task_id)                # fresh graph
+                model.w.backward(g_w.detach())      # θ.grad = Jᵀ g_w
+
+                g_theta = torch.cat([
+                    p.grad.view(-1) for p in model._shared_params if p.grad is not None
+                ])
+
+                fisher += g_theta.detach() * g_theta.detach()
                 n_seen += 1
                 pbar.update(1)
+                model.zero_grad()
+
         model.train()
         fisher /= max(n_seen, 1)
+
         # 6. Final normalization logic to maintain numerical stability
         if self.clipping:
             fisher_nonzero = fisher[fisher > 0]

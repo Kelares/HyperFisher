@@ -110,10 +110,16 @@ class FOPNG:
         self.F_new = F_new
         self._build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
 
-    def step(self, model: nn.Module, task_id, g_theta: Tensor) -> float:
+    def step(self, model: nn.Module, task_id, g_w: Tensor) -> float:
 
         assert self.A_inv is not None, "Call prepare_epoch(F_new) before step()."
-     
+
+        model.w.backward(g_w.detach())          # θ.grad = Jᵀ g_w
+ 
+        g_theta = torch.cat([
+            p.grad.view(-1) for p in model._shared_params if p.grad is not None
+        ]).to(g_w.device)
+
         # 2. In FOPNG.step, update the task_emb logic:
         with torch.no_grad():
             if hasattr(model, "task_emb"):
@@ -479,15 +485,19 @@ def train_fopng(
                     model.zero_grad()
 
                     model.spawn(task_id)
+                    w = model.w
+
                     output = model(x)
                     loss = criterion(output, y)
                     total_loss += loss.item()
-                    
-                    model.zero_grad()
-                    loss.backward()
 
-                    g_theta = get_grad_vector(model)
-                    weighted_rho, correction_norm, raw_rho = fopng.step(model, task_id, g_theta.detach())
+                    (g_w,) = torch.autograd.grad(loss, w)
+
+                    model.zero_grad()
+                    # loss.backward()
+
+                    # g_theta = get_grad_vector(model)
+                    weighted_rho, correction_norm, raw_rho = fopng.step(model, task_id, g_w.detach())
                     total_weighted_rho    += weighted_rho
                     total_correction_norm += correction_norm
                     total_raw_rho         += raw_rho

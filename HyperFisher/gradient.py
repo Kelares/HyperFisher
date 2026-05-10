@@ -281,7 +281,7 @@ class AVECollector(GradientCollector):
             for i in range(x.size(0)):
                 model.zero_grad()
                 model.spawn(task_id)
-                
+                w = model.w
                 if multihead:
                     output = model(x[i:i+1], task_id=task_id)
                 else:
@@ -289,10 +289,21 @@ class AVECollector(GradientCollector):
                 
                 # Average of all logits
                 avg_logit = output.mean()
-                avg_logit.backward()
-                
-                grad_vec = get_grad_vector(model).detach()
-                gradients.append(grad_vec)
+                (g_w,) = torch.autograd.grad(avg_logit, w)
+
+                # ── Step 2: translate g_w → g_θ = Jᵀg_w ──────────────
+                model.zero_grad()
+                model.spawn(task_id)                # fresh graph
+                model.w.backward(g_w.detach())      # θ.grad = Jᵀ g_w
+
+                g_theta = torch.cat([
+                    p.grad.view(-1) for p in model._shared_params if p.grad is not None
+                ])
+                gradients.append(g_theta.detach())
+                model.zero_grad()
+
+                # grad_vec = get_grad_vector(model).detach()
+                # gradients.append(g_w)
                 collected += 1
                 pbar.update(1)
         memory.add(gradients)
