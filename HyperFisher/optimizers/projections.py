@@ -442,7 +442,7 @@ class eFOPNG(OP):
         F_combined = F_new + F_old
         
         # Safe normalized inversion
-        F_inv_diag = 1.0 / F_combined
+        F_inv_diag = 1.0 / (F_combined + self.lam)
 
         # 2. Projection Logic
         F_old_g = F_old * g
@@ -473,14 +473,14 @@ class eFOPNG(OP):
     def _build_A_inv(self, G, F_old, F_new) -> None:
         # Use the same Inertia Geometry for the matrix A
         F_combined = F_new + F_old
-        F_inv_diag = 1.0 / F_combined
+        F_inv_diag = 1.0 / (F_combined + self.lam)
         
         F_old_diag = F_old.view(-1, 1)
         # A = G.T @ F_old @ (F_new + F_old)^-1 @ F_old @ G
         weighted_G = F_old_diag * (F_inv_diag.view(-1, 1) * (F_old_diag * G))
         
-        self.A = G.T @ weighted_G
-        self.A_inv = torch.linalg.pinv(self.A, rcond=1e-7)
+        self.A = G.T @ weighted_G + self.lam * torch.eye(G.size(1), device=G.device)
+        self.A_inv = torch.linalg.pinv(self.A)
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 1. Define the grouping logic based on model type and regularizer state
-    if args.model == "Target_Network":
+    if args.model == "TargetNetwork":
         config_identity = "Target_Network"
     else:
         config_identity = f"HyperNet_Reg_{args.regulizer}"
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         config=config
     ) if config.model == "HyperNetwork" else Task.multihead(Task.config.num_tasks, device)
     print(model)
-    
+
     initial_state = copy.deepcopy(model.state_dict())
     best_acc = -1
     best_bwt = -1
