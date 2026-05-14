@@ -8,7 +8,7 @@ import copy
 import torch
 import torch.nn as nn
 import wandb
-from HyperFisher.optimizers.projections import train_fopng, train_OGND, train_PreFopng, train_efopng, train_OGD#, train_fopng_plus
+from optimizers.projections import train_fopng, train_OGND, train_PreFopng, train_efopng, train_OGD#, train_fopng_plus
 from optimizers.vanilla import train_vanilla
 from optimizers.ewc import train_ewc
 
