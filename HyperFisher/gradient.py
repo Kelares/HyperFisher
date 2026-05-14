@@ -28,6 +28,7 @@ class GradientMemory:
         # Store all directions as columns in a single 2D tensor [D, K]
         # Initially None to clearly distinguish from an empty state
         self.basis: Optional[torch.Tensor] = None 
+        self.debug = True
 
     @torch.no_grad()
     def add(self, v: Union[torch.Tensor, List[torch.Tensor]]):
@@ -37,24 +38,36 @@ class GradientMemory:
         """
         # 1. Convert input to a 2D column block [D, K_new]
         if isinstance(v, list):
-            if not v: return
-            # Stack list of 1D vectors as columns
-            new_data = torch.stack([vec.detach().view(-1) for vec in v], dim=1)
+
+            new_vecs = torch.stack([vec.detach().view(-1) for vec in v], dim=1)
         else:
             # Turn single vector into a column
-            new_data = v.detach().view(-1, 1)
-
+            if v.dim() == 1:
+                new_vecs = v.detach().view(-1, 1)
+            else:
+                new_vecs = v.detach() # Already a [D, K] matrix
+                
+        # # 🔑 NEW: Normalize columns to unit Euclidean norm
+        norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
+        new_vecs = new_vecs / norms
+       
         # 2. Expand the matrix
         if self.basis is None:
-            self.basis = new_data
+            self.basis = new_vecs
         else:
             # Concatenate along the column dimension (dim=1)
             # Result: [D, K_old + K_new]
-            self.basis = torch.cat([self.basis, new_data], dim=1)
+            self.basis = torch.cat([self.basis, new_vecs], dim=1)
 
         # 3. Check budget and compress if needed
         if self.basis.size(1) > self.max_directions:
             self.compress()
+
+         # 🔍 DEBUG: Print norms of newly added vectors
+        if self.debug:
+            print(f" [DEBUG add] Added vectors are unit length: {new_vecs.norm(dim=0).mean():.4f}")
+            print(f"  [DEBUG add] New vec: min={new_vecs.min():.3f}, max={new_vecs.max():.3f}")
+    
 
     @torch.no_grad()
     def compress(self):
@@ -62,12 +75,27 @@ class GradientMemory:
         if self.basis is None: return
         print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via SVD")
         
-        # full_matrices=False ensures U is [D, K]
-        U, S, _ = torch.linalg.svd(self.basis, full_matrices=False)
+        # indices = torch.linspace(
+        #         0, self.basis.shape[1] - 1, 
+        #         steps=self.max_directions, 
+        #         dtype=torch.long, 
+        #         device=self.basis.device
+        #     )
+        # self.basis = self.basis[:, indices]
         
+        # full_matrices=False ensures U is [D, K]
+        # weighted_G = F_old.view(-1, 1) * self.basis
+        U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
+        if self.basis.size(1) > self.max_directions:
+            U = U[:, :self.max_directions]
         # Retain only the most significant orthogonal directions
         # Re-scale U by the singular values to keep the physical magnitude of the gradients
-        self.basis = U[:, :self.max_directions] @ torch.diag(S[:self.max_directions])
+        self.basis = U #@ torch.diag(S[:self.max_directions])
+        # 🔍 DEBUG: Verify U columns are unit-norm
+        if self.debug:
+            U_norms = self.basis.norm(dim=0)
+            print(f"  [DEBUG compress] Post-SVD column norms: min={U_norms.min():.6f}, max={U_norms.max():.6f}")
+            # Should be ~1.000000 for all columns
 
     @property
     def matrix(self) -> Optional[torch.Tensor]:
@@ -84,7 +112,10 @@ class GradientMemory:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-
+    @property
+    def vectors(self):
+        return self.basis.reshape(-1)
+    
 # =============================================================================
 # Gradient Collection Strategies
 # =============================================================================
@@ -99,7 +130,6 @@ class GradientCollector(ABC):
         # If batch_size is specified, use only that many samples total for estimation
         if self.grads_per_task is not None:
             dataset = loader.dataset
-            print(self.grads_per_task)
             # Take only the first batch_size samples
             limited_dataset = Subset(dataset, range(min(self.grads_per_task, len(dataset))))
             subset_loader = DataLoader(limited_dataset, batch_size=len(limited_dataset), shuffle=False)
@@ -127,11 +157,11 @@ class GradientCollector(ABC):
         dataloader: DataLoader,
         fisher_matrix: torch.Tensor,
         device: str,
+        task_id: Optional[int] = None,
         multihead: bool = False,
-        task_id: Optional[int] = None
     ):
         # Create a temporary memory buffer for raw gradients
-        temp_memory = GradientMemory(mode=memory.mode, max_directions=self.grads_per_task)
+        temp_memory = GradientMemory(mode=memory.mode, max_directions=self.grads_per_task*10)
         
         # Collect raw gradients into temporary buffer
         self.collect(temp_memory, model, dataloader, device, multihead, task_id)
@@ -169,16 +199,15 @@ class GradientCollector(ABC):
         """
         # First pass: collect all raw gradients
         print(f"Collecting empirical Fisher-preconditioned gradients (task {task_id})...")
+        # 1. Collect raw gradients into a temporary memory
         temp_memory = GradientMemory(mode=memory.mode, max_directions=num_directions)
+        self.collect(temp_memory, model, dataloader, device, task_id, multihead)
         
-        self.collect(temp_memory, model, dataloader, num_directions, device, multihead, task_id)
-        
-        if not temp_memory.vectors:
-            return
         
         raw_gradients = temp_memory.vectors  # List of gradient vectors
-        gradients = []
+        
         # Second pass: for each collected gradient, compute F*g on-the-fly
+        gradients = []
         for g in raw_gradients:
             # Compute F*g = sum_i(g_i * (g_i^T * g))
             Fg = torch.zeros_like(g)
@@ -187,9 +216,11 @@ class GradientCollector(ABC):
                 dot_prod = torch.dot(g_i, g)
                 # g_i * (g_i^T * g): accumulate scaled gradient
                 Fg = Fg + g_i * dot_prod
-            gradients.append(Fg)
+            
             # Add the empirical Fisher preconditioned gradient to memory
+            gradients.append(Fg)
         memory.add(gradients)
+
 
 
 class GTLCollector(GradientCollector):
@@ -203,11 +234,11 @@ class GTLCollector(GradientCollector):
         memory: GradientMemory,
         model: nn.Module,
         dataloader: DataLoader,
-        num_directions: int,
         device: str,
         task_id: int,
         multihead: bool = False,
     ):
+        dataloader = self.subset(dataloader)
         model.eval()
         collected = 0
         
@@ -216,17 +247,15 @@ class GTLCollector(GradientCollector):
             desc += f" (task {task_id})"
         iterator = tqdm(dataloader, desc=desc, leave=False)
         gradients = []
+        model.spawn(task_id)
+
         for x, y in iterator:
             x = x.to(device)
             y = y.to(device)
             
             batch_size = x.size(0)
             for i in range(batch_size):
-                if collected >= num_directions:
-                    break
-                
                 model.zero_grad()
-                model.spawn(task_id)
                 xi = x[i:i+1]
                 yi = y[i:i+1]
                 
@@ -237,7 +266,7 @@ class GTLCollector(GradientCollector):
                 
                 # Ground truth logit
                 gt_logit = logits[0, yi.item()]
-                gt_logit.backward()
+                gt_logit.backward(retain_graph=True)
                 
                 grad_vec = get_grad_vector(model).detach()
                 gradients.append(grad_vec)
@@ -274,13 +303,14 @@ class AVECollector(GradientCollector):
         pbar = tqdm(total=self.grads_per_task, desc=desc, leave=False)
         
         gradients = []
+
+        model.spawn(task_id)
         for x, y in dataloader:
             x = x.to(device)
             y = y.to(device)
             
             for i in range(x.size(0)):
                 model.zero_grad()
-                model.spawn(task_id)
                 
                 if multihead:
                     output = model(x[i:i+1], task_id=task_id)
@@ -289,7 +319,7 @@ class AVECollector(GradientCollector):
                 
                 # Average of all logits
                 avg_logit = output.mean()
-                avg_logit.backward()
+                avg_logit.backward(retain_graph=True)
                 
                 grad_vec = get_grad_vector(model).detach()
                 gradients.append(grad_vec)
@@ -299,3 +329,57 @@ class AVECollector(GradientCollector):
 
         print(f"  Collected {collected} AVE directions (total: {len(memory)})")
 
+class BoundaryCollector(GradientCollector):
+    """
+    Specifically designed for Split (2-class) tasks.
+    Protects the exact decision boundary by collecting the gradient of the logit difference.
+    """
+    def collect(
+        self,
+        memory: GradientMemory,
+        model: nn.Module,
+        dataloader: DataLoader,
+        device: str,
+        task_id: Optional[int],
+        F_old,
+        multihead: bool = False,
+    ):
+        model.eval()
+        collected = 0
+        
+        dataloader = self.subset(dataloader)
+
+        desc = "Collecting Boundary gradients"
+        if task_id is not None:
+            desc += f" (task {task_id})"
+        pbar = tqdm(total=self.grads_per_task, desc=desc, leave=False)
+        
+        gradients = []
+        model.spawn(task_id)
+
+        for x, y in dataloader:
+            x = x.to(device)
+            y = y.to(device)
+            
+            for i in range(x.size(0)):
+                model.zero_grad()
+                
+                if multihead:
+                    logits = model(x[i:i+1], task_id=task_id)
+                else:
+                    logits = model(x[i:i+1])
+                
+                # The single degree of freedom for a 2-class head
+                # We protect the exact distance between the two classes
+                diff_logit = logits[0, 0] - logits[0, 1]
+                diff_logit.backward(retain_graph=True)
+                
+                grad_vec = get_grad_vector(model).detach()
+                gradients.append(grad_vec)
+                
+                collected += 1
+                pbar.update(1)
+                
+        memory.add(gradients, F_old)
+        if hasattr(memory, "debug") and memory.debug:
+            print(f"  Collected {collected} Boundary directions (total: {memory.basis.size(1) if memory.basis is not None else 0})")

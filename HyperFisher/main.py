@@ -8,7 +8,7 @@ import copy
 import torch
 import torch.nn as nn
 import wandb
-from optimizers.fopng import train_fopng#, train_fopng_plus
+from HyperFisher.optimizers.projections import train_fopng, train_OGND, train_PreFopng, train_efopng, train_OGD#, train_fopng_plus
 from optimizers.vanilla import train_vanilla
 from optimizers.ewc import train_ewc
 
@@ -31,6 +31,8 @@ if __name__ == "__main__":
                         choices=["permuted_mnist", "split_mnist", "split_cifar10"]) #, "rotated_mnist", "", "split_cifar10", "split_cifar100"
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--batch_size", type=int, default=64)
+
     parser.add_argument("--max_epochs", type=int, default=None)
 
     # ------------------------------
@@ -40,7 +42,7 @@ if __name__ == "__main__":
         nargs='+', 
         required=False,
         default=["fopng", "adam"],
-        choices=["sgd", "adam", "ogd", "fopng", "fopng_plus", "fopng_prefisher", "fng", "ewc"],
+        choices=["sgd", "adam", "ogd", "ognd", "fopng", "fopng_plus", "fopng_prefisher", "fng", "efopng", "ewc"],
     )
     # LEARNING SPECIFIC
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -63,6 +65,7 @@ if __name__ == "__main__":
     parser.add_argument("--task_embedding_dim", type=int, default=4)
     parser.add_argument("--chunk_embedding_dim", type=int, default=10)
     parser.add_argument("--chunk_size", type=int, default=1000)
+    parser.add_argument("--regulizer", action=argparse.BooleanOptionalAction, default=True)
 
     
     # ------------------------------
@@ -120,7 +123,7 @@ if __name__ == "__main__":
         stress_test_fopng_memory()
 
     # Unpack the returned tuples into separate lists
-    datasets = [Task.generate(task_id=t) for t in range(config.num_tasks)]
+    datasets = [Task.generate(task_id=t, batch_size=config.batch_size) for t in range(config.num_tasks)]
     
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
@@ -144,7 +147,7 @@ if __name__ == "__main__":
 
     # 2. Save the "Fresh" state (Deep copy of weights)
     initial_state = copy.deepcopy(model.state_dict())
-
+    best_acc = -1
     print(config)
     for method in methods:
         wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
@@ -157,12 +160,12 @@ if __name__ == "__main__":
             model.w = None
 
         match method:
-            case "fopng":
-                print("\n--- Starting FOPNG Training ---")
+            case "efopng":
+                print("\n--- Starting eFOPNG Training ---")
                 # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
-                results = train_fopng(
+                results = train_efopng(
                     model, train_loaders, test_loaders, criterion,
-                    lr=config.lr, lam=config.lam, damping=config.damping, alpha=config.alpha,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
                     grads_per_task=config.grads_per_task, max_directions=config.max_directions,
                     epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
                     fisher_samples=config.fisher_samples,
@@ -172,12 +175,108 @@ if __name__ == "__main__":
                     warmup = config.warmup,
                     fisher_clipping = config.fisher_clipping,
                     fisher_normalization = config.fisher_normalization,
+                    regulizer = config.regulizer
                 )
                 final_task_id = max(results.keys())
                 final_accuracies = results[final_task_id]
                 average_accuracy = sum(final_accuracies) / len(final_accuracies)
                 
-                wandb.log({"fopng/eval/average_accuracy": average_accuracy})
+                wandb.log({"eFOPNG/eval/average_accuracy": average_accuracy})
+            
+            case "fopng":
+                print("\n--- Starting FOPNG Training ---")
+                # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
+                results = train_fopng(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+                    fisher_samples=config.fisher_samples,
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    device_mode = config.device_mode,
+                    saved = config.saved,
+                    warmup = config.warmup,
+                    fisher_clipping = config.fisher_clipping,
+                    fisher_normalization = config.fisher_normalization,
+                    regulizer = config.regulizer
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"FOPNG/eval/average_accuracy": average_accuracy})
+            
+            case "ognd":
+                print("\n--- Starting OGND Training ---")
+                # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
+                results = train_OGND(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+                    fisher_samples=config.fisher_samples,
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    device_mode = config.device_mode,
+                    saved = config.saved,
+                    warmup = config.warmup,
+                    fisher_clipping = config.fisher_clipping,
+                    fisher_normalization = config.fisher_normalization,
+                    regulizer = config.regulizer
+
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"OGND/eval/average_accuracy": average_accuracy})
+            
+            case "ogd":
+                print("\n--- Starting OGD Training ---")
+                # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
+                results = train_OGD(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+                    fisher_samples=config.fisher_samples,
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    device_mode = config.device_mode,
+                    saved = config.saved,
+                    warmup = config.warmup,
+                    fisher_clipping = config.fisher_clipping,
+                    fisher_normalization = config.fisher_normalization,
+                    regulizer = config.regulizer
+
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"OGD/eval/average_accuracy": average_accuracy})
+
+            case "fopng_prefisher":
+                print("\n--- Starting fopng_prefisher Training ---")
+                # task1_lr = config.lr * 5 if config.task == "split_cifar10" else config.lr
+                results = train_PreFopng(
+                    model, train_loaders, test_loaders, criterion,
+                    lr=config.lr, lam=config.lam, alpha=config.alpha,
+                    grads_per_task=config.grads_per_task, max_directions=config.max_directions,
+                    epochs=config.epochs, max_epochs=config.max_epochs, verbose=True,
+                    fisher_samples=config.fisher_samples,
+                    task_classes = getattr(task_config, 'task_classes', None),
+                    device_mode = config.device_mode,
+                    saved = config.saved,
+                    warmup = config.warmup,
+                    fisher_clipping = config.fisher_clipping,
+                    fisher_normalization = config.fisher_normalization,
+                    regulizer = config.regulizer
+
+                )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"preFOPNG/eval/average_accuracy": average_accuracy})
 
             # case "fopng_plus":
             #     print("--- Starting FOPNG+ Training ---")
@@ -221,13 +320,22 @@ if __name__ == "__main__":
 
                 )
 
-            case "SGD":
+            case "sgd":
                 print("\n" + "=" * 60)
                 print("BASELINE COMPARISON (SGD)")
                 print("=" * 60)
-                train_vanilla(
+                results = train_vanilla(
                     model, train_loaders, test_loaders, criterion,
                     lr=config.lr, epochs=config.epochs, 
+                    max_epochs=config.max_epochs,
                     task_classes = getattr(task_config, 'task_classes', None),
                     optim=torch.optim.SGD
                 )
+                final_task_id = max(results.keys())
+                final_accuracies = results[final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({"ewc/eval/average_accuracy": average_accuracy})
+        if average_accuracy >= best_acc:
+            best_acc = average_accuracy
+    wandb.log({"best/average_accuracy": best_acc})

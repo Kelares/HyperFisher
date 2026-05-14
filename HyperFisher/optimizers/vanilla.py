@@ -7,6 +7,7 @@ from utils import evaluate_accuracy, calc_bwt
 import matplotlib.pyplot as plt
 import numpy as np
 from math import inf
+from hyper_network import HyperRegulizer
 
 def get_magnitude_decay_lr(current_lr: float) -> float:
     """
@@ -32,13 +33,14 @@ def train_vanilla(
     lr: float = 1e-3,
     epochs: int = 5,
     max_epochs: int = None,
-    first_task_optimizer_cls=torch.optim.SGD,
+    optim=torch.optim.SGD,
     task_classes: Optional[list] = None,
     verbose: bool = True
 ):
     device = next(hyper_network.parameters()).device
     results_baseline = {}
     global_epoch_baseline = 0
+    regulizer = HyperRegulizer()
     
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
@@ -49,11 +51,11 @@ def train_vanilla(
         best_parameters = None
         base_lr = lr
         epoch = 0
+        opt = optim(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
 
         # ── Task 1 ─────────────────────────────────────────────────────────
         if t == 0:
-            if verbose: print(f"[Vanilla] Task 1 – {first_task_optimizer_cls.__name__}")
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
+            if verbose: print(f"[Vanilla] Task 1 – {optim.__name__}")
             loss_to_achieve = 0.2
             
             while best_loss >= loss_to_achieve and loss_repeat < 8 and epoch < _max_epochs:
@@ -101,39 +103,41 @@ def train_vanilla(
 
         # ── Tasks > 1 ──────────────────────────────────────────────────────
         else:
-            if verbose: print(f"\n[Vanilla] Task {t+1}")
+            # if verbose: print(f"\n[Vanilla] Task {t+1}")
             
-            # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START
-            for param in hyper_network._shared_params:
-                param.requires_grad = False
+            # # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START
+            # for param in hyper_network._shared_params:
+            #     param.requires_grad = False
             
-            active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
-            opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
-            warmup_n = 15
+            # active_params = filter(lambda p: p.requires_grad, hyper_network.parameters())
+            # warmup_n = 15
             
-            for i in range(warmup_n):
-                total_loss = 0.0
-                hyper_network.train()
-                for x, y in loader:
-                    x, y = x.to(device), y.to(device)
-                    opt.zero_grad()
-                    hyper_network.spawn(task_id)
-                    output = hyper_network(x)
-                    loss = criterion(output, y)
-                    loss.backward()
-                    opt.step()
-                    total_loss += loss.item()
+            # for i in range(warmup_n):
+            #     total_loss = 0.0
+            #     hyper_network.train()
+            #     for x, y in loader:
+            #         x, y = x.to(device), y.to(device)
+            #         opt.zero_grad()
+            #         hyper_network.spawn(task_id)
+            #         output = hyper_network(x)
+            #         if regulizer:
+            #             loss = regulizer.loss(hyper_network, task_id, criterion, output, y)
+            #         else:
+            #             loss = criterion(output, y)
+                                        
+            #         loss.backward()
+            #         opt.step()
+            #         total_loss += loss.item()
                 
-                avg_loss = total_loss / len(loader)
-                if verbose: print(f"  embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
+            #     avg_loss = total_loss / len(loader)
+            #     if verbose: print(f"  embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
 
-            # UNFREEZING SHARED_PARAMS
-            for param in hyper_network._shared_params:
-                param.requires_grad = True
+            # # UNFREEZING SHARED_PARAMS
+            # for param in hyper_network._shared_params:
+            #     param.requires_grad = True
 
             # MAIN TRAINING LOOP
             loss_to_achieve = 0.15 
-            opt = first_task_optimizer_cls(hyper_network.parameters(), lr=base_lr, weight_decay=1e-4)
             
             while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                 total_loss = 0.0

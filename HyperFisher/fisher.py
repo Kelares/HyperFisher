@@ -46,7 +46,6 @@ class DiagonalFisherEstimator(FisherEstimator):
         self.quantile = 0.95
         self.clipping = clipping
         self.normalization = normalization
-        print("ASDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", self.normalization)
 
     def estimate(
         self,
@@ -95,15 +94,15 @@ class DiagonalFisherEstimator(FisherEstimator):
         n_seen  = 0
         pbar = tqdm(total = self.fisher_samples, desc=f"  Fisher task {task_id.item()}", leave=False)
 
+        model.spawn(task_id)
         for x, y in loader:
             x, y = x.to(device), y.to(device)
 
             for i in range(x.size(0)):
                 model.zero_grad()
-                if hasattr(model, "spawn"):
-                    model.spawn(task_id)
+
                 loss = criterion(model(x[i : i + 1]), y[i : i + 1])
-                loss.backward()
+                loss.backward(retain_graph=True)
 
                 g      = get_grad_vector(model)   # [D_shared]
                 fisher += g * g
@@ -121,6 +120,9 @@ class DiagonalFisherEstimator(FisherEstimator):
         if self.normalization:
             if fisher.max() > 0:
                 fisher = fisher / fisher.max()
+            # Unit trace normalization is more stable for A-matrix inversion
+            # total_importance = fisher.sum() + 1e-12
+            # fisher = fisher / total_importance
         return fisher
 
     

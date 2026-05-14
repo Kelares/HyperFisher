@@ -18,7 +18,9 @@ def get_grad_vector(model: nn.Module) -> torch.Tensor:
             grads.append(torch.zeros_like(p.data).view(-1))
         else:
             grads.append(p.grad.view(-1))
-    return torch.cat(grads)
+    grads = torch.cat(grads)
+    # grads /= model.num_of_chunks
+    return grads
 
 def _apply_flat_update(model: nn.Module, update: Tensor) -> None:
     """Add a flat update vector to model parameters in-place: θ ← θ + update."""

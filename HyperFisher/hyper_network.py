@@ -34,6 +34,7 @@ class HyperNetwork(nn.Module):
             num_embeddings=config.num_tasks, 
             embedding_dim=config.task_embedding_dim
         ).to(self.device)
+        # self.task_emb.weight.requires_grad = False # 🔑 
 
 
         # 3. Modular Hypernetwork Generator
@@ -109,3 +110,67 @@ class HyperNetwork(nn.Module):
           (b) waste columns in G on directions that do not need protecting.
         """
         return list(self.layers.parameters()) + [self.chunk_emb.weight]
+    
+    def shrink(self):
+        for p in self.parameters():
+            if p.grad is not None:
+                p.grad.div_(self.num_of_chunks)
+
+class HyperRegulizer():
+    def __init__(self, regulizer_lam: float = 0.1):
+        self.regulizer_lam = regulizer_lam       
+        self.old_weights = {}  
+
+    def loss(self, model: nn.Module, current_task_id, criterion, output, y) -> torch.Tensor:
+        """
+        Von Oswald hypernetwork regularizer.
+ 
+        Penalises drift in the generated weights for all previously seen tasks:
+ 
+            L_reg = (1 / N_old) * Σ_{t' < t} ‖spawn(θ, emb_{t'}) − w_stored_{t'}‖²
+ 
+        WHY this works better than FOPNG alone:
+            FOPNG projects gradient directions in θ-space, which is an indirect
+            proxy for preventing forgetting. The regularizer directly measures
+            "did the hypernetwork start generating different weights for old
+            tasks?" — hitting the actual forgetting mechanism. Together they are
+            complementary: FOPNG prevents harmful update directions; the
+            regularizer applies a restoring force toward old task solutions.
+ 
+        WHY divide by N_old:
+            Without normalisation, reg_loss grows linearly with the number of
+            completed tasks, causing the regularizer to dominate the task loss
+            as training progresses. Dividing by N_old keeps the effective scale
+            of reg_loss constant regardless of how many tasks have been seen,
+            so reg_lambda has a consistent meaning throughout training.
+ 
+        Returns a scalar tensor (zero if no tasks stored or reg_lambda == 0).
+        """
+        device = next(model.parameters()).device
+        task_loss = criterion(output, y)
+        if self.regulizer_lam == 0.0 or not self.old_weights:
+            return task_loss
+ 
+        current_t = current_task_id.item() if hasattr(current_task_id, 'item') else int(current_task_id)
+        old_task_ids = [t for t in self.old_weights if t != current_t]
+        if not old_task_ids:
+            return task_loss
+ 
+        total = torch.tensor(0.0)
+        for t in old_task_ids:
+            w_stored = self.old_weights[t]         # frozen snapshot
+            old_tid  = torch.tensor([t], dtype=torch.long, device=device)
+            model.spawn(old_tid)                                    # recompute w under current θ
+            w_now    = model.w                                      # differentiable w.r.t. θ
+            total    = total + (w_now - w_stored).pow(2).sum()    # MSE per task
+ 
+
+
+        # r_loss = total / len(old_task_ids)
+
+        # The regularizer MSE is calculated on the FULL weight vector (sum of chunks)
+        # We must divide the resulting loss by chunks to nullify the accumulation in backward()
+        r_loss = total / len(old_task_ids) 
+
+        combined_loss = task_loss + self.regulizer_lam * r_loss
+        return combined_loss
