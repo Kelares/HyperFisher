@@ -1,9 +1,0 @@
-cuda
-<torch.utils.data.dataloader.DataLoader object at 0x7febfb7f1300>
-Epoch 1/5 - Loss: 0.2299
-Epoch 2/5 - Loss: 0.0590
-Epoch 3/5 - Loss: 0.0512
-Epoch 4/5 - Loss: 0.0504
-Epoch 5/5 - Loss: 0.0482
-SAVING IN runs/18_0.04815532325569252
-Finished in: 3264.0179069042206 seconds

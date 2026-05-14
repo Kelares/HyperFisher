@@ -1,4 +1,0 @@
-<torch.utils.data.dataloader.DataLoader object at 0x7f277a8c3af0>
-Epoch 1/1 - Loss: 0.2412
-['1_0.23', '2_0.23964066229720804']
-SAVING IN runs/3_0.24120769542168807

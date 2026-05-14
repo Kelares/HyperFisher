@@ -1,4 +1,0 @@
-mujoco/hopper/medium-v0
-<module 'hopper' from '/home/u253954/SSM_benchmark/gym/hopper/__init__.py'>
-Loading Minari Dataset: mujoco/hopper/medium-v0 (downloading if needed)...
-<module 'transformer' from '/home/u253954/SSM_benchmark/gym/transformer/__init__.py'>
