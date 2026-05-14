@@ -1,4 +1,0 @@
-Reproduce this run:
-/home/kelares/Desktop/HyperFisher/HyperFisher/main.py --task=split_cifar10 --device_mode=gpu --methods=efopng --grads_per_task=250 --max_directions=5000 --fisher_samples=1024 --task_embedding_dim=32 --chunk_embedding_dim=32 --hyper_hidden_dim=32 --chunk_size=64 --regulizer --max_epochs=50 --batch_size=64 --fisher_normalization --lr=1e-2
-
-For every and any combination of methods. For default seed, eFopng is already better than Fopng
