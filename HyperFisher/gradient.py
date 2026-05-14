@@ -114,7 +114,7 @@ class GradientMemory:
 
     @property
     def vectors(self):
-        return self.basis.reshape(-1)
+        return self.basis.unbind(dim=1)
     
 # =============================================================================
 # Gradient Collection Strategies
@@ -202,24 +202,43 @@ class GradientCollector(ABC):
         # 1. Collect raw gradients into a temporary memory
         temp_memory = GradientMemory(mode=memory.mode, max_directions=num_directions)
         self.collect(temp_memory, model, dataloader, device, task_id, multihead)
+        B = temp_memory.basis  # This is your [D, K] matrix
+        if B is None:
+            return
+
+        # 2. Vectorized Fisher Preconditioning
+        # We use the associative trick: B @ (B.T @ B)
+        # This is mathematically identical to sum_i(g_i * (g_i.T @ g))
         
+        # Step A: Compute the Gram matrix [K, K] (all pairs of dot products)
+        gram_matrix = B.T @ B
         
-        raw_gradients = temp_memory.vectors  # List of gradient vectors
+        # Step B: Project back onto the basis [D, K]
+        # This effectively computes F*g for all gradients at once
+        Fg_matrix = B @ gram_matrix
         
-        # Second pass: for each collected gradient, compute F*g on-the-fly
-        gradients = []
-        for g in raw_gradients:
-            # Compute F*g = sum_i(g_i * (g_i^T * g))
-            Fg = torch.zeros_like(g)
-            for g_i in raw_gradients:
-                # g_i^T * g: scalar dot product
-                dot_prod = torch.dot(g_i, g)
-                # g_i * (g_i^T * g): accumulate scaled gradient
-                Fg = Fg + g_i * dot_prod
+        # Optional: If you want the true 'Average' empirical Fisher, divide by K
+        # Fg_matrix = Fg_matrix / B.size(1)
+
+        # 3. Add to the permanent memory (handles matrix input automatically)
+        memory.add(Fg_matrix)
+        
+        # raw_gradients = temp_memory.vectors  # List of gradient vectors
+        
+        # # Second pass: for each collected gradient, compute F*g on-the-fly
+        # gradients = []
+        # for g in raw_gradients:
+        #     # Compute F*g = sum_i(g_i * (g_i^T * g))
+        #     Fg = torch.zeros_like(g)
+        #     for g_i in raw_gradients:
+        #         # g_i^T * g: scalar dot product
+        #         dot_prod = torch.dot(g_i, g)
+        #         # g_i * (g_i^T * g): accumulate scaled gradient
+        #         Fg = Fg + g_i * dot_prod
             
-            # Add the empirical Fisher preconditioned gradient to memory
-            gradients.append(Fg)
-        memory.add(gradients)
+        #     # Add the empirical Fisher preconditioned gradient to memory
+        #     gradients.append(Fg)
+        # memory.add(gradients)
 
 
 

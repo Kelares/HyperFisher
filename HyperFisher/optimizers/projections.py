@@ -19,13 +19,12 @@ from hyper_network import HyperRegulizer
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FOPNG Class
+# Base Class
 # ─────────────────────────────────────────────────────────────────────────────
 class OP(ABC):
     def __init__(
             self,
             num_tasks,
-            regulizer,
             lr: float = 1e-3,
             lam: float = 1e-3,
             alpha: float = 0.5,
@@ -70,7 +69,6 @@ class OP(ABC):
         )
         self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions)
         self.GradientCollector = GTLCollector(grads_per_task)
-        self.regulizer = regulizer
 
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
@@ -139,10 +137,6 @@ class OP(ABC):
             device = self.calc_device, 
             task_id = task_id,
         )
-
-        model.spawn(task_id)
-        if self.regulizer:
-            self.regulizer.old_weights[task_id.item()] = model.w.detach()
 
         if self.debug:
             print(f"[{self.__name__}] Current G memory size: {len(self.gradient_memory)} / {self.max_directions}")
@@ -301,7 +295,6 @@ def get_magnitude_decay_lr(current_lr: float) -> float:
         return 1.0 * (10 ** exp)
     else:               # If current LR starts with 1 (e.g., 0.01) -> drop to 0.005
         return 5.0 * (10 ** (exp - 1))
-        
 
 class PreFOPNG(OP):
     __name__ = "PreFOPNG"
@@ -365,8 +358,8 @@ class PreFOPNG(OP):
         if self.F_old is None:
             self.F_old = F_new.detach().to(self.calc_device)
         else:
-            self.F_old = (1 - self.alpha) * self.F_old + self.alpha * F_new.detach().to(self.calc_device)
-            
+            self.F_old = torch.max(self.F_old, F_new.detach())       
+
         # 1. Collect the raw gradients for the current task
         self.GradientCollector.collect_empirical_fisher_preconditioned(
             memory = self.gradient_memory, 
@@ -378,8 +371,6 @@ class PreFOPNG(OP):
         )
 
         model.spawn(task_id)
-        if self.regulizer:
-            self.regulizer.old_weights[task_id.item()] = model.w.detach()
 
         if self.debug:
             print(f"[{self.__name__}] Current G memory size: {len(self.gradient_memory)} / {self.max_directions}")
@@ -402,60 +393,6 @@ class PreFOPNG(OP):
         torch.cuda.empty_cache()
         gc.collect()
 
-def train_PreFopng(
-        model: nn.Module,
-        train_loaders: List[DataLoader],
-        test_loaders: List[DataLoader],
-        criterion: Callable,
-        *,
-        lr: float = 1e-3,
-        lam: float = 1e-3,
-        alpha: float = 0.5,
-        grads_per_task: int = 80,
-        max_directions: int = 400,
-        fisher_samples: int = 1024,
-        epochs: int = 5,
-        max_epochs: int = None,
-        task_classes: Optional[list] = None,
-        verbose: bool = True,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-        saved: bool = False,
-        warmup: bool = False,
-        fisher_clipping: bool = False,
-        fisher_normalization: bool = False,
-        regulizer: bool = True,
-    ):
-    if regulizer:
-        regulizer = HyperRegulizer()
-    else:
-        regulizer = None
-        
-    optimizer = PreFOPNG(
-        lr=lr, lam=lam, alpha=alpha,
-        grads_per_task=grads_per_task,
-        max_directions=max_directions,
-        fisher_samples=fisher_samples,
-        device_mode=device_mode,
-        num_tasks=len(train_loaders),
-        fisher_clipping=fisher_clipping,
-        fisher_normalization=fisher_normalization,
-        regulizer=regulizer
-    )
-    return train(
-        model=model,
-        train_loaders=train_loaders,
-        test_loaders=test_loaders,
-        criterion=criterion,
-        regulizer=regulizer,
-        optimizer=optimizer,
-        lr=lr,
-        epochs=epochs,
-        max_epochs=max_epochs,
-        task_classes=task_classes,
-        verbose=verbose,
-        saved=saved,
-        warmup=warmup,
-    )
 
 class FOPNG(OP):
     __name__ = "FOPNG"
@@ -494,61 +431,7 @@ class FOPNG(OP):
         # Also store A for condition number check
         self.A = A
       
-def train_fopng(
-        model: nn.Module,
-        train_loaders: List[DataLoader],
-        test_loaders: List[DataLoader],
-        criterion: Callable,
-        *,
-        lr: float = 1e-3,
-        lam: float = 1e-3,
-        alpha: float = 0.5,
-        grads_per_task: int = 80,
-        max_directions: int = 400,
-        fisher_samples: int = 1024,
-        epochs: int = 5,
-        max_epochs: int = None,
-        task_classes: Optional[list] = None,
-        verbose: bool = True,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-        saved: bool = False,
-        warmup: bool = False,
-        fisher_clipping: bool = False,
-        fisher_normalization: bool = False,
-        regulizer: bool = True,
-    ):
-    if regulizer:
-        regulizer = HyperRegulizer()
-    else:
-        regulizer = None
-        
-    optimizer = FOPNG(
-        lr=lr, lam=lam, alpha=alpha,
-        grads_per_task=grads_per_task,
-        max_directions=max_directions,
-        fisher_samples=fisher_samples,
-        device_mode=device_mode,
-        num_tasks=len(train_loaders),
-        fisher_clipping=fisher_clipping,
-        fisher_normalization=fisher_normalization,
-        regulizer=regulizer
-    )
-    return train(
-        model=model,
-        train_loaders=train_loaders,
-        test_loaders=test_loaders,
-        criterion=criterion,
-        regulizer=regulizer,
-        optimizer=optimizer,
-        lr=lr,
-        epochs=epochs,
-        max_epochs=max_epochs,
-        task_classes=task_classes,
-        verbose=verbose,
-        saved=saved,
-        warmup=warmup,
-    )
-  
+
 class eFOPNG(OP):
     __name__ = "eFOPNG"
 
@@ -602,60 +485,74 @@ class eFOPNG(OP):
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
 
-def train_efopng(
-        model: nn.Module,
-        train_loaders: List[DataLoader],
-        test_loaders: List[DataLoader],
-        criterion: Callable,
-        *,
-        lr: float = 1e-3,
-        lam: float = 1e-3,
-        alpha: float = 0.5,
-        grads_per_task: int = 80,
-        max_directions: int = 400,
-        fisher_samples: int = 1024,
-        epochs: int = 5,
-        max_epochs: int = None,
-        task_classes: Optional[list] = None,
-        verbose: bool = True,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-        saved: bool = False,
-        warmup: bool = False,
-        fisher_clipping: bool = False,
-        fisher_normalization: bool = False,
-        regulizer: bool = True,
-    ):
-    if regulizer:
-        regulizer = HyperRegulizer()
-    else:
-        regulizer = None
+
+class FNG(OP):
+    """
+    Fisher Natural Gradient.
+    Uses the current task's Fisher information (F_new) to define a Riemannian 
+    metric for the update step, ensuring the step size is consistent 
+    within the parameter space.
+    """
+    __name__ = "FNG"
+
+    def _fng_update(self, g, F_new, eps=1e-8):
+        """
+        Computes the natural gradient step: v* = -lr * F_inv * g / sqrt(g^T * F_inv * g)
+        """
+        # Pre-compute Fisher inverse diagonal with damping (lam)
+        F_inv_diag = 1.0 / (F_new + self.lam)
+            
+        # Natural gradient pre-conditioning
+        nat_grad = F_inv_diag * g
         
-    optimizer = eFOPNG(
-        lr=lr, lam=lam, alpha=alpha,
-        grads_per_task=grads_per_task,
-        max_directions=max_directions,
-        fisher_samples=fisher_samples,
-        device_mode=device_mode,
-        num_tasks=len(train_loaders),
-        fisher_clipping=fisher_clipping,
-        fisher_normalization=fisher_normalization,
-        regulizer=regulizer
-    )
-    return train(
-        model=model,
-        train_loaders=train_loaders,
-        test_loaders=test_loaders,
-        criterion=criterion,
-        regulizer=regulizer,
-        optimizer=optimizer,
-        lr=lr,
-        epochs=epochs,
-        max_epochs=max_epochs,
-        task_classes=task_classes,
-        verbose=verbose,
-        saved=saved,
-        warmup=warmup,
-    )
+        # Compute the Fisher norm for normalization (denominator)
+        # sqrt(g^T * F_inv * g)
+        denom = torch.sqrt((g * nat_grad).sum() + eps)
+        
+        # Final update direction
+        v_star = -self.lr * nat_grad / (denom + eps)
+        
+        # FNG does not project against G, so we return 1.0 for rho (no reduction)
+        # and 0 for correction norm.
+        return v_star, 1.0, 0.0, 1.0
+
+    def _build_A_inv(self, G, F_old, F_new) -> None:
+        """
+        FNG does not use the G-subspace projection (A_inv).
+        We implement this as a dummy to satisfy the OP interface.
+        """
+        self.A_inv = torch.tensor([1.0]) # Dummy for assertion check
+        self.A = None
+
+    def step(self, model: nn.Module, task_id, g_theta: Tensor) -> float:
+        """
+        Overrides OP.step to use the FNG update logic.
+        """
+        # Ensure Fisher is computed for the current task
+        assert self.F_new is not None, "F_new must be computed via prepare_epoch."
+     
+        # Update task specific embedding if it exists
+        with torch.no_grad():
+            if hasattr(model, "task_emb"):
+                te_grad = model.task_emb.weight.grad
+                if te_grad is not None:
+                    model.task_emb.weight.data.add_(-self.lr * te_grad)
+
+        # Compute the FNG specific update
+        v_star_theta, weighted_rho, correction_norm, raw_rho = self._fng_update(
+            g=g_theta, F_new=self.F_new
+        )
+
+        # Apply update to shared parameters
+        pointer = 0
+        with torch.no_grad():
+            for p in model._shared_params:
+                n = p.numel()
+                p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
+                pointer += n
+                
+        return weighted_rho, correction_norm, raw_rho
+    
 
 class OGND(OP):
     __name__ = "OGND"
@@ -705,60 +602,7 @@ class OGND(OP):
         
         return v_star, weighted_rho, correction.norm().item(), (v_star_unscaled.norm() / (v_nat.norm() + eps)).item()
 
-def train_OGND(
-        model: nn.Module,
-        train_loaders: List[DataLoader],
-        test_loaders: List[DataLoader],
-        criterion: Callable,
-        *,
-        lr: float = 1e-3,
-        lam: float = 1e-3,
-        alpha: float = 0.5,
-        grads_per_task: int = 80,
-        max_directions: int = 400,
-        fisher_samples: int = 1024,
-        epochs: int = 5,
-        max_epochs: int = None,
-        task_classes: Optional[list] = None,
-        verbose: bool = True,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-        saved: bool = False,
-        warmup: bool = False,
-        fisher_clipping: bool = False,
-        fisher_normalization: bool = False,
-        regulizer: bool = True,
-    ):
-    if regulizer:
-        regulizer = HyperRegulizer()
-    else:
-        regulizer = None
-        
-    optimizer = OGND(
-        lr=lr, lam=lam, alpha=alpha,
-        grads_per_task=grads_per_task,
-        max_directions=max_directions,
-        fisher_samples=fisher_samples,
-        device_mode=device_mode,
-        num_tasks=len(train_loaders),
-        fisher_clipping=fisher_clipping,
-        fisher_normalization=fisher_normalization,
-        regulizer=regulizer
-    )
-    return train(
-        model=model,
-        train_loaders=train_loaders,
-        test_loaders=test_loaders,
-        criterion=criterion,
-        regulizer=regulizer,
-        optimizer=optimizer,
-        lr=lr,
-        epochs=epochs,
-        max_epochs=max_epochs,
-        task_classes=task_classes,
-        verbose=verbose,
-        saved=saved,
-        warmup=warmup,
-    )
+
 
 class OGD(FOPNG):
     __name__ = "OGD"
@@ -804,61 +648,67 @@ class OGD(FOPNG):
         # Return signature matches FOPNG.step
         return v_star.to(g.device), rho, correction.norm().item(), rho
 
-def train_OGD(
-        model: nn.Module,
-        train_loaders: List[DataLoader],
-        test_loaders: List[DataLoader],
-        criterion: Callable,
-        *,
-        lr: float = 1e-3,
-        lam: float = 1e-3,
-        alpha: float = 0.5,
-        grads_per_task: int = 80,
-        max_directions: int = 400,
-        fisher_samples: int = 1024,
-        epochs: int = 5,
-        max_epochs: int = None,
-        task_classes: Optional[list] = None,
-        verbose: bool = True,
-        device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
-        saved: bool = False,
-        warmup: bool = False,
-        fisher_clipping: bool = False,
-        fisher_normalization: bool = False,
-        regulizer: bool = True,
-    ):
-    if regulizer:
-        regulizer = HyperRegulizer()
-    else:
-        regulizer = None
-        
-    optimizer = OGD(
-        lr=lr, lam=lam, alpha=alpha,
-        grads_per_task=grads_per_task,
-        max_directions=max_directions,
-        fisher_samples=fisher_samples,
-        device_mode=device_mode,
+
+# Map method names to their respective classes
+METHOD_MAP = {
+    "fopng": FOPNG,
+    "efopng": eFOPNG,
+    "ognd": OGND,
+    "ogd": OGD,
+    "fng": FNG,
+    "fopng_prefisher": PreFOPNG
+}    
+
+def run_continual_method(
+    method: str,
+    model: nn.Module,
+    train_loaders: List[DataLoader],
+    test_loaders: List[DataLoader],
+    criterion: Callable,
+    config
+):
+    """
+    Unified entry point for all OP-based methods.
+    """
+    method_key = method.lower()
+    if method_key not in METHOD_MAP:
+        raise ValueError(f"Method {method} not found in METHOD_MAP")
+
+    # 1. Handle Regularizer instance
+    # We create it here so it can be shared between the Optimizer and the Train loop
+    regulizer_instance = HyperRegulizer() if config.get("regulizer", True) else None
+    
+    # 2. Instantiate the specific OP class
+    # We filter/pass relevant config args to the constructor
+    optimizer = METHOD_MAP[method_key](
         num_tasks=len(train_loaders),
-        fisher_clipping=fisher_clipping,
-        fisher_normalization=fisher_normalization,
-        regulizer=regulizer
+        lr=config.get("lr", 1e-3),
+        lam=config.get("lam", 1e-3),
+        alpha=config.get("alpha", 0.5),
+        grads_per_task=config.get("grads_per_task", 80),
+        max_directions=config.get("max_directions", 400),
+        fisher_samples=config.get("fisher_samples", 1024),
+        device_mode=config.get("device_mode", "hybrid"),
+        fisher_clipping=config.get("fisher_clipping", False),
+        fisher_normalization=config.get("fisher_normalization", False),
     )
+
+    # 3. Call the generic engine
     return train(
         model=model,
         train_loaders=train_loaders,
         test_loaders=test_loaders,
         criterion=criterion,
-        regulizer=regulizer,
+        regulizer=regulizer_instance, # Pass the instance, not the bool
         optimizer=optimizer,
-        lr=lr,
-        epochs=epochs,
-        max_epochs=max_epochs,
-        task_classes=task_classes,
-        verbose=verbose,
-        saved=saved,
-        warmup=warmup,
+        lr=config.get("lr", 1e-3),
+        epochs=config.get("epochs", 5),
+        max_epochs=config.get("max_epochs"),
+        task_classes=config.get("task_classes"),
+        verbose=config.get("verbose", True),
+        saved=config.get("saved", False),
+        warmup=config.get("warmup", False),
     )
-
 
     
 def train(
@@ -866,7 +716,7 @@ def train(
         train_loaders: List[DataLoader],
         test_loaders: List[DataLoader],
         criterion: Callable,
-        regulizer: HyperRegulizer,
+        regulizer: HyperRegulizer | None,
         optimizer: FOPNG | OGD | OGND,
         *,
         lr: float = 1e-3,
@@ -880,8 +730,7 @@ def train(
     ):
     device = next(model.parameters()).device
 
-
-    results = {}
+    results = {"acc" : {}}
     global_epoch = 0
     loss_to_achieve = 0.1
     _max_epochs = max_epochs if max_epochs else epochs
@@ -923,21 +772,11 @@ def train(
 
                     if best_loss < avg_loss:
                         loss_repeat += 1
-                        lr_patience_counter += 1
-
                     else:
-                        lr_patience_counter = 0
                         loss_repeat = 0
                         best_loss = avg_loss
                         best_parameters = model.state_dict()
 
-                    # # 3. REDUCE LR ON PLATEAU
-                    # # If loss hasn't improved for 5 epochs, cut speed in half
-                    # if lr_patience_counter >= 5:
-                    #     opt.lr = get_magnitude_decay_lr(opt.lr)
-                    #     lr_patience_counter = 0 # Reset so we don't decay again immediately
-                    #     if verbose: print(f"    [Scheduler] Loss stalled. Lowering LR to {opt.lr}")
-                    
                     epoch += 1
 
                 model.load_state_dict(best_parameters) # Load the best loss for the task and use it from now on.
@@ -948,13 +787,9 @@ def train(
                 # torch.save(model.state_dict(), save_path)
             else:
                 model.load_state_dict(torch.load(save_path, weights_only=True))
-
-            optimizer.after_task(model, task_id, loader, criterion)
-
-
         else:
             if verbose: print(f"\n[{optimizer.__name__}] Task {t+1}")
-            if warmup:
+            if warmup: # FROM EXPERIMENTS IT SEEMS RATHER DESTRUCTIVE.
                 # FREEZING SHARED_PARAMS SO THE TASK EMBEDDING GETS AN EARLY START #
                 for param in model._shared_params:
                     param.requires_grad = False
@@ -998,11 +833,11 @@ def train(
                     model.zero_grad()
                     model.spawn(task_id)
                     output = model(x)
+                    loss = criterion(output, y)
+
                     if regulizer:
-                        loss = regulizer.loss(model, task_id, criterion, output, y)
-                    else:
-                        loss = criterion(output, y)
-                    
+                        w_penalty = regulizer.loss(model, task_id)
+                        loss += w_penalty
                     total_loss += loss.item()
                     
                     loss.backward()
@@ -1060,11 +895,14 @@ def train(
                 epoch += 1
 
             model.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.
-            optimizer.lr = base_lr 
-            optimizer.after_task(model, task_id, loader, criterion)
-            
+
+        optimizer.after_task(model, task_id, loader, criterion)
+        if regulizer:
+            model.spawn(task_id)
+            regulizer.old_weights[task_id.item()] = model.w.detach()
+
         # ── Evaluate on ALL tasks using TEST loaders ───────────────────
-        results[t+1] = []
+        results["acc"][t+1] = []
         eval_metrics = {"task_completed": t+1}
         
         # CHANGED: Iterate over every single task, seen or unseen!
@@ -1072,20 +910,19 @@ def train(
             eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
             tc = task_classes[i] if task_classes is not None else None
             acc = evaluate_accuracy(model, test_loaders[i], eval_task_id, task_classes=tc)
-            results[t+1].append(acc)
+            results["acc"][t+1].append(acc)
             eval_metrics[f"{optimizer.__name__}/eval/acc_task_{i+1}"] = acc
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
             
         if t != 0:
-            bwt = calc_bwt(results, task_id=t+1)
+            bwt = calc_bwt(results["acc"], task_id=t+1)
             eval_metrics[f"{optimizer.__name__}/eval/bwt"] = bwt
             if verbose: print(f"BWT at task {t+1}: {bwt:.4f}")
-                    # Normalize to unit trace
-
+            results["bwt"] = bwt
 
         wandb.log(eval_metrics)
 
-    tasks_completed = sorted(list(results.keys())) # [1, 2, 3]
+    tasks_completed = sorted(list(results["acc"].keys())) # [1, 2, 3]
     num_eval_tasks = len(test_loaders)
 
     matrix, keys = optimizer.compute_overlap_matrix()
@@ -1099,7 +936,7 @@ def train(
     colors = [cmap(i) for i in np.linspace(0, 1, num_eval_tasks)]
     
     for i in range(num_eval_tasks):
-        accs = [results[t][i] for t in tasks_completed]
+        accs = [results["acc"][t][i] for t in tasks_completed]
         # Force solid line (linestyle='-') and cycle through colors
         plt.plot(tasks_completed, accs, marker='o', linestyle='-', linewidth=2.5, 
                  color=colors[i % len(colors)], label=f"{i+1}")

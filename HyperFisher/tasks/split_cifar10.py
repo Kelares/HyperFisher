@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 from types import SimpleNamespace
 from typing import List, Tuple, Optional
+from tqdm import tqdm
 
 
 TASK_CLASSES = [
@@ -247,23 +248,29 @@ class MultiHeadTargetCNN(nn.Module):
 # ─────────────────────────────────────────────────────────────────────────────
 class RemappedSubset(Dataset):
     """Filters a dataset by classes and remaps them to 0...k-1."""
-    def __init__(self, base_dataset, allowed_classes: List[int]):
+    def __init__(self, base_dataset, allowed_classes: List[int], indices: Optional[List[int]] = None):
         self.base = base_dataset
         # Mapping: e.g., {2: 0, 3: 1}
         self.class_to_new = {c: i for i, c in enumerate(sorted(allowed_classes))}
         
-        # Pre-filter indices
-        self.indices = [
-            i for i, (_, lbl) in enumerate(base_dataset)
-            if int(lbl) in self.class_to_new
-        ]
+        if indices is not None:
+            # Use the fast indices passed from the progress bar
+            self.indices = indices
+        else:
+            # Fallback logic: Use .targets for speed instead of iterating the whole Dataset
+            # iterating base_dataset (the images) is what causes the 'second of lag'
+            targets = getattr(base_dataset, 'targets', None)
+            if targets is not None:
+                self.indices = [i for i, lbl in enumerate(targets) if int(lbl) in self.class_to_new]
+            else:
+                # Absolute fallback if .targets doesn't exist
+                self.indices = [i for i, (_, lbl) in enumerate(base_dataset) if int(lbl) in self.class_to_new]
 
     def __len__(self):
         return len(self.indices)
 
     def __getitem__(self, idx):
         img, lbl = self.base[self.indices[idx]]
-        # Return image and the remapped local label (0 or 1)
         return img, self.class_to_new[int(lbl)]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -274,7 +281,7 @@ class TaskGenerator:
 
     config = SimpleNamespace(
         input_dim=3072,
-        num_classes=2,        # Multi-head: each task has 2 local classes
+        num_classes=2,
         num_tasks=5,
         criterion=nn.CrossEntropyLoss(),
         task_classes=TASK_CLASSES,
@@ -282,7 +289,6 @@ class TaskGenerator:
         max_directions=750,
     )
 
-    # Note: TargetCNN should be defined elsewhere in your code
     target_network = TargetCNN(num_classes=2) 
     multihead = MultiHeadTargetCNN
 
@@ -295,6 +301,7 @@ class TaskGenerator:
         if cls._train_data is not None:
             return
             
+        print(" [TaskGenerator] Initializing base CIFAR-10 datasets...")
         tf = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -303,6 +310,7 @@ class TaskGenerator:
             ),
         ])
         
+        # The download process itself has a built-in tqdm bar from torchvision
         cls._train_data = datasets.CIFAR10(
             root="./data", train=True, download=True, transform=tf
         )
@@ -317,10 +325,19 @@ class TaskGenerator:
         allowed_classes: List[int],
         batch_size: int = 64,
         shuffle: bool = True,
+        desc: str = "Processing Task"
     ) -> DataLoader:
         """Creates a DataLoader for specific classes with remapped labels."""
-        # Use the helper class to filter and remap labels to [0, 1]
-        subset = RemappedSubset(dataset, allowed_classes)
+        
+        # 1. Fast indexing using .targets and tqdm
+        # This avoids loading images during the search
+        indices = []
+        for i, label in enumerate(tqdm(dataset.targets, desc=f"  {desc}", leave=False)):
+            if label in allowed_classes:
+                indices.append(i)
+
+        # 2. Pass those indices to the updated RemappedSubset
+        subset = RemappedSubset(dataset, allowed_classes, indices=indices)
 
         return DataLoader(
             subset,
@@ -343,13 +360,18 @@ class TaskGenerator:
         cls._load()
         allowed_classes = cls.TASK_CLASSES[task_id]
 
+        # Use a descriptive prefix for the progress bar
+        prefix = f"Task {task_id+1} ({allowed_classes})"
+        
         train_loader = cls._make_split(
             cls._train_data, allowed_classes,
             batch_size=batch_size, shuffle=True,
+            desc=f"{prefix} Train"
         )
         test_loader = cls._make_split(
             cls._test_data, allowed_classes,
             batch_size=batch_size, shuffle=False,
+            desc=f"{prefix} Test"
         )
         
         return train_loader, test_loader

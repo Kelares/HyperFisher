@@ -121,7 +121,7 @@ class HyperRegulizer():
         self.regulizer_lam = regulizer_lam       
         self.old_weights = {}  
 
-    def loss(self, model: nn.Module, current_task_id, criterion, output, y) -> torch.Tensor:
+    def loss(self, model: nn.Module, current_task_id) -> torch.Tensor:
         """
         Von Oswald hypernetwork regularizer.
  
@@ -137,24 +137,16 @@ class HyperRegulizer():
             complementary: FOPNG prevents harmful update directions; the
             regularizer applies a restoring force toward old task solutions.
  
-        WHY divide by N_old:
-            Without normalisation, reg_loss grows linearly with the number of
-            completed tasks, causing the regularizer to dominate the task loss
-            as training progresses. Dividing by N_old keeps the effective scale
-            of reg_loss constant regardless of how many tasks have been seen,
-            so reg_lambda has a consistent meaning throughout training.
- 
         Returns a scalar tensor (zero if no tasks stored or reg_lambda == 0).
         """
         device = next(model.parameters()).device
-        task_loss = criterion(output, y)
         if self.regulizer_lam == 0.0 or not self.old_weights:
-            return task_loss
+            return 0
  
         current_t = current_task_id.item() if hasattr(current_task_id, 'item') else int(current_task_id)
         old_task_ids = [t for t in self.old_weights if t != current_t]
         if not old_task_ids:
-            return task_loss
+            return 0
  
         total = torch.tensor(0.0)
         for t in old_task_ids:
@@ -171,6 +163,6 @@ class HyperRegulizer():
         # The regularizer MSE is calculated on the FULL weight vector (sum of chunks)
         # We must divide the resulting loss by chunks to nullify the accumulation in backward()
         r_loss = total / len(old_task_ids) 
+        loss = self.regulizer_lam * r_loss
 
-        combined_loss = task_loss + self.regulizer_lam * r_loss
-        return combined_loss
+        return loss
