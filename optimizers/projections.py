@@ -33,7 +33,7 @@ class OP(ABC):
             fisher_samples: int = 1024,
             device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
             fisher_clipping: bool = False,
-            fisher_normalization: bool = False,
+            normalize: bool = False,
         ):
         self.lr            = lr
         self.lam           = lam
@@ -65,9 +65,9 @@ class OP(ABC):
             use_vmap = False, 
             fisher_samples=fisher_samples,
             clipping = fisher_clipping,
-            normalization = fisher_normalization
+            normalization = normalize
         )
-        self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions)
+        self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions, normalization=normalize)
         self.GradientCollector = GTLCollector(grads_per_task)
 
     def prepare_epoch(self, F_new: Tensor) -> None:
@@ -690,7 +690,8 @@ def run_continual_method(
         fisher_samples=config.get("fisher_samples", 1024),
         device_mode=config.get("device_mode", "hybrid"),
         fisher_clipping=config.get("fisher_clipping", False),
-        fisher_normalization=config.get("fisher_normalization", False),
+        normalize=config.get("normalize", False),
+        
     )
 
     # 3. Call the generic engine
@@ -750,7 +751,7 @@ def train(
         if t == 0:
             if not saved:
                 if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-                opt = first_task_optimizer_cls(model.parameters(), lr=1e-3, weight_decay=1e-4)  # This adds the L2 penalty)
+                opt = first_task_optimizer_cls(model.parameters(), lr=base_lr)  # This adds the L2 penalty)
                 while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                     total_loss = 0.0
                     model.train()
@@ -770,12 +771,22 @@ def train(
                     global_epoch += 1
                     if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f}")
 
-                    if best_loss < avg_loss:
-                        loss_repeat += 1
-                    else:
-                        loss_repeat = 0
+                    # Intelligent Tracking & Scheduler
+                    if avg_loss < best_loss:
                         best_loss = avg_loss
+                        lr_patience_counter = 0
+                        loss_repeat = 0
                         best_parameters = model.state_dict()
+                    else:
+                        lr_patience_counter += 1
+                        loss_repeat += 1
+
+                    if lr_patience_counter == 3:
+                        for g in opt.param_groups:
+                            g['lr'] = get_magnitude_decay_lr(g['lr'])
+                        lr_patience_counter = 0
+                        if verbose: print(f"    [Scheduler] Lowering LR to {opt.param_groups[0]['lr']}")
+
 
                     epoch += 1
 

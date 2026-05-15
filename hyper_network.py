@@ -8,7 +8,7 @@ class HyperNetwork(nn.Module):
     def __init__(self, config, target_network_template: nn.Module, device: torch.device):
         super().__init__()        
         self.device = device
-        
+
         # 1. The Modular Target Network
         # We accept ANY architecture (MLP, CNN, etc.) and freeze it
         self.target_network = target_network_template.to(self.device)

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Core parameters
     parser.add_argument("--model", type=str, default="HyperNetwork", choices=["HyperNetwork", "TargetNetwork"])
     parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist", "split_cifar10", "split_cifar100"])
-    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--max_epochs", type=int, default=None)
@@ -39,7 +39,8 @@ if __name__ == "__main__":
     parser.add_argument("--alpha", type=float, default=0.3)
     parser.add_argument("--fisher_samples", type=int, default=1024)
     parser.add_argument("--fisher_clipping", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--fisher_normalization", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--normalize", action=argparse.BooleanOptionalAction, default=False)
+
     parser.add_argument("--grads_per_task", type=int, default=40)
     parser.add_argument("--max_directions", type=int, default=80)
     
@@ -56,6 +57,9 @@ if __name__ == "__main__":
     parser.add_argument("--saved", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--warmup", action=argparse.BooleanOptionalAction, default=False)
     
+    
+    parser.add_argument("--experiment_id", type=int, default=None)
+
     args = parser.parse_args()
 
     # Task and Data Setup
@@ -152,14 +156,17 @@ if __name__ == "__main__":
             average_accuracy = sum(final_accuracies) / len(final_accuracies)
             
             wandb.log({f"{method}/eval/average_accuracy": average_accuracy})
-            
+            wandb.log({f"{method}/results": results})
+
             if average_accuracy >= best_acc:
                 best_acc = average_accuracy
+                best_results = results
 
             final_bwt = results["bwt"]
 
             if final_bwt >= best_bwt:
                 best_bwt = final_bwt
 
+    wandb.log({"best/results": results})
     wandb.log({"best/average_accuracy": best_acc})
     wandb.log({"best/bwt": best_bwt})

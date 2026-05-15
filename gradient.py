@@ -22,13 +22,14 @@ def set_grad_vector(model: nn.Module, grad_vector: torch.Tensor):
         idx += numel
 
 class GradientMemory:
-    def __init__(self, mode: str = 'raw', max_directions: int = 2000):
+    def __init__(self, mode: str = 'raw', max_directions: int = 2000, normalization: bool = True):
         self.mode = mode
         self.max_directions = max_directions
         # Store all directions as columns in a single 2D tensor [D, K]
         # Initially None to clearly distinguish from an empty state
         self.basis: Optional[torch.Tensor] = None 
         self.debug = True
+        self.normalization = normalization
 
     @torch.no_grad()
     def add(self, v: Union[torch.Tensor, List[torch.Tensor]]):
@@ -47,9 +48,10 @@ class GradientMemory:
             else:
                 new_vecs = v.detach() # Already a [D, K] matrix
                 
-        # # 🔑 NEW: Normalize columns to unit Euclidean norm
-        norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
-        new_vecs = new_vecs / norms
+        # # # 🔑 NEW: Normalize columns to unit Euclidean norm
+        if self.normalization:
+            norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
+            new_vecs = new_vecs / norms
        
         # 2. Expand the matrix
         if self.basis is None:

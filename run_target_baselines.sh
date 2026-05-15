@@ -5,13 +5,13 @@
 # ==============================================================================
 # Group: target_network
 # Tasks: split_cifar10
-# Seeds: 42, 1234, 2137
+# Seeds: 42, 1234, 2137 | NEW 811 111
 # Purpose: Establish the physical upper-bound/baselines for CL performance.
 # ==============================================================================
 
 TASK="split_cifar10"
-SEEDS=(42 1234 2137)
-METHODS=("efopng")
+SEEDS=(42 1000 2137 811 111)
+METHODS=("sgd" "adam" "ogd" "ognd" "fng" "fopng" "prefopng" "efopng")
 
 # Loop through each method defined in the pipeline
 for METHOD in "${METHODS[@]}"; do
@@ -35,9 +35,10 @@ for METHOD in "${METHODS[@]}"; do
             --grads_per_task=250 \
             --max_directions=5000 \
             --fisher_samples=1024 \
-            --fisher_normalization \
+            --normalize \
             --no-regulizer \
-            
+            --experiment_id=2
+
         echo "Finished run for $METHOD with seed $SEED"
         echo ""
     done
