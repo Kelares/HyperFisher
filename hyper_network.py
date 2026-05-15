@@ -12,11 +12,26 @@ class HyperNetwork(nn.Module):
         # 1. The Modular Target Network
         # We accept ANY architecture (MLP, CNN, etc.) and freeze it
         self.target_network = target_network_template.to(self.device)
-        for param in self.target_network.parameters():
-            param.requires_grad = False
-            
-        self.num_target_params = sum(p.numel() for p in self.target_network.parameters())
-        print("Target_network_param_n: ", self.num_target_params)
+
+        # --- NEW: Hybrid Freezing ---
+        self.generated_param_names = []
+        for name, module in self.target_network.named_modules():
+            # We ONLY generate weights for Conv and Linear layers
+            if isinstance(module, (nn.Conv2d, nn.Linear)):
+                for p_name, param in module.named_parameters():
+                    param.requires_grad = False
+                    self.generated_param_names.append(f"{name}.{p_name}")
+            # GroupNorm (and BatchNorm if used) stays LEARNABLE as standard parameters
+            elif isinstance(module, (nn.GroupNorm, nn.BatchNorm2d)):
+                for param in module.parameters():
+                    param.requires_grad = True # The optimizer will pick these up
+        
+        # Calculate size based ONLY on generated parameters
+        self.num_target_params = sum(
+            p.numel() for n, p in self.target_network.named_parameters() 
+            if n in self.generated_param_names
+        )
+        print("Target_network_param_n (Generated): ", self.num_target_params)
 
         # CHUNKING
         self.chunk_size = config.chunk_size
@@ -64,7 +79,7 @@ class HyperNetwork(nn.Module):
         self.num_shared_params = sum(p.numel() for p in self._shared_params)
         
         print("Num of chunks: ", self.num_of_chunks)
-        
+
     def spawn(self, task_id):
         # 1. Get the embedding and force it to be 1D (embedding_dim,)
         # This handles both task_id=0 and task_id=torch.tensor([0])
@@ -90,10 +105,14 @@ class HyperNetwork(nn.Module):
     def get_params_dict(self, flat_params):
         param_dict = {}
         pointer = 0
+        # Only map the parameters we actually generated
         for name, param in self.target_network.named_parameters():
-            num_param = param.numel()
-            param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
-            pointer += num_param
+            if name in self.generated_param_names:
+                num_param = param.numel()
+                param_dict[name] = flat_params[pointer:pointer + num_param].view_as(param)
+                pointer += num_param
+        # functional_call will automatically use the "real" params for 
+        # any name NOT in this dictionary (like our GroupNorms!)
         return param_dict
 
     # ── FIX 2: Only shared parameters should be projected ────────────────────

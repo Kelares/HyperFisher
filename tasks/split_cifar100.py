@@ -226,19 +226,23 @@ class TaskGenerator:
             
         print(" [TaskGenerator] Initializing base CIFAR-100 datasets...")
         # CIFAR-100 specific normalization constants
-        tf = transforms.Compose([
+        tf_train = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4), # CRITICAL: Allows the model to see shifted versions
             transforms.ToTensor(),
-            transforms.Normalize(
-                (0.5071, 0.4867, 0.4408),
-                (0.2675, 0.2565, 0.2761),
-            ),
+            transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
+        ])
+
+        tf_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
         ])
         
         cls._train_data = datasets.CIFAR100(
-            root="./data", train=True, download=True, transform=tf
+            root="./data", train=True, download=True, transform=tf_train
         )
         cls._test_data = datasets.CIFAR100(
-            root="./data", train=False, download=True, transform=tf
+            root="./data", train=False, download=True, transform=tf_test
         )
 
     @classmethod

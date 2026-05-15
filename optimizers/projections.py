@@ -76,25 +76,37 @@ class OP(ABC):
         self._build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
 
     def step(self, model: nn.Module, task_id, g_theta: Tensor) -> float:
-
         assert self.A_inv is not None, "Call prepare_epoch(F_new) before step()."
-     
-        # 2. In FOPNG.step, update the task_emb logic:
+        
+        # ── 1. Update Task Embeddings (Standard SGD) ──────────────────────────
         with torch.no_grad():
             if hasattr(model, "task_emb"):
                 te_grad = model.task_emb.weight.grad
                 if te_grad is not None:
+                    # Task embeddings are task-specific, so no projection needed
                     model.task_emb.weight.data.add_(-self.lr * te_grad)
 
-      
+        # ── 2. Update GroupNorm Parameters (Standard SGD) ─────────────────────
+        # These are the parameters in the target_network that we set to requires_grad=True
+        with torch.no_grad():
+            for name, p in model.target_network.named_parameters():
+                if p.requires_grad and p.grad is not None:
+                    # We update GN parameters greedily. 
+                    # Note: Some people use a smaller LR for GN to maintain stability.
+                    p.data.add_(-self.lr * p.grad)
+
+        # ── 3. The HyperNetwork Projection (FOPNG) ───────────────────────────
+        # This remains the same, as it only operates on g_theta (the shared brain)
         v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
             g=g_theta, G=self.gradient_memory.matrix, F_old=self.F_old, F_new=self.F_new
         )
 
+        # ── 4. Apply Projected Update to Shared Params ────────────────────────
         pointer = 0
         with torch.no_grad():
             for p in model._shared_params:
                 n = p.numel()
+                # This update is the 'protected' one that prevents forgetting
                 p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
         return weighted_rho, correction_norm, raw_rho
@@ -732,13 +744,15 @@ def train(
 
     results = {"acc" : {}}
     global_epoch = 0
-    loss_to_achieve = 0.1
+    loss_to_achieve = 0.3
     _max_epochs = max_epochs if max_epochs else epochs
     base_lr = lr
     save_label = "weights/first_run_weights"
     # save_path = "first_run_weights_0.14970794413238764_16.pt"
     # save_path = "first_run_weights_0.14454140998423098_16.pt"
     save_path = "weights/first_run_weights_0.11516995973303724_8.pt"
+    gn_params = [p for n, p in model.target_network.named_parameters() if p.requires_grad]
+
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
         best_loss = inf
@@ -747,6 +761,8 @@ def train(
         best_parameters = None
         optimizer.lr = base_lr
         epoch = 0
+        optimizer_gn = torch.optim.AdamW(gn_params, lr=base_lr * 0.1)
+ 
         if t == 0:
             if not saved:
                 if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
@@ -762,7 +778,10 @@ def train(
                         output = model(x)
                         loss = criterion(output, y)
                         loss.backward()
+
                         opt.step()
+                        optimizer_gn.step()
+
                         total_loss += loss.item()
                     
                     avg_loss = total_loss / len(loader)
@@ -808,7 +827,10 @@ def train(
                         output = model(x)
                         loss = criterion(output, y)
                         loss.backward()
+
                         opt.step()
+                        optimizer_gn.step()
+
                         total_loss += loss.item()
                     
                     avg_loss = total_loss / len(loader)
@@ -846,6 +868,9 @@ def train(
                     model.zero_grad()
 
                     weighted_rho, correction_norm, raw_rho = optimizer.step(model, task_id, g_theta.detach())
+                    
+                    optimizer_gn.step()
+
                     total_weighted_rho    += weighted_rho
                     total_correction_norm += correction_norm
                     total_raw_rho         += raw_rho
@@ -914,6 +939,15 @@ def train(
             eval_metrics[f"{optimizer.__name__}/eval/acc_task_{i+1}"] = acc
             if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
             
+        for i in range(len(train_loaders)): 
+            eval_task_id = torch.tensor([i], dtype=torch.long, device=device)
+            tc = task_classes[i] if task_classes is not None else None
+            acc = evaluate_accuracy(model, train_loaders[i], eval_task_id, task_classes=tc)
+            results["acc"][t+1].append(acc)
+            eval_metrics[f"{optimizer.__name__}/eval/acc_task_{i+1}"] = acc
+            if verbose: print(f"  Task {i+1} Acc: {acc*100:.1f}%")
+            
+
         if t != 0:
             bwt = calc_bwt(results["acc"], task_id=t+1)
             eval_metrics[f"{optimizer.__name__}/eval/bwt"] = bwt
