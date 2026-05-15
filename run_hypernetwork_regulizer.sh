@@ -10,7 +10,7 @@
 # ==============================================================================
 
 TASK="split_cifar10"
-SEEDS=(42 1234 2137 811 111)
+SEEDS=(42 1000 2137 811 111)
 # Methods include both vanilla baselines and your custom projection methods
 METHODS=("sgd" "adam" "ogd" "ognd" "fng" "fopng" "prefopng" "efopng")
 
@@ -35,7 +35,7 @@ for METHOD in "${METHODS[@]}"; do
             --grads_per_task=250 \
             --max_directions=5000 \
             --fisher_samples=1024 \
-            --fisher_normalization \
+            --normalize \
             --regulizer \
             --task_embedding_dim=32 \
             --chunk_embedding_dim=32 \
