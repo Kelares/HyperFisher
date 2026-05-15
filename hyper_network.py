@@ -63,6 +63,8 @@ class HyperNetwork(nn.Module):
         self.target_params = None
         self.num_shared_params = sum(p.numel() for p in self._shared_params)
         
+        print("Num of chunks: ", self.num_of_chunks)
+        
     def spawn(self, task_id):
         # 1. Get the embedding and force it to be 1D (embedding_dim,)
         # This handles both task_id=0 and task_id=torch.tensor([0])

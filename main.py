@@ -17,7 +17,7 @@ if __name__ == "__main__":
     
     # Core parameters
     parser.add_argument("--model", type=str, default="HyperNetwork", choices=["HyperNetwork", "TargetNetwork"])
-    parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist", "split_cifar10"])
+    parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist", "split_cifar10", "split_cifar100"])
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
