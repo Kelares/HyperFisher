@@ -70,9 +70,20 @@ class DiagonalFisherEstimator(FisherEstimator):
             fisher_loader = loader
         
         if self.use_vmap:
-            return self._estimate_vmap(model, fisher_loader, criterion, device, task_id)
+            fisher = self._estimate_vmap(model, fisher_loader, criterion, device, task_id)
         else:
-            return self._estimate_sequential(model, fisher_loader, criterion, device, task_id)
+            fisher = self._estimate_sequential(model, fisher_loader, criterion, device, task_id)
+        
+        if self.clipping:
+            fisher_nonzero = fisher[fisher > 0]
+            if len(fisher_nonzero) > 0:
+                p_val = torch.quantile(fisher_nonzero, self.quantile)
+                fisher = fisher.clamp(max=p_val.item())
+
+        if self.normalization:
+            if fisher.max() > 0:
+                fisher = fisher / fisher.max()
+        return fisher
     
     def _estimate_sequential(
         self,
@@ -110,19 +121,6 @@ class DiagonalFisherEstimator(FisherEstimator):
                 pbar.update(1)
         model.train()
         fisher /= max(n_seen, 1)
-        # 6. Final normalization logic to maintain numerical stability
-        if self.clipping:
-            fisher_nonzero = fisher[fisher > 0]
-            if len(fisher_nonzero) > 0:
-                p_val = torch.quantile(fisher_nonzero, self.quantile)
-                fisher = fisher.clamp(max=p_val.item())
-
-        if self.normalization:
-            if fisher.max() > 0:
-                fisher = fisher / fisher.max()
-            # Unit trace normalization is more stable for A-matrix inversion
-            # total_importance = fisher.sum() + 1e-12
-            # fisher = fisher / total_importance
         return fisher
 
     

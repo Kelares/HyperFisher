@@ -29,7 +29,7 @@ if __name__ == "__main__":
         nargs='+', 
         required=False,
         default=["fopng", "adam"],
-        choices=["sgd", "adam", "ogd", "ognd", "fopng", "fopng_prefisher", "fng", "efopng", "ewc"],
+        choices=["sgd", "adam", "ogd", "ong", "fopng", "fopng_prefisher", "fng", "efopng", "ewc"],
     )
 
     # Optimization/Fisher parameters
@@ -121,7 +121,18 @@ if __name__ == "__main__":
        
 
         if method == "ewc":
-            pass
+            results = train_ewc(
+                model=model,
+                train_loaders=train_loaders,
+                test_loaders=test_loaders,
+                criterion=criterion,
+                lr=config.get("lr", 1e-3),
+                epochs=config.get("epochs", 5),
+                max_epochs=config.get("max_epochs"),
+                task_classes=config.get("task_classes"),
+                verbose=config.get("verbose", True),
+                regulizer=config.get("regulizer", True)
+            )
 
         elif method == "sgd" or method == "adam":
             results = train_vanilla(
@@ -136,6 +147,8 @@ if __name__ == "__main__":
                 task_classes=config.get("task_classes"),
                 verbose=config.get("verbose", True),
                 warmup=config.get("warmup", False), 
+                regulizer=config.get("regulizer", True)
+
             )
 
         else:

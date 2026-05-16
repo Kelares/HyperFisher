@@ -434,7 +434,8 @@ class FOPNG(OP):
 
 class eFOPNG(OP):
     __name__ = "eFOPNG"
-
+    '''Geometric interpretation of new kernel.'''
+    '''The first term bounds the KL divergence on the new task; the second bounds the Fisher distance in the old task geometry. So a single trust region simultaneously constrains both — this is the precise sense in which the method is elastic, and it gives you the clean contrast with EWC: EWC achieves elasticity through an explicit penalty; eFOPNG achieves it by embedding the old-task geometry directly into the ambient metric.'''
     def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
         # 1. THE INERTIA INVERSE (The fix for dead parameters)
         # We combine current and past importance so old important weights 
@@ -457,10 +458,6 @@ class eFOPNG(OP):
         # Trust Region Denominator
         denom = torch.sqrt((P_g * F_inv_P_g).sum() + 1e-8)
         v_star = -self.lr * F_inv_P_g / (denom + 1e-8)
-
-        # 4. Physical Safety Cage (Physical movement limit)
-        # max_jump = self.lr * 2.0 
-        # v_star = torch.clamp(v_star, min=-max_jump, max=max_jump)
 
         # 5. DIAGNOSTIC: Calculate Rho on the actual update 'v_star'
         # This tells you if the final movement is actually safe.
@@ -554,8 +551,8 @@ class FNG(OP):
         return weighted_rho, correction_norm, raw_rho
     
 
-class OGND(OP):
-    __name__ = "OGND"
+class ONG(OP):
+    __name__ = "ONG" # THIS SHOULD BE CALLED ONG
 
     def _build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
         """
@@ -653,7 +650,7 @@ class OGD(FOPNG):
 METHOD_MAP = {
     "fopng": FOPNG,
     "efopng": eFOPNG,
-    "ognd": OGND,
+    "ong": ONG,
     "ogd": OGD,
     "fng": FNG,
     "fopng_prefisher": PreFOPNG
@@ -718,7 +715,7 @@ def train(
         test_loaders: List[DataLoader],
         criterion: Callable,
         regulizer: HyperRegulizer | None,
-        optimizer: FOPNG | OGD | OGND,
+        optimizer: FOPNG | OGD | ONG,
         *,
         lr: float = 1e-3,
         epochs: int = 5,
@@ -750,8 +747,8 @@ def train(
         epoch = 0
         if t == 0:
             if not saved:
-                if verbose: print(f"[FOPNG] Task 1 – {first_task_optimizer_cls.__name__}")
-                opt = first_task_optimizer_cls(model.parameters(), lr=base_lr)  # This adds the L2 penalty)
+                if verbose: print(f"\n[{optimizer.__name__}] Task 1 – {first_task_optimizer_cls.__name__}")
+                opt = first_task_optimizer_cls(model.parameters(), lr=1e-3, weight_decay=1e-4)  # This adds the L2 penalty)
                 while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                     total_loss = 0.0
                     model.train()
@@ -810,6 +807,8 @@ def train(
                 warmup_n = 5
                 for i in range(warmup_n):
                     total_loss = 0.0
+                    total_reg = 0.0
+
                     model.train()
 
                     for x, y in loader:
@@ -818,12 +817,20 @@ def train(
                         model.spawn(task_id)
                         output = model(x)
                         loss = criterion(output, y)
+
+                        if regulizer:
+                            w_penalty = regulizer.loss(model, task_id)
+                            total_reg += w_penalty.item()
+                            loss += w_penalty
+
                         loss.backward()
                         opt.step()
                         total_loss += loss.item()
                     
                     avg_loss = total_loss / len(loader)
-                    if verbose: print(f"embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f}")
+                    avg_reg = total_reg / len(loader)
+
+                    if verbose: print(f"embedding layer warm up {i+1}/{warmup_n} loss={avg_loss:.4f} avg_reg={avg_reg:.4f}")
 
                 # UNFREEZING SHARED_PARAMS #
                 for param in model._shared_params:
@@ -834,6 +841,7 @@ def train(
                 F_new = optimizer.FisherEstimator.estimate(model, task_id, loader, criterion, device)
                 optimizer.prepare_epoch(F_new)
                 total_loss = 0.0
+                total_reg = 0.0
                 total_weighted_rho = 0.0
                 total_correction_norm = 0.0
                 total_raw_rho = 0.0
@@ -848,6 +856,7 @@ def train(
 
                     if regulizer:
                         w_penalty = regulizer.loss(model, task_id)
+                        total_reg += w_penalty.item()
                         loss += w_penalty
                     total_loss += loss.item()
                     
@@ -862,7 +871,9 @@ def train(
                     total_raw_rho         += raw_rho
 
                 n_batches = len(loader)
-                avg_loss           = total_loss           / n_batches
+                avg_loss  = total_loss / n_batches
+                avg_reg   = total_reg / n_batches
+
                 avg_weighted_rho   = total_weighted_rho   / n_batches
                 avg_correction_norm= total_correction_norm/ n_batches
                 avg_raw_rho        = total_raw_rho        / n_batches
@@ -889,6 +900,8 @@ def train(
 
                 wandb.log({
                     f"{optimizer.__name__}/train/loss":             avg_loss,
+                    f"{optimizer.__name__}/train/reg_penalty":       avg_reg,
+
                     # weighted_rho: projection quality within Fisher-important subspace
                     # (the correct metric for FOPNG — want this LOW, close to 0)
                     f"{optimizer.__name__}/train/weighted_rho":     avg_weighted_rho,
@@ -903,6 +916,7 @@ def train(
                 global_epoch += 1
 
                 if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={optimizer.lr}")
+                if regulizer: print(f" reg_loss={avg_reg:.4f}")
                 epoch += 1
 
             model.load_state_dict(best_parameters) #Load the best loss for the task and use it from now on.

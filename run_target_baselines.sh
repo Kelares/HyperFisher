@@ -11,7 +11,7 @@
 
 TASK="split_cifar10"
 SEEDS=(42 1000 2137 811 111)
-METHODS=("sgd" "adam" "ogd" "ognd" "fng" "fopng" "prefopng" "efopng")
+METHODS=("sgd" "adam" "ogd" "ong" "fng" "fopng" "prefopng" "efopng")
 
 # Loop through each method defined in the pipeline
 for METHOD in "${METHODS[@]}"; do

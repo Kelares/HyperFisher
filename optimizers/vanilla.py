@@ -31,7 +31,7 @@ def train_vanilla(
     train_loaders: List[DataLoader],
     test_loaders: List[DataLoader],
     criterion: Callable,
-    regulizer: Optional[HyperRegulizer] = None,
+    regulizer: bool = False,
     *,
     lr: float = 1e-3,
     epochs: int = 5,
@@ -52,6 +52,8 @@ def train_vanilla(
     loss_to_achieve = 0.1
     _max_epochs = max_epochs if max_epochs else epochs
     base_lr = lr
+    regulizer_instance = HyperRegulizer() if regulizer else None
+
 
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
@@ -62,7 +64,7 @@ def train_vanilla(
         epoch = 0
         
         # Initialize standard optimizer for the task
-        opt = optimizer_cls(model.parameters(), lr=base_lr, weight_decay=1e-4)
+        opt = optimizer_cls(model.parameters(), lr=base_lr)
 
         # ── Task 1 (Standard Initialization) ──────────────────────────────────
         if t == 0:
@@ -134,6 +136,7 @@ def train_vanilla(
             # Main Training loop for Task > 1
             while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                 total_loss = 0.0
+                total_reg = 0.0
                 model.train()
 
                 for x, y in loader:
@@ -143,15 +146,19 @@ def train_vanilla(
                     output = model(x)
                     loss = criterion(output, y)
 
-                    if regulizer:
-                        loss += regulizer.loss(model, task_id)
-                    
+                    if regulizer_instance:
+                        w_penalty =  regulizer_instance.loss(model, task_id)
+                        total_reg += w_penalty.item()
+                        loss += w_penalty
+
                     loss.backward()
                     opt.step()
                     total_loss += loss.item()
 
                 n_batches = len(loader)
                 avg_loss = total_loss / n_batches
+                avg_reg = total_reg / n_batches
+
 
                 # Intelligent Tracking & Scheduler
                 if avg_loss < best_loss:
@@ -177,14 +184,16 @@ def train_vanilla(
                 global_epoch += 1
 
                 if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} lr={opt.param_groups[0]['lr']}")
+                if regulizer_instance: print(f" reg_loss={avg_reg:.4f}")
+
                 epoch += 1
 
             model.load_state_dict(best_parameters)
 
         # ── End of Task Management ──────────────────────────────────────────
-        if regulizer:
+        if regulizer_instance:
             model.spawn(task_id)
-            regulizer.old_weights[task_id.item()] = model.w.detach()
+            regulizer_instance.old_weights[task_id.item()] = model.w.detach()
 
         # ── Evaluation ──────────────────────────────────────────────────────
         results["acc"][t+1] = []

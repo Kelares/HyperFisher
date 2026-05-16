@@ -48,7 +48,7 @@ class GradientMemory:
             else:
                 new_vecs = v.detach() # Already a [D, K] matrix
                 
-        # # # 🔑 NEW: Normalize columns to unit Euclidean norm
+        # # # Normalize columns to unit Euclidean norm
         if self.normalization:
             norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
             new_vecs = new_vecs / norms

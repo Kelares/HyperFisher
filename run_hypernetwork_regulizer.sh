@@ -12,7 +12,7 @@
 TASK="split_cifar10"
 SEEDS=(42 1000 2137 811 111)
 # Methods include both vanilla baselines and your custom projection methods
-METHODS=("sgd" "adam" "ogd" "ognd" "fng" "fopng" "prefopng" "efopng")
+METHODS=("sgd" "adam" "ogd" "ong" "fng" "fopng" "prefopng" "efopng")
 
 for METHOD in "${METHODS[@]}"; do
     for SEED in "${SEEDS[@]}"; do

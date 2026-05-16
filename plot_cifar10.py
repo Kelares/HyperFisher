@@ -97,7 +97,20 @@ def plotJob(job_type):
     plt.ylim(0.4, 1.0) # Adjusted based on CIFAR-10 expected ranges
 
     # Add information about Hypernetworks and Regularizer
-    plt.text(0.98, 0.02, "Model: Chunked Hypernetwork\nRegularizer: Functional Regularization (Reg=True)", 
+    match job_type:
+        case "HyperNet_Reg_True":
+            model =  "Chunked Hypernetwork"
+            regulizer = "Regularizer: Hypernetwork Output Regularizer (Reg=True)"
+
+        case "HyperNet_Reg_False":
+            model =  "Chunked Hypernetwork"
+            regulizer = "Regularizer: Hypernetwork Output Regularizer (Reg=False)"
+
+        case "Target_Network":
+            model =  "TargetNetwork"
+            regulizer = ""
+        
+    plt.text(0.98, 0.02, f"Model: {model}\n{regulizer}", 
             transform=plt.gca().transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='right',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
