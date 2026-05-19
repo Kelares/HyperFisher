@@ -22,7 +22,7 @@ def get_magnitude_decay_lr(current_lr: float) -> float:
 # Map method names to their respective classes
 METHOD_MAP = {
     "sgd": torch.optim.SGD,
-    "adam":  torch.optim.AdamW
+    "adam":  torch.optim.Adam
 }
 
 def train_vanilla(

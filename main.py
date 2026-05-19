@@ -11,6 +11,7 @@ from optimizers.ewc import train_ewc
 from optimizers.projections import run_continual_method 
 from utils import stress_test_fopng_memory
 from optimizers.vanilla import train_vanilla
+import os
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Continual Learning Experiments CLI")
@@ -22,6 +23,8 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--max_epochs", type=int, default=None)
+
+    parser.add_argument("--num_of_tasks", type=int, default=None)
 
     # Method selection
     parser.add_argument(
@@ -64,7 +67,7 @@ if __name__ == "__main__":
 
     # Task and Data Setup
     task_module = importlib.import_module(f"tasks.{args.task}")
-    Task = task_module.TaskGenerator
+    Task = task_module.TaskGenerator        
     task_config = Task.config
     criterion = nn.CrossEntropyLoss() if task_config.criterion is None else task_config.criterion
     target_network = Task.target_network
@@ -86,12 +89,18 @@ if __name__ == "__main__":
     )
 
     config = wandb.config
+    if config.get("num_of_tasks", False):
+        print(config.num_of_tasks)
+        task_config.num_tasks = config.num_of_tasks
+        Task.num_tasks = config.num_of_tasks
+
     config.update({"num_tasks": task_config.num_tasks, "task_classes": getattr(task_config, 'task_classes', None)})
 
     if config.check_vram:
         stress_test_fopng_memory()
 
     datasets = [Task.generate(task_id=t, batch_size=config.batch_size) for t in range(config.num_tasks)]
+    print(Task)
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
 
@@ -102,84 +111,100 @@ if __name__ == "__main__":
         device=device, 
         config=config
     ) if config.model == "HyperNetwork" else Task.multihead(Task.config.num_tasks, device)
-    print(model)
 
+    print(model)
+    print(model.num_shared_params)
+    if config.model == "TargetNetwork":
+        config.update({"regulizer": False}, allow_val_change=True)
+        
     initial_state = copy.deepcopy(model.state_dict())
     best_acc = -1
     best_bwt = -1
 
     # --- Unified Method Loop ---
-    for method in args.methods:
-        # Restart model state
-        model.load_state_dict(initial_state)
-        if config.model == "HyperNetwork":
-            model.target_params = None 
-            model.w = None
+    try:
+        for method in args.methods:
+            # Restart model state
+            model.load_state_dict(initial_state)
+            if config.model == "HyperNetwork":
+                model.target_params = None 
+                model.w = None
 
-        print(f"\n--- Starting {method.upper()} Training ---")
-        wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
-       
+            print(f"\n--- Starting {method.upper()} Training ---")
+            wandb.define_metric(f"{method}/eval/*", step_metric="task_completed")
+        
 
-        if method == "ewc":
-            results = train_ewc(
-                model=model,
-                train_loaders=train_loaders,
-                test_loaders=test_loaders,
-                criterion=criterion,
-                lr=config.get("lr", 1e-3),
-                epochs=config.get("epochs", 5),
-                max_epochs=config.get("max_epochs"),
-                task_classes=config.get("task_classes"),
-                verbose=config.get("verbose", True),
-                regulizer=config.get("regulizer", True)
-            )
+            if method == "ewc":
+                results = train_ewc(
+                    model=model,
+                    train_loaders=train_loaders,
+                    test_loaders=test_loaders,
+                    criterion=criterion,
+                    lr=config.get("lr", 1e-3),
+                    lam=config.get("lam", 1e-3),
+                    epochs=config.get("epochs", 5),
+                    max_epochs=config.get("max_epochs"),
+                    task_classes=config.get("task_classes"),
+                    verbose=config.get("verbose", True),
+                    regulizer=config.get("regulizer", True)
+                )
 
-        elif method == "sgd" or method == "adam":
-            results = train_vanilla(
-                method=method,
-                model=model,
-                train_loaders=train_loaders,
-                test_loaders=test_loaders,
-                criterion=criterion,
-                lr=config.get("lr", 1e-3),
-                epochs=config.get("epochs", 5),
-                max_epochs=config.get("max_epochs"),
-                task_classes=config.get("task_classes"),
-                verbose=config.get("verbose", True),
-                warmup=config.get("warmup", False), 
-                regulizer=config.get("regulizer", True)
+            elif method == "sgd" or method == "adam":
+                results = train_vanilla(
+                    method=method,
+                    model=model,
+                    train_loaders=train_loaders,
+                    test_loaders=test_loaders,
+                    criterion=criterion,
+                    lr=config.get("lr", 1e-3),
+                    epochs=config.get("epochs", 5),
+                    max_epochs=config.get("max_epochs"),
+                    task_classes=config.get("task_classes"),
+                    verbose=config.get("verbose", True),
+                    warmup=config.get("warmup", False), 
+                    regulizer=config.get("regulizer", True)
 
-            )
+                )
 
-        else:
-            # Execute unified launcher
-            results = run_continual_method(
-                method=method,
-                model=model,
-                train_loaders=train_loaders,
-                test_loaders=test_loaders,
-                criterion=criterion,
-                config=config
-            )
+            else:
+                # Execute unified launcher
+                results = run_continual_method(
+                    method=method,
+                    model=model,
+                    train_loaders=train_loaders,
+                    test_loaders=test_loaders,
+                    criterion=criterion,
+                    config=config
+                )
 
-        # Standardized Post-Training Logging
-        if results:
-            final_task_id = max(results["acc"].keys())
-            final_accuracies = results["acc"][final_task_id]
-            average_accuracy = sum(final_accuracies) / len(final_accuracies)
-            
-            wandb.log({f"{method}/eval/average_accuracy": average_accuracy})
-            wandb.log({f"{method}/results": results})
+            # Standardized Post-Training Logging
+            if results:
+                final_task_id = max(results["acc"].keys())
+                final_accuracies = results["acc"][final_task_id]
+                average_accuracy = sum(final_accuracies) / len(final_accuracies)
+                
+                wandb.log({f"{method}/eval/average_accuracy": average_accuracy})
+                wandb.log({f"{method}/results": results})
 
-            if average_accuracy >= best_acc:
-                best_acc = average_accuracy
-                best_results = results
+                if average_accuracy >= best_acc:
+                    best_acc = average_accuracy
+                    best_results = results
 
-            final_bwt = results["bwt"]
+                final_bwt = results["bwt"]
 
-            if final_bwt >= best_bwt:
-                best_bwt = final_bwt
+                if final_bwt >= best_bwt:
+                    best_bwt = final_bwt
 
-    wandb.log({"best/results": results})
-    wandb.log({"best/average_accuracy": best_acc})
-    wandb.log({"best/bwt": best_bwt})
+        wandb.log({"best/results": results})
+        wandb.log({"best/average_accuracy": best_acc})
+        wandb.log({"best/bwt": best_bwt})
+    finally:
+        torch.save(model.state_dict(), "best_model.pt")
+
+        # 2. At the end of the task, log it to W&B as an Artifact
+        artifact = wandb.Artifact(
+            name=f"{method}_{model.hidden_dim if hasattr(model, 'hidden_dim') else 'targetNetwork'}", 
+            type="model"
+        )
+        artifact.add_file("best_model.pt")
+        wandb.log_artifact(artifact)

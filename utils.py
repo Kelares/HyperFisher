@@ -5,6 +5,7 @@ from torch import Tensor
 from torch.utils.data import Dataset
 import seaborn as sns
 import matplotlib.pyplot as plt
+from typing import List, Optional
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Low-level utilities
@@ -117,3 +118,34 @@ def plot_overlap(matrix, labels):
                 xticklabels=labels, yticklabels=labels)
     plt.title("Fisher Overlap (Task Similarity)")
     return plt
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper Dataset for Multi-Head Remapping
+# ─────────────────────────────────────────────────────────────────────────────
+class RemappedSubset(Dataset):
+    """Filters a dataset by classes and remaps them to 0...k-1."""
+    def __init__(self, base_dataset, allowed_classes: List[int], indices: Optional[List[int]] = None):
+        self.base = base_dataset
+        # Mapping: e.g., {2: 0, 3: 1}
+        self.class_to_new = {c: i for i, c in enumerate(sorted(allowed_classes))}
+        
+        if indices is not None:
+            # Use the fast indices passed from the progress bar
+            self.indices = indices
+        else:
+            # Fallback logic: Use .targets for speed instead of iterating the whole Dataset
+            # iterating base_dataset (the images) is what causes the 'second of lag'
+            targets = getattr(base_dataset, 'targets', None)
+            if targets is not None:
+                self.indices = [i for i, lbl in enumerate(targets) if int(lbl) in self.class_to_new]
+            else:
+                # Absolute fallback if .targets doesn't exist
+                self.indices = [i for i, (_, lbl) in enumerate(base_dataset) if int(lbl) in self.class_to_new]
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx):
+        img, lbl = self.base[self.indices[idx]]
+        return img, self.class_to_new[int(lbl)]

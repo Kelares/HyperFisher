@@ -64,6 +64,7 @@ class DiagonalFisherEstimator(FisherEstimator):
         if self.fisher_samples is not None:
             dataset = loader.dataset
             # Take only the first batch_size samples
+            print(len(dataset))
             limited_dataset = Subset(dataset, range(min(self.fisher_samples, len(dataset))))
             fisher_loader = DataLoader(limited_dataset, batch_size=len(limited_dataset), shuffle=False)
         else:

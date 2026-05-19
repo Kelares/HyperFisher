@@ -73,7 +73,7 @@ class OP(ABC):
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
         self.F_new = F_new
-        self._build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
+        self.build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
 
     def step(self, model: nn.Module, task_id, g_theta: Tensor) -> float:
 
@@ -87,7 +87,7 @@ class OP(ABC):
                     model.task_emb.weight.data.add_(-self.lr * te_grad)
 
       
-        v_star_theta, weighted_rho, correction_norm, raw_rho = self._fopng_update(
+        v_star_theta, weighted_rho, correction_norm, raw_rho = self.update(
             g=g_theta, G=self.gradient_memory.matrix, F_old=self.F_old, F_new=self.F_new
         )
 
@@ -125,9 +125,9 @@ class OP(ABC):
             # CULPRIT FIX: Re-normalize so the combined history peak is always 1.0
             # self.F_old += F_new.detach()
             
-            # if self.FisherEstimator.normalization:
-            #     if self.F_old.max() > 0:
-            #         self.F_old = self.F_old / self.F_old.max()
+            if self.FisherEstimator.normalization:
+                if self.F_old.max() > 0:
+                    self.F_old = self.F_old / self.F_old.max()
             
         # 1. Collect the raw gradients for the current task
         self.GradientCollector.collect(
@@ -299,7 +299,7 @@ def get_magnitude_decay_lr(current_lr: float) -> float:
 class PreFOPNG(OP):
     __name__ = "PreFOPNG"
 
-    def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
+    def update(self, g, G, F_old, F_new, eps=1e-8):
         """
         Compute FOPNG-PF update step with pre-multiplied Fisher gradients.
         
@@ -326,7 +326,7 @@ class PreFOPNG(OP):
         weighted_rho = ((F_sqrt * P_g).norm() / ((F_sqrt * g).norm() + eps)).item()
         return v_star, weighted_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
            
-    def _build_A_inv(
+    def build_A_inv(
             self,
             G: Tensor,
             F_old: Tensor,
@@ -397,7 +397,7 @@ class PreFOPNG(OP):
 class FOPNG(OP):
     __name__ = "FOPNG"
 
-    def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
+    def update(self, g, G, F_old, F_new, eps=1e-8):
 
         F_new_inv_diag = 1.0 / (F_new + self.lam)
             
@@ -418,7 +418,7 @@ class FOPNG(OP):
         actual_rho = ((F_sqrt * v_star).norm() / ((F_sqrt * (g * F_new_inv_diag)).norm() + eps)).item()
         return v_star, actual_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
 
-    def _build_A_inv(self, G, F_old, F_new) -> None:
+    def build_A_inv(self, G, F_old, F_new) -> None:
 
         # Diagonal Fisher approximation
         F_new_inv_diag = 1.0 / (F_new + self.lam)
@@ -436,7 +436,7 @@ class eFOPNG(OP):
     __name__ = "eFOPNG"
     '''Geometric interpretation of new kernel.'''
     '''The first term bounds the KL divergence on the new task; the second bounds the Fisher distance in the old task geometry. So a single trust region simultaneously constrains both — this is the precise sense in which the method is elastic, and it gives you the clean contrast with EWC: EWC achieves elasticity through an explicit penalty; eFOPNG achieves it by embedding the old-task geometry directly into the ambient metric.'''
-    def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
+    def update(self, g, G, F_old, F_new, eps=1e-8):
         # 1. THE INERTIA INVERSE (The fix for dead parameters)
         # We combine current and past importance so old important weights 
         # stay "heavy" and don't take huge jumps.
@@ -467,7 +467,7 @@ class eFOPNG(OP):
         
         return v_star, actual_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
 
-    def _build_A_inv(self, G, F_old, F_new) -> None:
+    def build_A_inv(self, G, F_old, F_new) -> None:
         # Use the same Inertia Geometry for the matrix A
         F_combined = F_new + F_old
         F_inv_diag = 1.0 / (F_combined + self.lam)
@@ -475,7 +475,6 @@ class eFOPNG(OP):
         F_old_diag = F_old.view(-1, 1)
         # A = G.T @ F_old @ (F_new + F_old)^-1 @ F_old @ G
         weighted_G = F_old_diag * (F_inv_diag.view(-1, 1) * (F_old_diag * G))
-        
         self.A = G.T @ weighted_G + self.lam * torch.eye(G.size(1), device=G.device)
         self.A_inv = torch.linalg.pinv(self.A)
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
@@ -513,7 +512,7 @@ class FNG(OP):
         # and 0 for correction norm.
         return v_star, 1.0, 0.0, 1.0
 
-    def _build_A_inv(self, G, F_old, F_new) -> None:
+    def build_A_inv(self, G, F_old, F_new) -> None:
         """
         FNG does not use the G-subspace projection (A_inv).
         We implement this as a dummy to satisfy the OP interface.
@@ -554,7 +553,7 @@ class FNG(OP):
 class ONG(OP):
     __name__ = "ONG" # THIS SHOULD BE CALLED ONG
 
-    def _build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
+    def build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
         """
         In standard OGD, A is simply the correlation matrix of the memory.
         A = GᵀG + λI.
@@ -567,7 +566,7 @@ class ONG(OP):
         print(self.A)
         self.A_inv = torch.linalg.pinv(self.A)
         
-    def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
+    def update(self, g, G, F_old, F_new, eps=1e-8):
         """
         OGD on Natural Gradient:
         1. Compute the Natural Gradient direction.
@@ -603,8 +602,10 @@ class ONG(OP):
 
 class OGD(FOPNG):
     __name__ = "OGD"
+    def prepare_epoch(self, F_new: Tensor) -> None:
+        self.build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
 
-    def _build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
+    def build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
         """
         Normal OGD projection matrix: A = GᵀG + λI.
         Only cares about the Euclidean correlation of stored gradients.
@@ -619,7 +620,7 @@ class OGD(FOPNG):
         # Invert the Euclidean correlation matrix
         self.A_inv = torch.linalg.pinv(self.A + adaptive_lam * torch.eye(G.size(1), device=G.device))
 
-    def _fopng_update(self, g, G, F_old, F_new, eps=1e-8):
+    def update(self, g, G, F_old, F_new, eps=1e-8):
         """
         Standard OGD Update:
         1. Project the raw gradient 'g' to be orthogonal to history 'G'.
@@ -644,7 +645,25 @@ class OGD(FOPNG):
         
         # Return signature matches FOPNG.step
         return v_star.to(g.device), rho, correction.norm().item(), rho
+   
+    def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
+        self.F_old = None
+        
+        # 1. Collect the raw gradients for the current task
+        self.GradientCollector.collect(
+            memory = self.gradient_memory, 
+            model = model, 
+            dataloader = loader,
+            device = self.calc_device, 
+            task_id = task_id,
+        )
 
+        if self.debug:
+            print(f"[{self.__name__}] Current G memory size: {len(self.gradient_memory)} / {self.max_directions}")
+
+
+        torch.cuda.empty_cache()
+        gc.collect()
 
 # Map method names to their respective classes
 METHOD_MAP = {
@@ -748,7 +767,7 @@ def train(
         if t == 0:
             if not saved:
                 if verbose: print(f"\n[{optimizer.__name__}] Task 1 – {first_task_optimizer_cls.__name__}")
-                opt = first_task_optimizer_cls(model.parameters(), lr=1e-3, weight_decay=1e-4)  # This adds the L2 penalty)
+                opt = first_task_optimizer_cls(model.parameters(), lr=1e-5, weight_decay=1e-4)  # This adds the L2 penalty)
                 while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                     total_loss = 0.0
                     model.train()
@@ -804,7 +823,7 @@ def train(
                 ####################################################################
                 active_params = filter(lambda p: p.requires_grad, model.parameters())
                 opt = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
-                warmup_n = 5
+                warmup_n = 15
                 for i in range(warmup_n):
                     total_loss = 0.0
                     total_reg = 0.0
@@ -835,6 +854,7 @@ def train(
                 # UNFREEZING SHARED_PARAMS #
                 for param in model._shared_params:
                     param.requires_grad = True
+                model.zero_grad()  
                 ############################
 
             while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
@@ -863,7 +883,6 @@ def train(
                     loss.backward()
 
                     g_theta = get_grad_vector(model)
-                    model.zero_grad()
 
                     weighted_rho, correction_norm, raw_rho = optimizer.step(model, task_id, g_theta.detach())
                     total_weighted_rho    += weighted_rho
@@ -949,10 +968,11 @@ def train(
 
     tasks_completed = sorted(list(results["acc"].keys())) # [1, 2, 3]
     num_eval_tasks = len(test_loaders)
+    if type(optimizer) is not OGD:
+        matrix, keys = optimizer.compute_overlap_matrix()
+        heat_map = plot_overlap(matrix, keys)
+        wandb.log({f"{optimizer.__name__} FRECHET CORR MATRIX": wandb.Image(heat_map)})
 
-    matrix, keys = optimizer.compute_overlap_matrix()
-    heat_map = plot_overlap(matrix, keys)
-    wandb.log({f"{optimizer.__name__} FRECHET CORR MATRIX": wandb.Image(heat_map)})
     # 1. Log the overlapping FOPNG chart
     plt.figure(figsize=(10, 6))
     

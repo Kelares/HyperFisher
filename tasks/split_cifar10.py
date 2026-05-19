@@ -24,7 +24,7 @@ from torchvision import datasets, transforms
 from types import SimpleNamespace
 from typing import List, Tuple, Optional
 from tqdm import tqdm
-
+from utils import RemappedSubset
 
 TASK_CLASSES = [
     (0, 1),
@@ -35,74 +35,6 @@ TASK_CLASSES = [
 ]
 
 
-
-def conv3x3(in_planes, out_planes, stride=1):
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
-
-class BasicBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, in_planes, planes, stride=1, num_groups=32):
-        super(BasicBlock, self).__init__()
-        self.conv1 = conv3x3(in_planes, planes, stride)
-        # Changed BatchNorm to GroupNorm
-        self.gn1 = nn.GroupNorm(num_groups, planes)
-        
-        self.conv2 = conv3x3(planes, planes)
-        self.gn2 = nn.GroupNorm(num_groups, planes)
-
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != self.expansion * planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
-                nn.GroupNorm(num_groups, self.expansion * planes) # Changed here too
-            )
-
-    def forward(self, x):
-        out = F.relu(self.gn1(self.conv1(x)))
-        out = self.gn2(self.conv2(out))
-        out += self.shortcut(x)
-        out = F.relu(out)
-        return out
-
-class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10, num_groups=32):
-        super(ResNet, self).__init__()
-        self.in_planes = 64
-        self.num_groups = num_groups
-
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.gn1 = nn.GroupNorm(num_groups, 64) # Changed BatchNorm to GroupNorm
-        
-        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        
-        self.linear = nn.Linear(512 * block.expansion, num_classes)
-
-    def _make_layer(self, block, planes, num_blocks, stride):
-        strides = [stride] + [1] * (num_blocks - 1)
-        layers = []
-        for stride in strides:
-            layers.append(block(self.in_planes, planes, stride, num_groups=self.num_groups))
-            self.in_planes = planes * block.expansion
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        out = F.relu(self.gn1(self.conv1(x)))
-        out = self.layer1(out)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
-
-def ResNet18(num_classes=10, num_groups=32):
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, num_groups=num_groups)
-    
 class DummyCIFARTarget(nn.Module):
     def __init__(self):
         super().__init__()
@@ -243,36 +175,7 @@ class MultiHeadTargetCNN(nn.Module):
         t_id = self._active_task_id.item()
         return self.heads[t_id](x)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helper Dataset for Multi-Head Remapping
-# ─────────────────────────────────────────────────────────────────────────────
-class RemappedSubset(Dataset):
-    """Filters a dataset by classes and remaps them to 0...k-1."""
-    def __init__(self, base_dataset, allowed_classes: List[int], indices: Optional[List[int]] = None):
-        self.base = base_dataset
-        # Mapping: e.g., {2: 0, 3: 1}
-        self.class_to_new = {c: i for i, c in enumerate(sorted(allowed_classes))}
         
-        if indices is not None:
-            # Use the fast indices passed from the progress bar
-            self.indices = indices
-        else:
-            # Fallback logic: Use .targets for speed instead of iterating the whole Dataset
-            # iterating base_dataset (the images) is what causes the 'second of lag'
-            targets = getattr(base_dataset, 'targets', None)
-            if targets is not None:
-                self.indices = [i for i, lbl in enumerate(targets) if int(lbl) in self.class_to_new]
-            else:
-                # Absolute fallback if .targets doesn't exist
-                self.indices = [i for i, (_, lbl) in enumerate(base_dataset) if int(lbl) in self.class_to_new]
-
-    def __len__(self):
-        return len(self.indices)
-
-    def __getitem__(self, idx):
-        img, lbl = self.base[self.indices[idx]]
-        return img, self.class_to_new[int(lbl)]
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Task Generator
 # ─────────────────────────────────────────────────────────────────────────────
@@ -288,8 +191,11 @@ class TaskGenerator:
         grads_per_task=150,
         max_directions=750,
     )
+    # Continual Learning Task Configurations
 
-    target_network = TargetCNN(num_classes=2) 
+    target_network = TargetCNN(num_classes=config.num_classes)
+
+    # B. Multi-Head CIFAR CNN (Isolated visual classification pathways)
     multihead = MultiHeadTargetCNN
 
     _train_data: Optional[datasets.CIFAR10] = None

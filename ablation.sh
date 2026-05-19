@@ -1,32 +1,35 @@
-
 #!/bin/bash
 
 # ==============================================================================
-# Experiment Suite: HyperNetwork + HyperRegulizer
+# Complete Thesis Experiment Suite: Permuted MNIST (5 Seeds Sweep)
 # ==============================================================================
-# Group: Hypernetwork_with_reg
-# Tasks: split_cifar10
-# Seeds: 42, 1234, 2137 | 811 111
-# Purpose: Core research runs testing generative CL with restoration force.
+# Focus: Completing statistical coverage to 5 seeds per configuration.
+# Handling: Skipping pre-existing runs (Seeds 42 & 2137) for specialized models, 
+#           and running full 5-seed matrices for standard solo baselines.
 # ==============================================================================
 
 TASK="permuted_mnist"
-SEEDS=(42 2137)
-# Methods include both vanilla baselines and your custom projection methods
-METHODS=("efopng" "ewc" "ogd" "ong" "fng" "fopng" "prefopng")
+DEVICE="gpu"
 
-for METHOD in "${METHODS[@]}"; do
-    for SEED in "${SEEDS[@]}"; do
+# Define complete set of target seeds for statistical evaluation
+ALL_SEEDS=(42 2137 1234 811 111)
+
+# ------------------------------------------------------------------------------
+# 1. Specialized Methods Suite (Completing to 5 seeds; skipping 42 and 2137)
+# ------------------------------------------------------------------------------
+SPECIAL_METHODS=("efopng" "ewc" "ogd" "ong" "fng" "fopng")
+FRESH_SEEDS=(1234 811 111) # The 3 missing seeds needed to hit 5 runs total
+
+echo "=== PHASE 1: Launching Missing Seeds for Specialized Frameworks ==="
+for METHOD in "${SPECIAL_METHODS[@]}"; do
+    for SEED in "${FRESH_SEEDS[@]}"; do
         echo "---------------------------------------------------------"
         echo "LAUNCHING: Method=$METHOD | Seed=$SEED"
-        echo "ARCH: HyperNetwork (Generative) | Regulizer: ON"
-        echo "----------------------------------------------------------"
+        echo "CONFIG: HyperNetwork + Regularizer + Subspace Projection"
+        echo "---------------------------------------------------------"
         
-        # We use --regulizer to ensure the Mean MSE penalty is active
-        # LR is set to 1e-3 for stability in generative space
-
         python main.py \
-            --task=permuted_mnist \
+            --task=$TASK \
             --methods=$METHOD \
             --hyper_hidden_dim=16 \
             --task_embedding_dim=8 \
@@ -36,18 +39,54 @@ for METHOD in "${METHODS[@]}"; do
             --grads_per_task=80 \
             --max_directions=400 \
             --fisher_samples=1024 \
-            --device_mode=gpu \
+            --device_mode=$DEVICE \
             --normalize \
             --lr=1e-2 \
             --max_epochs=10 \
             --experiment_id=1000 \
-            --seed=$SEED
-
+            --seed=$SEED \
+            --num_of_tasks
             
         echo "Finished run for $METHOD with seed $SEED"
         echo ""
     done
 done
 
-echo "All HyperNetwork (with Regularizer) experiments completed."
+# ------------------------------------------------------------------------------
+# 2. Standalone Solo Baselines Suite (Full 5 Seeds Matrix)
+# ------------------------------------------------------------------------------
+# NOTE: Ensure your main.py maps "adam" or "sgd" without projections 
+# when calling --methods=adam or using an explicit --solo flag if required.
+SOLO_METHODS=("adam" "sgd")
 
+echo "=== PHASE 2: Launching Full 5-Seed Grid for Solo Baselines ==="
+for BASELINE in "${SOLO_METHODS[@]}"; do
+    for SEED in "${FRESH_SEEDS[@]}"; do
+        echo "---------------------------------------------------------"
+        echo "LAUNCHING: Solo Baseline=$BASELINE | Seed=$SEED"
+        echo "CONFIG: Standalone HyperNetwork + Functional Regularizer Only"
+        echo "---------------------------------------------------------"
+        
+        python main.py \
+            --task=$TASK \
+            --methods=$BASELINE \
+            --hyper_hidden_dim=16 \
+            --task_embedding_dim=8 \
+            --chunk_embedding_dim=8 \
+            --chunk_size=1280 \
+            --regulizer \
+            --device_mode=$DEVICE \
+            --lr=1e-2 \
+            --max_epochs=10 \
+            --experiment_id=2000 \
+            --seed=$SEED \
+            --num_of_tasks
+            
+        echo "Finished run for Solo $BASELINE with seed $SEED"
+        echo ""
+    done
+done
+
+echo "========================================================="
+echo " SUCCESS: All 5-seed experimental arrays are complete!"
+echo "========================================================="
