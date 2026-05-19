@@ -175,7 +175,135 @@ class MultiHeadTargetCNN(nn.Module):
         t_id = self._active_task_id.item()
         return self.heads[t_id](x)
 
-        
+"""
+Drop-in replacement for MultiHeadTargetCNN in split_cifar10.py and
+split_cifar100.py.
+
+Architecture exactly matches Garg et al. (2026) Table 1 / Section 5.1:
+  "a CNN with 4 convolutional layers (two blocks of Conv-ReLU-Conv-ReLU-MaxPool,
+   3→32→64 channels) followed by 2 fully-connected layers (4096→256→256)
+   with ReLU and dropout (0.5)... Each task has a separate output head (256→2)."
+
+Shapes (32×32 CIFAR input):
+  Block 1:  Conv(3→32)  ReLU  Conv(32→32)  ReLU  MaxPool(2) → 16×16×32
+  Block 2:  Conv(32→64) ReLU  Conv(64→64)  ReLU  MaxPool(2) →  8× 8×64
+  Flatten:  8×8×64 = 4096
+  FC1:      4096 → 256, ReLU, Dropout(0.5)
+  FC2:       256 → 256, ReLU, Dropout(0.5)
+  Head(t):   256 → num_classes_per_task   (2 for CIFAR-10, 10 for CIFAR-100)
+
+No BatchNorm / GroupNorm — paper does not mention any normalisation in the CNN.
+No data augmentation — paper uses ToTensor + Normalize only.
+
+IMPORTANT: Also update the transform in TaskGenerator._load to remove
+RandomCrop / RandomHorizontalFlip, keeping only:
+    transforms.ToTensor(),
+    transforms.Normalize(CIFAR10_MEAN, CIFAR10_STD),   # or CIFAR100 constants
+"""
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from typing import List
+
+
+class MultiHeadCNN(nn.Module):
+    """
+    FOPNG-canonical CNN for Split-CIFAR10 / Split-CIFAR100.
+    Shared backbone (4 conv layers + 2 FC layers); task-specific output heads.
+    Backbone parameters are protected by the projection optimizer.
+    """
+
+    def __init__(self, num_tasks: int, device,
+                 num_classes_per_task: int = 2):   # 2 for CIFAR-10, 10 for CIFAR-100
+        super().__init__()
+
+        # ── Shared backbone ──────────────────────────────────────────────────
+        # Block 1: Conv-ReLU-Conv-ReLU-MaxPool   3 → 32 channels
+        self.conv1 = nn.Conv2d(3,  32, kernel_size=3, padding=1).to(device)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1).to(device)
+        # Block 2: Conv-ReLU-Conv-ReLU-MaxPool  32 → 64 channels
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1).to(device)
+        self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1).to(device)
+
+        # FC layers with dropout
+        self.fc1     = nn.Linear(64 * 8 * 8, 256).to(device)   # 4096 → 256
+        self.fc2     = nn.Linear(256, 256).to(device)            # 256  → 256
+        self.dropout = nn.Dropout(p=0.5)
+
+        # ── Task-specific heads ───────────────────────────────────────────────
+        self.heads = nn.ModuleList([
+            nn.Linear(256, num_classes_per_task) for _ in range(num_tasks)
+        ]).to(device)
+
+        self.register_buffer("_active_task_id", torch.tensor(0, dtype=torch.long))
+
+    # ── Projection optimizer interface ───────────────────────────────────────
+    @property
+    def _shared_params(self) -> List[nn.Parameter]:
+        """Backbone only — heads are task-specific and excluded from projection."""
+        return (list(self.conv1.parameters()) +
+                list(self.conv2.parameters()) +
+                list(self.conv3.parameters()) +
+                list(self.conv4.parameters()) +
+                list(self.fc1.parameters()) +
+                list(self.fc2.parameters()))
+
+    @property
+    def num_shared_params(self) -> int:
+        return sum(p.numel() for p in self._shared_params)
+
+    def spawn(self, task_id) -> None:
+        if torch.is_tensor(task_id):
+            self._active_task_id.fill_(task_id.item())
+        else:
+            self._active_task_id.fill_(task_id)
+
+    # ── Forward ───────────────────────────────────────────────────────────────
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Block 1
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2)          # 32×32 → 16×16
+        # Block 2
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = F.max_pool2d(x, 2)          # 16×16 → 8×8
+        # FC
+        x = x.view(x.size(0), -1)       # 64×8×8 = 4096
+        x = self.dropout(F.relu(self.fc1(x)))
+        x = self.dropout(F.relu(self.fc2(x)))
+        return self.heads[self._active_task_id.item()](x)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# In each task file, set:
+#
+#   split_cifar10.py:
+#       solo_target = MultiHeadCNN          # num_classes_per_task=2 (default)
+#
+#   split_cifar100.py:
+#       solo_target = MultiHeadCNN          # num_classes_per_task=10
+#       (pass num_classes_per_task=10 in the training loop instantiation,
+#        or override the default in a subclass / partial)
+#
+# Also update _load / transform to remove augmentation:
+#
+#   split_cifar10.py _load:
+#       tf_train = transforms.Compose([
+#           transforms.ToTensor(),
+#           transforms.Normalize((0.4914, 0.4822, 0.4465),
+#                                 (0.2470, 0.2435, 0.2616)),
+#       ])
+#       tf_test = tf_train   # same — no augmentation in FOPNG paper
+#
+#   split_cifar100.py _load:
+#       tf_train = transforms.Compose([
+#           transforms.ToTensor(),
+#           transforms.Normalize((0.5071, 0.4867, 0.4408),
+#                                 (0.2675, 0.2565, 0.2761)),
+#       ])
+#       tf_test = tf_train
+# ─────────────────────────────────────────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────────────────
 # Task Generator
 # ─────────────────────────────────────────────────────────────────────────────
@@ -196,7 +324,7 @@ class TaskGenerator:
     target_network = TargetCNN(num_classes=config.num_classes)
 
     # B. Multi-Head CIFAR CNN (Isolated visual classification pathways)
-    multihead = MultiHeadTargetCNN
+    solo_target = MultiHeadCNN
 
     _train_data: Optional[datasets.CIFAR10] = None
     _test_data:  Optional[datasets.CIFAR10] = None

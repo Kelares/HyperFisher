@@ -110,7 +110,7 @@ if __name__ == "__main__":
         target_network_template=target_network,
         device=device, 
         config=config
-    ) if config.model == "HyperNetwork" else Task.multihead(Task.config.num_tasks, device)
+    ) if config.model == "HyperNetwork" else Task.solo_target(Task.config.num_tasks, device)
 
     print(model)
     print(model.num_shared_params)

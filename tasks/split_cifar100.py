@@ -321,7 +321,7 @@ class TaskGenerator:
     target_network = ResNet32CIFAR(num_classes=10)
 
     # Standalone projection target — ResNet-32 depth with GroupNorm
-    multihead = MultiHeadTargetCNN
+    solo_target = MultiHeadTargetCNN
 
     _train_data: Optional[datasets.CIFAR100] = None
     _test_data:  Optional[datasets.CIFAR100] = None

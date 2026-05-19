@@ -144,7 +144,7 @@ class TaskGenerator:
         max_directions  = 400,
     )
 
-    # Standalone single-head target (FOPNG paper replication)
+    # For Hypernetwork
     target_network = nn.Sequential(
         nn.Linear(784, 100),
         nn.ReLU(),
@@ -153,8 +153,8 @@ class TaskGenerator:
         nn.Linear(100, 10),
     )
 
-    # Multi-head target (user's comparison experiments)
-    multihead = MultiHeadTarget
+    # For runs without hypernetwork
+    solo_target = MLP
 
     _train_data = None
     _test_data  = None

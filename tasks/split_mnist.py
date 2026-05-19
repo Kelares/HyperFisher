@@ -148,7 +148,7 @@ class TaskGenerator:
         nn.Linear(100, 10),
     )
     
-    multihead = MLP
+    solo_target = MLP
 
     _train_data: datasets.MNIST | None = None
     _test_data:  datasets.MNIST | None = None
