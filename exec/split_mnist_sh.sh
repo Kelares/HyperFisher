@@ -37,7 +37,7 @@ conda activate venv
 #   eFOPNG  1e-5    5e-4   80     full   ← same as FOPNG
 # ==============================================================================
 
-TASK="split_mnist"
+TASK="split_mnist_sh"
 DEVICE="gpu"
 MODEL="TargetNetwork"
 SEEDS=(42 1234 811)
