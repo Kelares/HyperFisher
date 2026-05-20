@@ -81,9 +81,11 @@ class DiagonalFisherEstimator(FisherEstimator):
                 p_val = torch.quantile(fisher_nonzero, self.quantile)
                 fisher = fisher.clamp(max=p_val.item())
 
-        if self.normalization:
-            if fisher.max() > 0:
-                fisher = fisher / fisher.max()
+        # if self.normalization:
+        #     fisher /= model.num_of_chunks
+
+            # if fisher.max() > 0:
+            #     fisher = fisher / fisher.max()
         return fisher
     
     def _estimate_sequential(

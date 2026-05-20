@@ -34,39 +34,39 @@ ALL_METHODS=("${PROJ_METHODS[@]}" "${BASELINE_METHODS[@]}")
 # ==============================================================================
 # PANEL (a): Standalone TargetNetwork — no hypernetwork, no functional reg.
 # Projection methods should clearly outperform Adam here.
-# ==============================================================================
-echo ""
-echo "======================================================================"
-echo " PANEL (a): TargetNetwork — Standalone Projection vs. Baselines"
-echo "======================================================================"
+# # ==============================================================================
+# echo ""
+# echo "======================================================================"
+# echo " PANEL (a): TargetNetwork — Standalone Projection vs. Baselines"
+# echo "======================================================================"
 
-for METHOD in "${ALL_METHODS[@]}"; do
-    for SEED in "${SEEDS[@]}"; do
-        echo ""
-        echo "  [TargetNetwork] method=$METHOD  seed=$SEED"
+# for METHOD in "${ALL_METHODS[@]}"; do
+#     for SEED in "${SEEDS[@]}"; do
+#         echo ""
+#         echo "  [TargetNetwork] method=$METHOD  seed=$SEED"
 
-        python main.py \
-            --task=$TASK \
-            --model=TargetNetwork \
-            --methods=$METHOD \
-            --no-regulizer \
-            --grads_per_task=$GRADS \
-            --max_directions=$MAX_DIRS \
-            --fisher_samples=$FISHER_SAMPS \
-            --device_mode=$DEVICE \
-            --lr=$LR \
-            --max_epochs=$EPOCHS \
-            --batch_size=$BATCH \
-            --num_of_tasks=$NUM_TASKS \
-            --seed=$SEED \
-            --experiment_id=7
+#         python main.py \
+#             --task=$TASK \
+#             --model=TargetNetwork \
+#             --methods=$METHOD \
+#             --no-regulizer \
+#             --grads_per_task=$GRADS \
+#             --max_directions=$MAX_DIRS \
+#             --fisher_samples=$FISHER_SAMPS \
+#             --device_mode=$DEVICE \
+#             --lr=$LR \
+#             --max_epochs=$EPOCHS \
+#             --batch_size=$BATCH \
+#             --num_of_tasks=$NUM_TASKS \
+#             --seed=$SEED \
+#             --experiment_id=7
 
-        echo "  Done: TargetNetwork $METHOD seed=$SEED"
-    done
-done
+#         echo "  Done: TargetNetwork $METHOD seed=$SEED"
+#     done
+# done
 
-echo ""
-echo "  Panel (a) complete."
+# echo ""
+# echo "  Panel (a) complete."
 # ==============================================================================
 # PANEL (a): Standalone TargetNetwork — no hypernetwork, no functional reg.
 # Projection methods should clearly outperform Adam here.
@@ -94,7 +94,7 @@ for METHOD in "ewc"; do
             --max_epochs=$EPOCHS \
             --batch_size=$BATCH \
             --num_of_tasks=$NUM_TASKS \
-            --lam=10 \ 
+            --lam=10 \
             --seed=$SEED \
             --experiment_id=7
 

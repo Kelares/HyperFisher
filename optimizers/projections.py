@@ -15,7 +15,7 @@ import gc #Garbage Collector
 from math import inf
 from fisher import DiagonalFisherEstimator
 from gradient import AVECollector, GradientMemory, GTLCollector, BoundaryCollector
-from hyper_network import HyperRegulizer
+from models.hyper_network import HyperRegulizer
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -61,6 +61,7 @@ class OP(ABC):
         self.quantile = 0.95
         self.damping = 0
 
+        self.normalize = normalize
         self.FisherEstimator = DiagonalFisherEstimator(
             use_vmap = False, 
             fisher_samples=fisher_samples,
@@ -97,7 +98,7 @@ class OP(ABC):
                 n = p.numel()
                 p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
-        return weighted_rho, correction_norm, raw_rho
+        return v_star_theta.norm(), weighted_rho, correction_norm, raw_rho
 
     def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
         F_new = self.FisherEstimator.estimate(model, task_id, loader, criterion, self.calc_device)
@@ -125,9 +126,10 @@ class OP(ABC):
             # CULPRIT FIX: Re-normalize so the combined history peak is always 1.0
             # self.F_old += F_new.detach()
             
-            if self.FisherEstimator.normalization:
-                if self.F_old.max() > 0:
-                    self.F_old = self.F_old / self.F_old.max()
+        # if self.FisherEstimator.normalization:
+        #     self.F_old /= model.num_of_chunks
+            # if self.F_old.max() > 0:
+            #     self.F_old = self.F_old / self.F_old.max()
             
         # 1. Collect the raw gradients for the current task
         self.GradientCollector.collect(
@@ -398,39 +400,61 @@ class FOPNG(OP):
     __name__ = "FOPNG"
 
     def update(self, g, G, F_old, F_new, eps=1e-8):
+        if self.normalize:
+            scale_factor = F_new.max().clamp(min=1.0)
+        else:
+            scale_factor = 1
+        
+        F_old_s = F_old / scale_factor
+        F_new_s = F_new / scale_factor
 
-        F_new_inv_diag = 1.0 / (F_new + self.lam)
+        F_new_inv_diag = 1.0 / (F_new_s + self.lam)
             
         # Original projection logic
-        F_old_g = F_old * g
+        F_old_g = F_old_s * g
         G_T_F_old_g = G.T @ F_old_g
         A_inv_G_T_F_old_g = self.A_inv @ G_T_F_old_g
-        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old.squeeze()
+        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old_s.squeeze()
         P_g = g - correction
+        
          
         F_new_inv_P_g = P_g * F_new_inv_diag
         denom = torch.sqrt((P_g * F_new_inv_P_g).sum() + 1e-8)
         v_star = -self.lr * F_new_inv_P_g / (denom + 1e-8)
         
-        F_sqrt = F_old.clamp(min=0).sqrt()
+        F_old_s_sqrt = F_old_s.clamp(min=0).sqrt()
 
         # Metrics
-        actual_rho = ((F_sqrt * v_star).norm() / ((F_sqrt * (g * F_new_inv_diag)).norm() + eps)).item()
-        return v_star, actual_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
+        w_rho = ((F_old_s_sqrt * P_g).norm() / ((F_old_s_sqrt * g).norm() + eps)).item()
+        return v_star, w_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
 
     def build_A_inv(self, G, F_old, F_new) -> None:
+        if self.normalize:
+            scale_factor = F_new.max().clamp(min=1.0)
+            
+            F_new_s = F_new / scale_factor
+            F_old_s = F_old / scale_factor
+        else:
+            F_new_s = F_new
+            F_old_s = F_old
 
-        # Diagonal Fisher approximation
-        F_new_inv_diag = 1.0 / (F_new + self.lam)
-        F_old_diag = F_old.view(-1, 1)
+        scaled_lam = self.lam / scale_factor
+
+        F_new_inv = 1.0 / (F_new_s + scaled_lam)
+        F_old_diag = F_old_s.view(-1, 1)
         F_old_G = F_old_diag * G
-        weighted_G = F_old_diag * (F_new_inv_diag.view(-1, 1) * F_old_G)
-        A = G.T @ weighted_G + self.lam * torch.eye(G.size(1), device=G.device)
-        print(A)
+        weighted_G = F_old_diag * (F_new_inv.view(-1, 1) * F_old_G)
+        
+
+        A = G.T @ weighted_G + scaled_lam * torch.eye(G.size(1), device=G.device)
         self.A_inv = torch.pinverse(A)
-        # Also store A for condition number check
         self.A = A
-      
+               
+        print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
+        print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
+
+
+
 
 class eFOPNG(OP):
     __name__ = "eFOPNG"
@@ -440,43 +464,68 @@ class eFOPNG(OP):
         # 1. THE INERTIA INVERSE (The fix for dead parameters)
         # We combine current and past importance so old important weights 
         # stay "heavy" and don't take huge jumps.
-        F_combined = F_new + F_old
-        
-        # Safe normalized inversion
-        F_inv_diag = 1.0 / (F_combined + self.lam)
+        if self.normalize:
+            F_combined = F_new + F_old
+            scale_factor = F_combined.max().clamp(min=1.0)
+        else:
+            scale_factor = 1
 
+        # Create LOCAL scaled variables. No in-place operations!
+        F_old_s = F_old / scale_factor
+        F_new_s = F_new / scale_factor
+        
+        F_combined_s = F_new_s + F_old_s
+
+        # 2. Scale the damping term to match the FIM scaling
+        scaled_lam = self.lam / scale_factor
+        F_c_inv = 1.0 / (F_combined_s + scaled_lam)
+        
+        # F_old_scaled = F_old / 18449
         # 2. Projection Logic
-        F_old_g = F_old * g
-        G_T_F_old_g = G.T @ F_old_g
-        A_inv_G_T_F_old_g = self.A_inv @ G_T_F_old_g
-        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old.squeeze()
-        P_g = g - correction
+        F_old_g = F_old_s * g                                                 
+        G_T_F_old_g = G.T @ F_old_g                                         
+        A_inv_G_T_F_old_g = self.A_inv @ G_T_F_old_g                        
+        correction = (G @ A_inv_G_T_F_old_g).view(-1) * F_old_s.squeeze()     
+        # Dynamically scale it if it overpowers the original gradient
+        P_g = g - correction                                                
 
         # 3. Calculate Final Step using the Inertia Geometry
-        F_inv_P_g = P_g * F_inv_diag
+        F_inv_P_g = P_g * F_c_inv               
         
         # Trust Region Denominator
-        denom = torch.sqrt((P_g * F_inv_P_g).sum() + 1e-8)
+        denom = torch.sqrt((P_g * F_inv_P_g).sum() + 1e-8)    
         v_star = -self.lr * F_inv_P_g / (denom + 1e-8)
 
         # 5. DIAGNOSTIC: Calculate Rho on the actual update 'v_star'
         # This tells you if the final movement is actually safe.
-        F_sqrt = F_old.clamp(min=0).sqrt()
         # We check the overlap of the physical update v_star with the past
-        actual_rho = ((F_sqrt * v_star).norm() / ((F_sqrt * (g * F_inv_diag)).norm() + eps)).item()
-        
-        return v_star, actual_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
+        F_c_sqrt = F_combined.clamp(min=0).sqrt()
+
+        w_rho = ((F_c_sqrt * P_g).norm() / ((F_c_sqrt * g).norm() + eps)).item()
+        return v_star, w_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
 
     def build_A_inv(self, G, F_old, F_new) -> None:
         # Use the same Inertia Geometry for the matrix A
         F_combined = F_new + F_old
-        F_inv_diag = 1.0 / (F_combined + self.lam)
+        scale_factor = F_combined.max().clamp(min=1.0)
         
-        F_old_diag = F_old.view(-1, 1)
-        # A = G.T @ F_old @ (F_new + F_old)^-1 @ F_old @ G
-        weighted_G = F_old_diag * (F_inv_diag.view(-1, 1) * (F_old_diag * G))
-        self.A = G.T @ weighted_G + self.lam * torch.eye(G.size(1), device=G.device)
-        self.A_inv = torch.linalg.pinv(self.A)
+        # Create LOCAL scaled variables. No in-place operations!
+        F_old_s = F_old / scale_factor
+        F_new_s = F_new / scale_factor
+        F_combined_s = F_new_s + F_old_s
+
+        # 2. Scale the damping term to match the FIM scaling
+        scaled_lam = self.lam / scale_factor
+        F_c_inv = 1.0 / (F_combined_s + scaled_lam)
+
+        F_old_diag = F_old_s.view(-1, 1)
+        F_old_G = F_old_diag * G
+        weighted_G = F_old_diag * (F_c_inv.view(-1, 1) * F_old_G)
+
+        A = G.T @ weighted_G + scaled_lam * torch.eye(G.size(1), device=G.device)
+        self.A_inv = torch.pinverse(A)
+        self.A = A
+         
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
@@ -719,6 +768,7 @@ def run_continual_method(
         regulizer=regulizer_instance, # Pass the instance, not the bool
         optimizer=optimizer,
         lr=config.get("lr", 1e-3),
+        first_task_lr=config.get("first_task_lr", False),
         epochs=config.get("epochs", 5),
         max_epochs=config.get("max_epochs"),
         task_classes=config.get("task_classes"),
@@ -737,9 +787,10 @@ def train(
         optimizer: FOPNG | OGD | ONG,
         *,
         lr: float = 1e-3,
+        first_task_lr: float = 1e-3,
         epochs: int = 5,
         max_epochs: int = None,
-        first_task_optimizer_cls=torch.optim.AdamW,
+        first_task_optimizer_cls=torch.optim.SGD,
         task_classes: Optional[list] = None,
         verbose: bool = True,
         saved: bool = False,
@@ -753,9 +804,12 @@ def train(
     _max_epochs = max_epochs if max_epochs else epochs
     base_lr = lr
     save_label = "weights/first_run_weights"
+    if not first_task_lr:
+        first_task_lr = base_lr
+        
     # save_path = "first_run_weights_0.14970794413238764_16.pt"
     # save_path = "first_run_weights_0.14454140998423098_16.pt"
-    save_path = "weights/first_run_weights_0.11516995973303724_8.pt"
+    save_path = "weights/first_run_weights_0.08506506784658903_32.pt"
     for t, loader in enumerate(train_loaders):
         task_id = torch.tensor([t], dtype=torch.long, device=device)
         best_loss = inf
@@ -767,7 +821,7 @@ def train(
         if t == 0:
             if not saved:
                 if verbose: print(f"\n[{optimizer.__name__}] Task 1 – {first_task_optimizer_cls.__name__}")
-                opt = first_task_optimizer_cls(model.parameters(), lr=1e-5, weight_decay=1e-4)  # This adds the L2 penalty)
+                opt = first_task_optimizer_cls(model.parameters(), lr=first_task_lr, weight_decay=1e-4)  # This adds the L2 penalty)
                 while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                     total_loss = 0.0
                     model.train()
@@ -862,6 +916,7 @@ def train(
                 optimizer.prepare_epoch(F_new)
                 total_loss = 0.0
                 total_reg = 0.0
+                total_v_star_norm = 0.0
                 total_weighted_rho = 0.0
                 total_correction_norm = 0.0
                 total_raw_rho = 0.0
@@ -883,8 +938,8 @@ def train(
                     loss.backward()
 
                     g_theta = get_grad_vector(model)
-
-                    weighted_rho, correction_norm, raw_rho = optimizer.step(model, task_id, g_theta.detach())
+                    v_star_norm, weighted_rho, correction_norm, raw_rho = optimizer.step(model, task_id, g_theta.detach())
+                    total_v_star_norm += v_star_norm
                     total_weighted_rho    += weighted_rho
                     total_correction_norm += correction_norm
                     total_raw_rho         += raw_rho
@@ -893,6 +948,8 @@ def train(
                 avg_loss  = total_loss / n_batches
                 avg_reg   = total_reg / n_batches
 
+
+                avg_v_star_norm = total_v_star_norm / n_batches
                 avg_weighted_rho   = total_weighted_rho   / n_batches
                 avg_correction_norm= total_correction_norm/ n_batches
                 avg_raw_rho        = total_raw_rho        / n_batches
@@ -934,7 +991,7 @@ def train(
                 })
                 global_epoch += 1
 
-                if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={optimizer.lr}")
+                if verbose: print(f"  epoch {epoch+1}/{_max_epochs} loss={avg_loss:.4f} v_star_norm={avg_v_star_norm:.4f} w_rho={avg_weighted_rho:.4f} corr={avg_correction_norm:.4e} raw_rho={avg_raw_rho:.4f}, lr={optimizer.lr}")
                 if regulizer: print(f" reg_loss={avg_reg:.4f}")
                 epoch += 1
 

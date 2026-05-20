@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 import wandb
 
 from utils import calc_bwt, evaluate_accuracy
-from hyper_network import HyperRegulizer
+from models.hyper_network import HyperRegulizer
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -315,7 +315,7 @@ def train_ewc(
                     param.requires_grad = False
 
                 active_params = filter(lambda p: p.requires_grad, model.parameters())
-                opt_warmup    = first_task_optimizer_cls(active_params, lr=0.1, weight_decay=1e-4)
+                opt_warmup    = first_task_optimizer_cls(active_params, lr=1e-3, weight_decay=1e-4)
                 warmup_n      = 5
 
                 for i in range(warmup_n):
@@ -411,7 +411,7 @@ def train_ewc(
                 if verbose:
                     print(
                         f"  epoch {epoch+1}/{_max_epochs}  "
-                        f"loss={avg_loss:.4f}  ewc={avg_penalty:.4f}  lr={ewc.lr}"
+                        f"loss={avg_loss:.4f}  ewc={avg_penalty:.4f}  lr={ewc.lr}  lam={ewc.lam}"
                     )
                 if regulizer:
                     print(f"  reg_loss={avg_reg:.4f}")

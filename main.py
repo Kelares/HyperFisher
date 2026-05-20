@@ -5,7 +5,7 @@ import torch.nn as nn
 import copy
 import importlib
 
-from hyper_network import HyperNetwork
+from models.hyper_network import HyperNetwork
 from optimizers.ewc import train_ewc
 # Import the unified launcher
 from optimizers.projections import run_continual_method 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     
     # Core parameters
     parser.add_argument("--model", type=str, default="HyperNetwork", choices=["HyperNetwork", "TargetNetwork"])
-    parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist", "split_cifar10", "split_cifar100"])
+    parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist_sh", "split_mnist_mh", "split_cifar10", "split_cifar100"])
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
@@ -106,17 +106,25 @@ if __name__ == "__main__":
 
     wandb.define_metric("task_completed")
     # Model Initialization
-    model = HyperNetwork(
-        target_network_template=target_network,
-        device=device, 
-        config=config
-    ) if config.model == "HyperNetwork" else Task.solo_target(Task.config.num_tasks, device)
+    match config.model:
+        case "HyperNetwork":
+            target_network = target_network(Task.config.num_tasks, device)
+            model = HyperNetwork(
+                target_network_template=target_network,
+                device=device, 
+                config=config
+            ) 
+
+        case "TargetNetwork":
+            model = Task.solo_target(Task.config.num_tasks, device)
 
     print(model)
     print(model.num_shared_params)
     if config.model == "TargetNetwork":
         config.update({"regulizer": False}, allow_val_change=True)
-        
+    print(config)
+
+    
     initial_state = copy.deepcopy(model.state_dict())
     best_acc = -1
     best_bwt = -1

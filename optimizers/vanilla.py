@@ -7,7 +7,7 @@ from typing import Callable, List, Optional, Union
 from torch.utils.data import DataLoader
 from math import inf
 from utils import get_grad_vector, evaluate_accuracy, calc_bwt
-from hyper_network import HyperRegulizer
+from models.hyper_network import HyperRegulizer
 
 def get_magnitude_decay_lr(current_lr: float) -> float:
     sci_str = f"{current_lr:.1e}"  

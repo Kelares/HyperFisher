@@ -65,7 +65,7 @@ project = "HyperFisher"
 # ==============================================================================
 # DATA FETCHER
 # ==============================================================================
-expected_seeds = set([42, 2137, 811, 1234, 111])
+EXPECTED_SEEDS = set([42, 2137, 811, 1234, 111])
 
 def fetch_data(job_type: str, group: str = "split_cifar10") -> pd.DataFrame:
     runs = api.runs(
@@ -76,7 +76,7 @@ def fetch_data(job_type: str, group: str = "split_cifar10") -> pd.DataFrame:
 
     rows = []
     for run in runs:
-        if run.config["seed"] not in expected_seeds:
+        if run.config["seed"] not in EXPECTED_SEEDS:
             continue
         
         results = run.summary.get("best/results") or run.summary.get("results")

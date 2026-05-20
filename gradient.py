@@ -50,9 +50,13 @@ class GradientMemory:
                 
         # # # Normalize columns to unit Euclidean norm
         if self.normalization:
-            norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
-            new_vecs = new_vecs / norms
-       
+            # norms = new_vecs.norm(dim=0, keepdim=True) + 1e-8
+            # new_vecs = new_vecs / norms
+            Q, _ = torch.linalg.qr(new_vecs)
+            new_vecs = Q
+            # U, S, _ = torch.linalg.svd(new_vecs , full_matrices=False)
+            # new_vecs = U #@ torch.diag(S)
+
         # 2. Expand the matrix
         if self.basis is None:
             self.basis = new_vecs

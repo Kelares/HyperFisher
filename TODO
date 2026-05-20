@@ -1,0 +1,5 @@
+python /home/kelares/Desktop/HyperFisher/main.py --task=split_mnist_sh --hyper_hidden_dim=8 --task_embedding_dim=32 --chunk_embedding_dim=32 --chunk_size=64 --regulizer --device_mode=gpu --max_directions=5000 --methods=fopng --lr=1e-3 --grads_per_task=100 --max_epochs=15 --seed=81 --lam=1e-3 --fisher_samples=1024 --batch_size=64 --normalize
+
+PERFECT RUN SETUP FOR SHOWCASING A SUPERRRRRRRRRRRRRR SMALL MODEL (HYPERNETWORK) HAVING TOO MUCH CONSTRAIN FROM PROJECTION METHODS.
+ADAM DOES BETTER. THATS GOOD. JUST RUN ALL OF THE MODELS ON THIS FAST TASK
+THE MORE GRADIENTS BLOCKED THE WORSE HYPERNETWORK DOES

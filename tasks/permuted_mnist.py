@@ -20,7 +20,8 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms, datasets
 from types import SimpleNamespace
 from typing import List, Optional
-
+from utils import RemappedSubset
+from models.mlp import MLP, MultiHeadMLP
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Permutation wrapper  (never modifies the base dataset in-place)
@@ -43,89 +44,6 @@ class PermutedDataset(Dataset):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Canonical target network  (FOPNG paper: MLP 784→100→100→10, single head)
-# ─────────────────────────────────────────────────────────────────────────────
-class MLP(nn.Module):
-    """
-    3-layer MLP matching Garg et al. (2026) and Farajtabar et al. (2020).
-    All parameters are protected by the projection optimizer.
-    Single shared output head — all permutation tasks use the same 10 neurons.
-    """
-
-    def __init__(self, num_tasks: int, device,
-                 input_dim: int = 784, hidden_dim: int = 100,
-                 num_classes: int = 10):
-        super().__init__()
-        self.fc1    = nn.Linear(input_dim, hidden_dim).to(device)
-        self.fc2    = nn.Linear(hidden_dim, hidden_dim).to(device)
-        self.fc_out = nn.Linear(hidden_dim, num_classes).to(device)
-
-    @property
-    def _shared_params(self) -> List[nn.Parameter]:
-        return (list(self.fc1.parameters()) +
-                list(self.fc2.parameters()) +
-                list(self.fc_out.parameters()))
-
-    @property
-    def num_shared_params(self) -> int:
-        return sum(p.numel() for p in self._shared_params)
-
-    def spawn(self, task_id) -> None:
-        pass   # single head — no routing needed
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return self.fc_out(x)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Multi-head target  (for user's own multi-head comparison experiments)
-# ─────────────────────────────────────────────────────────────────────────────
-class MultiHeadTarget(nn.Module):
-    """
-    Shared MLP backbone (784→100→100) with one 10-class head per task.
-    Used for multi-head comparison experiments only — not FOPNG replication.
-    Backbone is protected by the projection optimizer; heads are task-specific.
-    """
-
-    def __init__(self, num_tasks: int, device):
-        super().__init__()
-        self.layers = nn.Sequential(
-            nn.Linear(784, 100),
-            nn.ReLU(),
-            nn.Linear(100, 100),
-            nn.ReLU(),
-        ).to(device)
-
-        self.heads = nn.ModuleList([
-            nn.Linear(100, 10) for _ in range(num_tasks)
-        ]).to(device)
-
-        self.register_buffer("_active_task_id", torch.tensor(0, dtype=torch.long))
-
-    @property
-    def _shared_params(self) -> List[nn.Parameter]:
-        return list(self.layers.parameters())
-
-    @property
-    def num_shared_params(self) -> int:
-        return sum(p.numel() for p in self._shared_params)
-
-    def spawn(self, task_id) -> None:
-        if torch.is_tensor(task_id):
-            self._active_task_id.fill_(task_id.item())
-        else:
-            self._active_task_id.fill_(task_id)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.view(x.size(0), -1)
-        x = self.layers(x)
-        return self.heads[self._active_task_id.item()](x)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Task Generator
 # ─────────────────────────────────────────────────────────────────────────────
 class TaskGenerator:
@@ -145,16 +63,10 @@ class TaskGenerator:
     )
 
     # For Hypernetwork
-    target_network = nn.Sequential(
-        nn.Linear(784, 100),
-        nn.ReLU(),
-        nn.Linear(100, 100),
-        nn.ReLU(),
-        nn.Linear(100, 10),
-    )
+    target_network = MLP
 
     # For runs without hypernetwork
-    solo_target = MLP
+    solo_target = MultiHeadMLP
 
     _train_data = None
     _test_data  = None
