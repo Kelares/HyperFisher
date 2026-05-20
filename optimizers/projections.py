@@ -499,7 +499,7 @@ class eFOPNG(OP):
         # 5. DIAGNOSTIC: Calculate Rho on the actual update 'v_star'
         # This tells you if the final movement is actually safe.
         # We check the overlap of the physical update v_star with the past
-        F_c_sqrt = F_combined.clamp(min=0).sqrt()
+        F_c_sqrt = F_combined_s.clamp(min=0).sqrt()
 
         w_rho = ((F_c_sqrt * P_g).norm() / ((F_c_sqrt * g).norm() + eps)).item()
         return v_star, w_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
