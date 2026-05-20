@@ -768,7 +768,7 @@ def run_continual_method(
         regulizer=regulizer_instance, # Pass the instance, not the bool
         optimizer=optimizer,
         lr=config.get("lr", 1e-3),
-        first_task_lr=config.get("first_task_lr", False),
+        first_task_lr=config.get("first_task_lr", 1e-3),
         epochs=config.get("epochs", 5),
         max_epochs=config.get("max_epochs"),
         task_classes=config.get("task_classes"),
@@ -806,7 +806,7 @@ def train(
     save_label = "weights/first_run_weights"
     if not first_task_lr:
         first_task_lr = base_lr
-        
+
     # save_path = "first_run_weights_0.14970794413238764_16.pt"
     # save_path = "first_run_weights_0.14454140998423098_16.pt"
     save_path = "weights/first_run_weights_0.08506506784658903_32.pt"
