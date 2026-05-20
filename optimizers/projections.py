@@ -790,7 +790,7 @@ def train(
         first_task_lr: float = 1e-3,
         epochs: int = 5,
         max_epochs: int = None,
-        first_task_optimizer_cls=torch.optim.SGD,
+        first_task_optimizer_cls=torch.optim.AdamW,
         task_classes: Optional[list] = None,
         verbose: bool = True,
         saved: bool = False,

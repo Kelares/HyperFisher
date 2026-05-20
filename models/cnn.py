@@ -95,5 +95,15 @@ class MultiHeadCIFARCNN(nn.Module):
         x = self.shared_classifier(x)
         return self.heads[task_id](x)
 
+    @property
+    def _shared_params(self) -> List[nn.Parameter]:
+        """Returns the list of backbone parameters for the FOPNG projection."""
+        return list(self.features.parameters()) + list(self.shared_classifier.parameters()) + list(self.heads.parameters())
+
+    @property
+    def num_shared_params(self) -> int:
+        """Required for Fisher information estimation loops."""
+        return sum(p.numel() for p in self._shared_params)
+
     def spawn(self, task_id: torch.Tensor | int):
         pass
