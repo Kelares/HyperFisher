@@ -33,7 +33,7 @@ CHUNK_EMBED=32
 CHUNK_SIZE=64
 
 # Training hyperparameters from perfect run
-SEEDS=(42 1234 ) # Added your seed, you can append more like (81 42 123)
+SEEDS=(42 1234 2137 811 111 ) # Added your seed, you can append more like (81 42 123)
 EPOCHS=15
 BATCH=64
 GRADS=100
