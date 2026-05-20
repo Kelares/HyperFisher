@@ -119,7 +119,6 @@ if __name__ == "__main__":
             model = Task.solo_target(Task.config.num_tasks, device)
 
     print(model)
-    print(model.num_shared_params)
     if config.model == "TargetNetwork":
         config.update({"regulizer": False}, allow_val_change=True)
     print(config)

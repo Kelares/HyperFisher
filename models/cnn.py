@@ -67,11 +67,12 @@ class MultiHeadCIFARCNN(nn.Module):
     def __init__(
         self,
         num_heads: int,
-        head_output_sizes: Optional[List[int]] = None,
+        device,
+        head_output_sizes: Optional[List[int]] = [2],
         dropout: float = 0.5
     ):
         super().__init__()
-        self.features = _cifar_feature_extractor()
+        self.features = _cifar_feature_extractor().to(device)
         self.shared_classifier = nn.Sequential(
             nn.Flatten(),
             nn.Linear(CIFAR_FEATURE_DIM, 256),
@@ -80,17 +81,19 @@ class MultiHeadCIFARCNN(nn.Module):
             nn.Linear(256, 256),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout)
-        )
+        ).to(device)
         
         if head_output_sizes is None:
             head_output_sizes = [2] * num_heads
         
         self.heads = nn.ModuleList([
             nn.Linear(256, out_dim) for out_dim in head_output_sizes
-        ])
+        ]).to(device)
     
     def forward(self, x, task_id: int = 0):
         x = self.features(x)
         x = self.shared_classifier(x)
         return self.heads[task_id](x)
 
+    def spawn(self, task_id: torch.Tensor | int):
+        pass
