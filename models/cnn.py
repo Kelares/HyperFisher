@@ -89,11 +89,17 @@ class MultiHeadCIFARCNN(nn.Module):
         self.heads = nn.ModuleList([
             nn.Linear(256, out_dim) for out_dim in head_output_sizes
         ]).to(device)
-    
-    def forward(self, x, task_id: int = 0):
+        self.task_id = 0
+        
+        # Internal state to track the active task
+        self.register_buffer("_active_task_id", torch.tensor(0, dtype=torch.long))
+
+    def forward(self, x):
         x = self.features(x)
         x = self.shared_classifier(x)
-        return self.heads[task_id](x)
+        # Classification (Active Task Head)
+        t_id = self._active_task_id.item()
+        return self.heads[t_id](x)
 
     @property
     def _shared_params(self) -> List[nn.Parameter]:
@@ -106,4 +112,11 @@ class MultiHeadCIFARCNN(nn.Module):
         return sum(p.numel() for p in self._shared_params)
 
     def spawn(self, task_id: torch.Tensor | int):
-        pass
+        """
+        Saves the task_id internally. 
+        Gradients now naturally flow to the correct head during the next forward pass.
+        """
+        if torch.is_tensor(task_id):
+            self._active_task_id.fill_(task_id.item())
+        else:
+            self._active_task_id.fill_(task_id)

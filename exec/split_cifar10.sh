@@ -68,7 +68,7 @@ LAM["ong"]="0"
 LAM["fopng"]="1e-3"
 LAM["efopng"]="1e-3"
 
-ALL_METHODS=("ewc" "efopng") # "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("fopng" "ogd" "ong" "fng" "adam" "sgd")
 
 echo "======================================================================"
 echo " Split-CIFAR10 — FOPNG Table 1 replication + eFOPNG"
