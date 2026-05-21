@@ -119,8 +119,8 @@ class HyperNetwork(nn.Module):
                 p.grad.div_(self.num_of_chunks)
 
 class HyperRegulizer():
-    def __init__(self, regulizer_lam: float = 0.1):
-        self.regulizer_lam = regulizer_lam       
+    def __init__(self, beta: float = 0.01):
+        self.beta = beta       
         self.old_weights = {}  
 
     def loss(self, model: nn.Module, current_task_id) -> torch.Tensor:
@@ -142,7 +142,7 @@ class HyperRegulizer():
         Returns a scalar tensor (zero if no tasks stored or reg_lambda == 0).
         """
         device = next(model.parameters()).device
-        if self.regulizer_lam == 0.0 or not self.old_weights:
+        if self.beta == 0.0 or not self.old_weights:
             return 0
  
         current_t = current_task_id.item() if hasattr(current_task_id, 'item') else int(current_task_id)
@@ -165,6 +165,6 @@ class HyperRegulizer():
         # The regularizer MSE is calculated on the FULL weight vector (sum of chunks)
         # We must divide the resulting loss by chunks to nullify the accumulation in backward()
         r_loss = total / len(old_task_ids) 
-        loss = self.regulizer_lam * r_loss
+        loss = self.beta * r_loss
 
         return loss

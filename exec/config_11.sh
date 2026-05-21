@@ -40,8 +40,7 @@ conda activate venv
 # ==============================================================================
 
 DEVICE="gpu"
-PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -66,10 +65,10 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --methods=$METHOD
             --regulizer
             --normalize
-            --hyper_hidden_dim=64
-            --task_embedding_dim=32
-            --chunk_embedding_dim=32
-            --chunk_size=256
+            --hyper_hidden_dim=128
+            --task_embedding_dim=64
+            --chunk_embedding_dim=64
+            --chunk_size=6000
             --grads_per_task=80 --max_directions=400
             --fisher_samples=1024
             --lr=1e-3 --max_epochs=50 --batch_size=64
@@ -81,3 +80,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
         python main.py "${ARGS[@]}"
     done
 done
+
+#            --hyper_hidden_dim=128 SUPER BIG CHANGES.
+#           --task_embedding_dim=64
+#           --chunk_embedding_dim=64

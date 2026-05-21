@@ -97,9 +97,18 @@ def train_vanilla(
                     best_loss = avg_loss
                     loss_repeat = 0
                     best_parameters = model.state_dict()
+                    lr_patience_counter = 0
+
                 else:
                     loss_repeat += 1
-                
+                    lr_patience_counter += 1
+
+                if lr_patience_counter == 3:
+                    for g in opt.param_groups:
+                        g['lr'] = get_magnitude_decay_lr(g['lr'])
+                    lr_patience_counter = 0
+                    if verbose: print(f"    [Scheduler] Lowering LR to {opt.param_groups[0]['lr']}")
+                    
                 epoch += 1
 
             model.load_state_dict(best_parameters)

@@ -38,9 +38,9 @@ class SimpleCIFARCNN(nn.Module):
         2 dense layers with dropout
     """
     
-    def __init__(self, num_classes: int = 10, dropout: float = 0.5):
+    def __init__(self, num_classes, device,  dropout: float = 0.5):
         super().__init__()
-        self.features = _cifar_feature_extractor()
+        self.features = _cifar_feature_extractor().to(device)
         
         self.classifier = nn.Sequential(
             nn.Flatten(),
@@ -51,7 +51,7 @@ class SimpleCIFARCNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
             nn.Linear(256, num_classes)
-        )
+        ).to(device)
     
     def forward(self, x):
         x = self.features(x)

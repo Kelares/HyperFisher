@@ -122,6 +122,7 @@ if __name__ == "__main__":
     wandb.define_metric("task_completed")
     # Model Initialization
     print(config.task)
+    print(config.model)
     match config.model:
         case "HyperNetwork":
             target_network = target_network(Task.config.num_tasks, device)
