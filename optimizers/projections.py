@@ -544,8 +544,14 @@ class FNG(OP):
         """
         Computes the natural gradient step: v* = -lr * F_inv * g / sqrt(g^T * F_inv * g)
         """
+        if self.normalize:
+            scale_factor = F_new.max().clamp(min=1.0)
+        else:
+            scale_factor = 1
+        
+        F_new_s = F_new / scale_factor
         # Pre-compute Fisher inverse diagonal with damping (lam)
-        F_inv_diag = 1.0 / (F_new + self.lam)
+        F_inv_diag = 1.0 / (F_new_s + self.lam)
             
         # Natural gradient pre-conditioning
         nat_grad = F_inv_diag * g
@@ -621,9 +627,15 @@ class ONG(OP):
         1. Compute the Natural Gradient direction.
         2. Project that direction to be orthogonal to history G.
         """
+        if self.normalize:
+            scale_factor = F_new.max().clamp(min=1.0)
+        else:
+            scale_factor = 1
+        
+        F_new_s = F_new / scale_factor
         # 1. Compute the Natural Gradient (v_nat = F_new⁻¹ g)
         # Using a sqrt(F + eps) floor for stability
-        F_inv_diag = 1.0 / (F_new + self.lam)
+        F_inv_diag = 1.0 / (F_new_s + self.lam)
         v_nat = F_inv_diag * g
         
         # 2. Euclidean OGD Projection
@@ -642,7 +654,7 @@ class ONG(OP):
         v_star = -self.lr * v_star_unscaled / (denom + eps)
 
         # Metrics for logging
-        F_sqrt = F_old.clamp(min=0).sqrt()
+        F_sqrt = F_new_s.clamp(min=0).sqrt()
         weighted_rho = ((F_sqrt * v_star_unscaled).norm() / ((F_sqrt * v_nat).norm() + eps)).item()
         
         return v_star, weighted_rho, correction.norm().item(), (v_star_unscaled.norm() / (v_nat.norm() + eps)).item()
