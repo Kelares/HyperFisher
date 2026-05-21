@@ -68,7 +68,7 @@ class MultiHeadCIFARCNN(nn.Module):
         self,
         num_heads: int,
         device,
-        head_output_sizes: Optional[List[int]] = [2],
+        head_output_sizes: Optional[List[int]] = None,
         dropout: float = 0.5
     ):
         super().__init__()

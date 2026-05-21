@@ -29,7 +29,7 @@ from torch.utils.data import DataLoader, Subset, Dataset
 from torchvision import datasets, transforms
 from utils import RemappedSubset
 import torch.nn.functional as F
-from models.mlp import MLP
+from models.mlp import MLP, MultiHeadMLP
 
 class TaskGenerator:
 
@@ -52,7 +52,7 @@ class TaskGenerator:
     )
 
     target_network = MLP
-    solo_target = MLP
+    solo_target = MultiHeadMLP
 
     _train_data: datasets.MNIST | None = None
     _test_data:  datasets.MNIST | None = None

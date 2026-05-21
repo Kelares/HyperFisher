@@ -106,6 +106,7 @@ if __name__ == "__main__":
 
     wandb.define_metric("task_completed")
     # Model Initialization
+    print(config.task)
     match config.model:
         case "HyperNetwork":
             target_network = target_network(Task.config.num_tasks, device)
@@ -117,7 +118,8 @@ if __name__ == "__main__":
 
         case "TargetNetwork":
             if config.task == "split_cifar10":
-                model = Task.solo_target(Task.config.num_tasks, device, [2])
+                print("split_cifar10", [2 for _ in Task.config.num_tasks])
+                model = Task.solo_target(Task.config.num_tasks, device, [2 for _ in Task.config.num_tasks])
             # elif config.task == "split_cifar100":
                 # model = Task.solo_target(Task.config.num_tasks, device, [2])
             else:
