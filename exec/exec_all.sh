@@ -13,7 +13,7 @@ else
 fi
 
 cd ~/HyperFisher/
-conda activate venv_f_h
+conda activate venv
 
 # ==============================================================================
 # Full Thesis Experiment Suite — All 13 Configurations
@@ -71,7 +71,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=2
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=402
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
         echo "--> C2 $METHOD seed=$SEED"
@@ -94,7 +94,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=3
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=403
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
         echo "--> C3 $METHOD seed=$SEED"
@@ -128,7 +128,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=1024
             --lr=${LR4[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=adamw --first_task_lr=1e-3
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=4
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=404
         )
         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
         echo "--> C4 $METHOD seed=$SEED"
@@ -152,7 +152,7 @@ for METHOD in "${PROJ_METHODS[@]}"; do     # projection methods only — baselin
             --fisher_samples=1024
             --lr=${LR4[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=adam --first_task_lr=1e-3
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=5
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=405
         )
         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
         echo "--> C5 $METHOD seed=$SEED"
@@ -185,7 +185,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=1024
             --lr=${LR6[$METHOD]} --max_epochs=10 --batch_size=10
             --first_task_opt=sgd --first_task_lr=1e-2
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=6
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=406
         )
         [ "${LAM6[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM6[$METHOD]})
         echo "--> C6 $METHOD seed=$SEED"
@@ -228,7 +228,7 @@ for SEED in "${SEEDS_3[@]}"; do
         --lr=1e-3 --max_epochs=50 --batch_size=64 \
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
-        --device_mode=$DEVICE --seed=$SEED --experiment_id=9
+        --device_mode=$DEVICE --seed=$SEED --experiment_id=409
         # NOTE: no --normalize flag — this is the negative control
 done
 
@@ -254,7 +254,7 @@ for SEED in "${SEEDS_3[@]}"; do
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
         --normalize_gradients_only \
-        --device_mode=$DEVICE --seed=$SEED --experiment_id=10
+        --device_mode=$DEVICE --seed=$SEED --experiment_id=410
 done
 
 
@@ -283,7 +283,7 @@ for METHOD in "efopng" "adam"; do
             --first_task_opt=adamw --first_task_lr=1e-3 \
             --device_mode=$DEVICE --seed=$SEED \
             --lam=1e-3 \
-            --experiment_id=12
+            --experiment_id=412
     done
 done
 
@@ -310,7 +310,7 @@ for METHOD in "efopng" "adam"; do
             --lr=1e-3 --max_epochs=15 --batch_size=64 \
             --first_task_opt=adamw --first_task_lr=1e-3 \
             --device_mode=$DEVICE --seed=$SEED \
-            --lam=1e-3 --experiment_id=13
+            --lam=1e-3 --experiment_id=413
     done
 done
 

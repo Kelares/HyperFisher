@@ -13,7 +13,7 @@ else
 fi
 
 cd ~/HyperFisher/
-conda activate venv_f_h
+conda activate venv
 
 # ==============================================================================
 # Full Thesis Experiment Suite — All 13 Configurations
