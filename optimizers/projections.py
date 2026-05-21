@@ -369,7 +369,8 @@ class PreFOPNG(OP):
             num_directions=self.grads_per_task,
             dataloader = loader,
             device = self.calc_device, 
-            task_id = task_id
+            task_id = task_id,
+            normalize = self.normalize
         )
 
         model.spawn(task_id)
@@ -431,12 +432,11 @@ class FOPNG(OP):
     def build_A_inv(self, G, F_old, F_new) -> None:
         if self.normalize:
             scale_factor = F_new.max().clamp(min=1.0)
-            
-            F_new_s = F_new / scale_factor
-            F_old_s = F_old / scale_factor
         else:
-            F_new_s = F_new
-            F_old_s = F_old
+            scale_factor = 1
+
+        F_new_s = F_new / scale_factor
+        F_old_s = F_old / scale_factor
 
         scaled_lam = self.lam / scale_factor
 
@@ -507,7 +507,11 @@ class eFOPNG(OP):
     def build_A_inv(self, G, F_old, F_new) -> None:
         # Use the same Inertia Geometry for the matrix A
         F_combined = F_new + F_old
-        scale_factor = F_combined.max().clamp(min=1.0)
+        if self.normalize:
+            scale_factor = F_combined.max().clamp(min=1.0)
+        else:
+            scale_factor = 1
+
         
         # Create LOCAL scaled variables. No in-place operations!
         F_old_s = F_old / scale_factor
@@ -529,7 +533,122 @@ class eFOPNG(OP):
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
+class preEFOPNG(OP):
+    __name__ = "preEFOPNG"
 
+    def build_A_inv(self, G, F_old, F_new) -> None:
+        """
+        G is already G̃ = F_task * g_raw (PreFisher gradients).
+        For eFOPNG-PreFisher: A = G̃ᵀ Fc⁻¹ G̃,  Fc = F_new + F_old
+        """
+        F_combined = F_new + F_old
+        scale_factor = F_combined.max().clamp(min=1.0)
+        
+        F_c_s = F_combined / scale_factor
+        scaled_lam = self.lam / scale_factor
+        F_c_inv_s = 1.0 / (F_c_s + scaled_lam)   # [D]
+
+        # A = G̃ᵀ Fc⁻¹ G̃  (G̃ already has F_old baked in)
+        weighted_G = F_c_inv_s.view(-1, 1) * G    # [D, K]
+        A = G.T @ weighted_G                       # [K, K]
+        A = A + scaled_lam * torch.eye(G.size(1), device=G.device)
+
+        self.A_inv = torch.linalg.pinv(A)
+        self.A = A
+        self._scale_factor = scale_factor          # cache for update()
+
+        print("A: ", A.min().item(), A.mean().item(), A.max().item())
+        print("A_inv: ", self.A_inv.min().item(),
+              self.A_inv.mean().item(), self.A_inv.max().item())
+
+    def update(self, g, G, F_old, F_new, eps=1e-8):
+        """
+        G is G̃ (pre-Fisher gradients).
+        P = I - G̃ (G̃ᵀ Fc⁻¹ G̃)⁻¹ G̃ᵀ
+        v* = -lr * Fc⁻¹ Pg / ||Pg||_Fc
+        """
+        # Use cached scale from build_A_inv for consistency
+        scale_factor = getattr(self, '_scale_factor',
+                               (F_new + F_old).max().clamp(min=1.0))
+
+        F_c_s      = (F_new + F_old) / scale_factor
+        scaled_lam = self.lam / scale_factor
+        F_c_inv_s  = 1.0 / (F_c_s + scaled_lam)   # [D]
+
+        # --- Projection (never forms D×D) ---
+        Gt_g           = G.T @ g                   # [K]
+        A_inv_Gt_g     = self.A_inv @ Gt_g         # [K]
+        correction     = G @ A_inv_Gt_g            # [D]
+        P_g            = g - correction            # [D]
+
+        # --- Natural gradient step under Fc metric ---
+        F_c_inv_Pg  = P_g * F_c_inv_s             # [D]
+        denom       = torch.sqrt((P_g * F_c_inv_Pg).sum() + 1e-8)
+        v_star      = -self.lr * F_c_inv_Pg / (denom + 1e-8)
+
+        # --- Diagnostics ---
+        F_c_sqrt = F_c_s.clamp(min=0).sqrt()
+        w_rho = ((F_c_sqrt * P_g).norm() /
+                 ((F_c_sqrt * g).norm() + eps)).item()
+
+        return (v_star,
+                w_rho,
+                correction.norm().item(),
+                (P_g.norm() / (g.norm() + eps)).item())
+    
+    def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
+        F_new = self.FisherEstimator.estimate(model, task_id, loader, criterion, self.calc_device)
+        self.fisher_after_task[task_id.item()] = F_new 
+        
+        # 1. CALCULATE OVERLAP BEFORE UPDATING F_OLD
+        # At task 0, F_old is None, so we log 1.0 (perfect correlation with itself) or 0.0
+        if self.F_old is not None:
+            cosine_sim = self._cosine_similarity(self.F_old, F_new)
+            pearson_corr = self._pearson_correlation(self.F_old, F_new)
+            topk_iou = self._calculate_topk_iou(self.F_old, F_new)
+        else:
+            cosine_sim = 1.0
+            pearson_corr = 1.0
+            topk_iou = 1.0
+
+        if self.F_old is None:
+            self.F_old = F_new.detach().to(self.calc_device)
+        else:
+            self.F_old = torch.max(self.F_old, F_new.detach())       
+
+        # 1. Collect the raw gradients for the current task
+        self.GradientCollector.collect_empirical_fisher_preconditioned(
+            memory = self.gradient_memory, 
+            model = model, 
+            num_directions=self.grads_per_task,
+            dataloader = loader,
+            device = self.calc_device, 
+            task_id = task_id,
+            normalize = self.normalize
+        )
+
+        model.spawn(task_id)
+
+        if self.debug:
+            print(f"[{self.__name__}] Current G memory size: {len(self.gradient_memory)} / {self.max_directions}")
+
+        logs = {
+            f"{self.__name__}/fisher/min": self.F_old.min().item(),
+            f"{self.__name__}/fisher/max": self.F_old.max().item(),
+            f"{self.__name__}/fisher/mean": self.F_old.mean().item(),
+            # mean over non-zero entries — should be 0.1–0.4 with healthy Fisher
+            # (was 0.0002 with /max normalization, indicating near-delta distribution)
+            f"{self.__name__}/memory/G_cols": len(self.gradient_memory),
+            f"{self.__name__}/fisher_overlap/cosine": cosine_sim,
+            f"{self.__name__}/fisher_overlap/pearson": pearson_corr,
+            f"{self.__name__}/fisher_overlap/topk_iou": topk_iou,
+            "task_completed": task_id.item() + 1
+        }
+        print(logs)
+
+        wandb.log(logs)
+        torch.cuda.empty_cache()
+        gc.collect()
 
 class FNG(OP):
     """
@@ -733,7 +852,8 @@ METHOD_MAP = {
     "ong": ONG,
     "ogd": OGD,
     "fng": FNG,
-    "fopng_prefisher": PreFOPNG
+    "fopng_prefisher": PreFOPNG,
+    "efopng_prefisher": preEFOPNG,
 }    
 
 def run_continual_method(

@@ -22,7 +22,7 @@ def set_grad_vector(model: nn.Module, grad_vector: torch.Tensor):
         idx += numel
 
 class GradientMemory:
-    def __init__(self, mode: str = 'raw', max_directions: int = 2000, normalization: bool = True):
+    def __init__(self, mode: str = 'raw', max_directions: int = 2000, normalization: bool = False):
         self.mode = mode
         self.max_directions = max_directions
         # Store all directions as columns in a single 2D tensor [D, K]
@@ -39,7 +39,6 @@ class GradientMemory:
         """
         # 1. Convert input to a 2D column block [D, K_new]
         if isinstance(v, list):
-
             new_vecs = torch.stack([vec.detach().view(-1) for vec in v], dim=1)
         else:
             # Turn single vector into a column
@@ -81,22 +80,19 @@ class GradientMemory:
         if self.basis is None: return
         print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via SVD")
         
-        # indices = torch.linspace(
-        #         0, self.basis.shape[1] - 1, 
-        #         steps=self.max_directions, 
-        #         dtype=torch.long, 
-        #         device=self.basis.device
-        #     )
-        # self.basis = self.basis[:, indices]
-        
-        # full_matrices=False ensures U is [D, K]
+        # full_matrices=False ensures U is [DEBUG add] Added vectors are unit length: 1.0000 [D, K]
         # weighted_G = F_old.view(-1, 1) * self.basis
         U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
         if self.basis.size(1) > self.max_directions:
-            U = U[:, :self.max_directions]
-        # Retain only the most significant orthogonal directions
-        # Re-scale U by the singular values to keep the physical magnitude of the gradients
-        self.basis = U #@ torch.diag(S[:self.max_directions])
+            if self.normalization:
+                U,= U[:, :self.max_directions]
+                S = S[:self.max_directions]
+        
+        if self.normalization:
+            self.basis = U @ torch.diag(S)
+        else:
+            self.basis = U
+
         # 🔍 DEBUG: Verify U columns are unit-norm
         if self.debug:
             U_norms = self.basis.norm(dim=0)
@@ -150,7 +146,6 @@ class GradientCollector(ABC):
         model: nn.Module,
         dataloader: DataLoader,
         device: str,
-        multihead: bool = False,
         task_id: Optional[int] = None
     ):
         """Collect gradient directions from a task."""
@@ -164,13 +159,12 @@ class GradientCollector(ABC):
         fisher_matrix: torch.Tensor,
         device: str,
         task_id: Optional[int] = None,
-        multihead: bool = False,
     ):
         # Create a temporary memory buffer for raw gradients
         temp_memory = GradientMemory(mode=memory.mode, max_directions=self.grads_per_task*10)
         
         # Collect raw gradients into temporary buffer
-        self.collect(temp_memory, model, dataloader, device, multihead, task_id)
+        self.collect(temp_memory, model, dataloader, device, task_id)
         
         for grad_vec in temp_memory.vectors:
             if isinstance(fisher_matrix, torch.Tensor):
@@ -190,8 +184,8 @@ class GradientCollector(ABC):
         dataloader: DataLoader,
         num_directions: int,
         device: str,
-        multihead: bool = False,
-        task_id: Optional[int] = None
+        task_id: Optional[int] = None,
+        normalize: bool = False
     ):
         """
         Collect gradients pre-multiplied by empirical Fisher using associative property.
@@ -206,10 +200,10 @@ class GradientCollector(ABC):
         # First pass: collect all raw gradients
         print(f"Collecting empirical Fisher-preconditioned gradients (task {task_id})...")
         # 1. Collect raw gradients into a temporary memory
-        temp_memory = GradientMemory(mode=memory.mode, max_directions=num_directions)
-        self.collect(temp_memory, model, dataloader, device, task_id, multihead)
-        B = temp_memory.basis  # This is your [D, K] matrix
-        if B is None:
+        temp_memory = GradientMemory(mode=memory.mode, max_directions=num_directions, normalization=normalize)
+        self.collect(temp_memory, model, dataloader, device, task_id)
+        G = temp_memory.basis  # This is your [D, K] matrix
+        if G is None:
             return
 
         # 2. Vectorized Fisher Preconditioning
@@ -217,36 +211,14 @@ class GradientCollector(ABC):
         # This is mathematically identical to sum_i(g_i * (g_i.T @ g))
         
         # Step A: Compute the Gram matrix [K, K] (all pairs of dot products)
-        gram_matrix = B.T @ B
+        gram_matrix = G.T @ G
         
         # Step B: Project back onto the basis [D, K]
         # This effectively computes F*g for all gradients at once
-        Fg_matrix = B @ gram_matrix
-        
-        # Optional: If you want the true 'Average' empirical Fisher, divide by K
-        # Fg_matrix = Fg_matrix / B.size(1)
+        Fg_matrix = G @ gram_matrix
 
         # 3. Add to the permanent memory (handles matrix input automatically)
         memory.add(Fg_matrix)
-        
-        # raw_gradients = temp_memory.vectors  # List of gradient vectors
-        
-        # # Second pass: for each collected gradient, compute F*g on-the-fly
-        # gradients = []
-        # for g in raw_gradients:
-        #     # Compute F*g = sum_i(g_i * (g_i^T * g))
-        #     Fg = torch.zeros_like(g)
-        #     for g_i in raw_gradients:
-        #         # g_i^T * g: scalar dot product
-        #         dot_prod = torch.dot(g_i, g)
-        #         # g_i * (g_i^T * g): accumulate scaled gradient
-        #         Fg = Fg + g_i * dot_prod
-            
-        #     # Add the empirical Fisher preconditioned gradient to memory
-        #     gradients.append(Fg)
-        # memory.add(gradients)
-
-
 
 class GTLCollector(GradientCollector):
     """
@@ -261,7 +233,6 @@ class GTLCollector(GradientCollector):
         dataloader: DataLoader,
         device: str,
         task_id: int,
-        multihead: bool = False,
     ):
         dataloader = self.subset(dataloader)
         model.eval()
@@ -284,10 +255,7 @@ class GTLCollector(GradientCollector):
                 xi = x[i:i+1]
                 yi = y[i:i+1]
                 
-                if multihead:
-                    logits = model(xi, task_id=task_id)
-                else:
-                    logits = model(xi)
+                logits = model(xi)
                 
                 # Ground truth logit
                 gt_logit = logits[0, yi.item()]
@@ -315,7 +283,6 @@ class AVECollector(GradientCollector):
         device: str,
         task_id: Optional[int],
 
-        multihead: bool = False,
     ):
         model.eval()
         collected = 0
@@ -337,10 +304,7 @@ class AVECollector(GradientCollector):
             for i in range(x.size(0)):
                 model.zero_grad()
                 
-                if multihead:
-                    output = model(x[i:i+1], task_id=task_id)
-                else:
-                    output = model(x[i:i+1])
+                output = model(x[i:i+1])
                 
                 # Average of all logits
                 avg_logit = output.mean()
@@ -367,7 +331,6 @@ class BoundaryCollector(GradientCollector):
         device: str,
         task_id: Optional[int],
         F_old,
-        multihead: bool = False,
     ):
         model.eval()
         collected = 0
@@ -389,10 +352,7 @@ class BoundaryCollector(GradientCollector):
             for i in range(x.size(0)):
                 model.zero_grad()
                 
-                if multihead:
-                    logits = model(x[i:i+1], task_id=task_id)
-                else:
-                    logits = model(x[i:i+1])
+                logits = model(x[i:i+1])
                 
                 # The single degree of freedom for a 2-class head
                 # We protect the exact distance between the two classes

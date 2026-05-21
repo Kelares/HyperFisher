@@ -40,12 +40,12 @@ conda activate venv
 TASK="split_mnist_mh"
 DEVICE="gpu"
 MODEL="TargetNetwork"
-SEEDS=(42 1234 811)
+SEEDS=(42) #1234 811)
 EPOCHS=5
 BATCH=10
 GRADS=80
 MAX_DIRS=400
-FISHER=12000      # "full" in paper ≈ 12K samples per 2-class MNIST task
+FISHER=1200      # "full" in paper ≈ 12K samples per 2-class MNIST task
 
 # ── Per-method learning rates (Table 1) ──────────────────────────────────────
 declare -A LR
@@ -57,6 +57,7 @@ LR["ogd"]="5e-4"
 LR["ong"]="5e-4"
 LR["fopng"]="1e-5"
 LR["efopng"]="1e-5"
+LR["efopng_prefisher"]="1e-5"
 
 # ── Per-method lambda (Table 1; 0 = flag omitted) ────────────────────────────
 declare -A LAM
@@ -68,8 +69,10 @@ LAM["ogd"]="0"
 LAM["ong"]="0"
 LAM["fopng"]="5e-4"
 LAM["efopng"]="5e-4"
+LAM["efopng_prefisher"]="5e-4"
 
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+
+ALL_METHODS=("efopng_prefisher" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 
 echo "======================================================================"
 echo " Split-MNIST — FOPNG Table 1 replication + eFOPNG"
