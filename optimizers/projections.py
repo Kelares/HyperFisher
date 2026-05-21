@@ -596,7 +596,7 @@ class FNG(OP):
                 p.data.add_(v_star_theta[pointer : pointer + n].view_as(p))
                 pointer += n
                 
-        return weighted_rho, correction_norm, raw_rho
+        return v_star_theta.norm(), weighted_rho, correction_norm, raw_rho
     
 
 class ONG(OP):
