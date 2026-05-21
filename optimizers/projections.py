@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import wandb
-from utils import get_grad_vector, _apply_flat_update, calc_bwt, evaluate_accuracy, plot_overlap
+from utils import get_grad_vector, calc_bwt, evaluate_accuracy, plot_overlap
 import matplotlib.pyplot as plt
 import numpy as np
 import gc #Garbage Collector
@@ -862,7 +862,8 @@ def run_continual_method(
     train_loaders: List[DataLoader],
     test_loaders: List[DataLoader],
     criterion: Callable,
-    config
+    config,
+    first_task_optimizer_cls
 ):
     """
     Unified entry point for all OP-based methods.
@@ -901,6 +902,7 @@ def run_continual_method(
         optimizer=optimizer,
         lr=config.get("lr", 1e-3),
         first_task_lr=config.get("first_task_lr", 1e-3),
+        first_task_optimizer_cls=first_task_optimizer_cls,
         epochs=config.get("epochs", 5),
         max_epochs=config.get("max_epochs"),
         task_classes=config.get("task_classes"),

@@ -37,6 +37,11 @@ if __name__ == "__main__":
 
     # Optimization/Fisher parameters
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--first_task_lr", type=float, default=1e-3)
+    parser.add_argument("--first_task_optimizer", type=str, default=None, choices=["sgd", "adam", "adamw"])
+    parser.add_argument("--optimizer_cls", type=str, default=None, choices=["sgd", "adam", "adamw"])
+
+
     parser.add_argument("--lam", type=float, default=1e-3)
     parser.add_argument("--damping", type=float, default=0.01)
     parser.add_argument("--alpha", type=float, default=0.3)
@@ -65,6 +70,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    parser.add_argument("--first_task_optimizer", type=str, default=None, choices=["sgd", "adam", "adamw"])
+
     # Task and Data Setup
     task_module = importlib.import_module(f"tasks.{args.task}")
     Task = task_module.TaskGenerator        
@@ -89,11 +96,20 @@ if __name__ == "__main__":
     )
 
     config = wandb.config
+    FIRST_TASK_OPT = {
+        "sgd" : torch.optim.SGD,
+        "adam" : torch.optim.Adam,
+        "adamw" : torch.optim.AdamW
+    }
+    if config.first_task_opt:
+        first_task_optimizer_cls = FIRST_TASK_OPT[config.first_task_opt]
+
     if config.get("num_of_tasks", False):
         print(config.num_of_tasks)
         task_config.num_tasks = config.num_of_tasks
         Task.num_tasks = config.num_of_tasks
 
+    
     config.update({"num_tasks": task_config.num_tasks, "task_classes": getattr(task_config, 'task_classes', None)})
 
     if config.check_vram:
@@ -160,7 +176,11 @@ if __name__ == "__main__":
                     max_epochs=config.get("max_epochs"),
                     task_classes=config.get("task_classes"),
                     verbose=config.get("verbose", True),
-                    regulizer=config.get("regulizer", True)
+                    regulizer=config.get("regulizer", True),
+                    optimizer_cls = config.get("optimizer_cls", first_task_optimizer_cls),
+                    first_task_optimizer_cls=first_task_optimizer_cls
+                    
+
                 )
 
             elif method == "sgd" or method == "adam":
@@ -188,7 +208,8 @@ if __name__ == "__main__":
                     train_loaders=train_loaders,
                     test_loaders=test_loaders,
                     criterion=criterion,
-                    config=config
+                    config=config,
+                    first_task_optimizer_cls=first_task_optimizer_cls
                 )
 
             # Standardized Post-Training Logging

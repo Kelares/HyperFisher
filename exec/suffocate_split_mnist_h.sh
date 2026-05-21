@@ -27,13 +27,13 @@ TASK="split_mnist_sh"
 DEVICE="gpu"
 
 # Hypernetwork specific dimensions
-HYPER_HIDDEN=8
+HYPER_HIDDEN=4
 TASK_EMBED=32
 CHUNK_EMBED=32
 CHUNK_SIZE=64
 
 # Training hyperparameters from perfect run
-SEEDS=(42 1234 2137 811 111 ) # Added your seed, you can append more like (81 42 123)
+SEEDS=(1) #42 1234 2137 811 111 ) 
 EPOCHS=15
 BATCH=64
 GRADS=100
