@@ -39,7 +39,7 @@ conda activate venv
 TASK="split_cifar100"
 DEVICE="gpu"
 MODEL="TargetNetwork"
-SEEDS=(42 1234 811)
+SEEDS=(42 1234 811 2137 111)
 EPOCHS=10
 BATCH=10
 GRADS=80

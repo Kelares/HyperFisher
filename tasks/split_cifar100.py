@@ -57,10 +57,10 @@ class TaskGenerator:
     )
 
     # Hypernetwork target — ResNet-32 with BatchNorm (canonical)
-    target_network = None
+    target_network = SimpleCIFARCNN
 
     # Standalone projection target — ResNet-32 depth with GroupNorm
-    solo_target = MultiHeadCNN
+    solo_target = MultiHeadCIFARCNN
 
     _train_data: Optional[datasets.CIFAR100] = None
     _test_data:  Optional[datasets.CIFAR100] = None
