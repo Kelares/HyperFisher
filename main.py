@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # Optimization/Fisher parameters
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--first_task_lr", type=float, default=1e-3)
-    parser.add_argument("--first_task_optimizer", type=str, default=None, choices=["sgd", "adam", "adamw"])
+    parser.add_argument("--first_task_opt", type=str, default=None, choices=["sgd", "adam", "adamw"])
     parser.add_argument("--optimizer_cls", type=str, default=None, choices=["sgd", "adam", "adamw"])
 
 
@@ -70,7 +70,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    parser.add_argument("--first_task_optimizer", type=str, default=None, choices=["sgd", "adam", "adamw"])
 
     # Task and Data Setup
     task_module = importlib.import_module(f"tasks.{args.task}")
