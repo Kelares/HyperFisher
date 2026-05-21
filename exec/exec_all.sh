@@ -45,38 +45,6 @@ ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 1 — Permuted-MNIST Standalone  (Sub-RQ4)
-# Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (60K)
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== CONFIG 1: Permuted-MNIST Standalone ==="
-
-declare -A LR1
-LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-2"
-LR1["fng"]="1e-3";  LR1["ogd"]="5e-3"; LR1["ong"]="5e-3"
-LR1["fopng"]="1e-4"; LR1["efopng"]="1e-4"
-
-declare -A LAM1
-LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
-LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
-LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
-
-for METHOD in "${ALL_METHODS[@]}"; do
-    for SEED in "${SEEDS_3[@]}"; do
-        ARGS=(
-            --task=permuted_mnist --model=TargetNetwork
-            --methods=$METHOD --no-regulizer
-            --grads_per_task=80 --max_directions=400
-            --fisher_samples=60000
-            --lr=${LR1[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=sgd --first_task_lr=${LR1[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED
-        )
-        [ "${LAM1[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM1[$METHOD]})
-        echo "--> C1 $METHOD seed=$SEED"
-        python main.py "${ARGS[@]}"
-    done
-done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 2 — Split-MNIST Multi-Head Standalone  (Sub-RQ4, Sub-RQ1 Panel a B1)
@@ -103,7 +71,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=2
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
         echo "--> C2 $METHOD seed=$SEED"
@@ -126,7 +94,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=3
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
         echo "--> C3 $METHOD seed=$SEED"
@@ -160,7 +128,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=1024
             --lr=${LR4[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=adamw --first_task_lr=1e-3
-            --device_mode=$DEVICE --seed=$SEED
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=4
         )
         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
         echo "--> C4 $METHOD seed=$SEED"
@@ -184,7 +152,7 @@ for METHOD in "${PROJ_METHODS[@]}"; do     # projection methods only — baselin
             --fisher_samples=1024
             --lr=${LR4[$METHOD]} --max_epochs=5 --batch_size=10
             --first_task_opt=adam --first_task_lr=1e-3
-            --device_mode=$DEVICE --seed=$SEED
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=5
         )
         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
         echo "--> C5 $METHOD seed=$SEED"
@@ -217,7 +185,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=1024
             --lr=${LR6[$METHOD]} --max_epochs=10 --batch_size=10
             --first_task_opt=sgd --first_task_lr=1e-2
-            --device_mode=$DEVICE --seed=$SEED
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=6
         )
         [ "${LAM6[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM6[$METHOD]})
         echo "--> C6 $METHOD seed=$SEED"
@@ -260,7 +228,7 @@ for SEED in "${SEEDS_3[@]}"; do
         --lr=1e-3 --max_epochs=50 --batch_size=64 \
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
-        --device_mode=$DEVICE --seed=$SEED
+        --device_mode=$DEVICE --seed=$SEED --experiment_id=9
         # NOTE: no --normalize flag — this is the negative control
 done
 
@@ -286,7 +254,7 @@ for SEED in "${SEEDS_3[@]}"; do
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
         --normalize_gradients_only \
-        --device_mode=$DEVICE --seed=$SEED
+        --device_mode=$DEVICE --seed=$SEED --experiment_id=10
 done
 
 
@@ -314,7 +282,8 @@ for METHOD in "efopng" "adam"; do
             --lr=1e-3 --max_epochs=15 --batch_size=64 \
             --first_task_opt=adamw --first_task_lr=1e-3 \
             --device_mode=$DEVICE --seed=$SEED \
-            --lam=1e-3
+            --lam=1e-3 \
+            --experiment_id=12
     done
 done
 
@@ -341,7 +310,7 @@ for METHOD in "efopng" "adam"; do
             --lr=1e-3 --max_epochs=15 --batch_size=64 \
             --first_task_opt=adamw --first_task_lr=1e-3 \
             --device_mode=$DEVICE --seed=$SEED \
-            --lam=1e-3
+            --lam=1e-3 --experiment_id=13
     done
 done
 
