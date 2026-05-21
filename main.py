@@ -118,10 +118,9 @@ if __name__ == "__main__":
 
         case "TargetNetwork":
             if config.task == "split_cifar10":
-                print("split_cifar10", [2 for _ in range(Task.config.num_tasks)])
                 model = Task.solo_target(Task.config.num_tasks, device,  [2 for _ in range(Task.config.num_tasks)])
-            # elif config.task == "split_cifar100":
-                # model = Task.solo_target(Task.config.num_tasks, device, [2])
+            elif config.task == "split_cifar100":
+                model = Task.solo_target(Task.config.num_tasks, device, [10 for _ in range(Task.config.num_tasks)])
             else:
                 model = Task.solo_target(Task.config.num_tasks, device)
 
