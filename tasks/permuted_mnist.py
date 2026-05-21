@@ -66,7 +66,7 @@ class TaskGenerator:
     target_network = MLP
 
     # For runs without hypernetwork
-    solo_target = MultiHeadMLP
+    solo_target = MLP
 
     _train_data = None
     _test_data  = None
