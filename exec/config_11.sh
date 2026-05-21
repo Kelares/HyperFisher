@@ -44,6 +44,16 @@ PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
 ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
+
+declare -A LR4
+LR4["adam"]="1e-3"; LR4["sgd"]="5e-2"; LR4["ewc"]="1e-2"
+LR4["fng"]="1e-2";  LR4["ogd"]="5e-2"; LR4["ong"]="5e-2"
+LR4["fopng"]="1e-3"; LR4["efopng"]="1e-3"
+
+declare -A LAM4
+LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50"
+LAM4["fng"]="1e-3"; LAM4["ogd"]="0"; LAM4["ong"]="0"
+LAM4["fopng"]="1e-3"; LAM4["efopng"]="1e-3"
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 11 — Split-CIFAR100 Standard HN  (Sub-RQ1 Panel b B3)
 # ──────────────────────────────────────────────────────────────────────────────
