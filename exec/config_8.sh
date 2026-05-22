@@ -51,7 +51,8 @@ SEEDS_5=(42 1234 2137 811 111)
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 8: Split-CIFAR10 Standard HN ==="
 
-
+for METHOD in "${ALL_METHODS[@]}"; do
+    for SEED in "${SEEDS_3[@]}"; do
         ARGS=(
             --task=split_cifar10 
             --model=HyperNetwork 
