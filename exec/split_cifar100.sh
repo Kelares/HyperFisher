@@ -32,7 +32,7 @@ if [ -f "/usr/local/anaconda3/etc/profile.d/conda.sh" ]; then
 else
     export PATH="/usr/local/anaconda3/bin:$PATH"
 fi
-cd ~/SSM_benchmark/
+cd ~/HyperFisher/
 conda activate venv
 
 

@@ -12,7 +12,7 @@ else
     export PATH="/usr/local/anaconda3/bin:$PATH"
 fi
 
-cd ~/SSMbenchmark/
+cd ~/HyperFisher/
 conda activate venv
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@ if [ -f "/usr/local/anaconda3/etc/profile.d/conda.sh" ]; then
 else
     export PATH="/usr/local/anaconda3/bin:$PATH"
 fi
-cd ~/SSM_benchmark/HyperFisher/
+cd ~/HyperFisher/
 conda activate venv
 
 # wandb agent michalowski-jb-tilburg-university/HyperFisher-HyperFisher_sweeps/iic0k4bb # FOR OLD MNIST
