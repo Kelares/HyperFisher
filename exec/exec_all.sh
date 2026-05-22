@@ -47,6 +47,45 @@ SEEDS_5=(42 1234 2137 811 111)
 
 
 # # ──────────────────────────────────────────────────────────────────────────────
+# # CONFIG 1 — Permuted-MNIST Standalone  (Sub-RQ4)
+# # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (60K)
+# # ──────────────────────────────────────────────────────────────────────────────
+
+
+# echo "=== CONFIG 1: Permuted-MNIST Standalone ==="
+
+# declare -A LR1
+# # These are the learning rates used for Task 2 onwards
+# LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-4"
+# LR1["fng"]="1e-3";  LR1["ogd"]="5e-3"; LR1["ong"]="5e-3"
+# LR1["fopng"]="1e-4"; LR1["efopng"]="1e-4"
+
+# declare -A LAM1
+# LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
+# LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
+# LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
+
+# for METHOD in "${ALL_METHODS[@]}"; do
+#     for SEED in "${SEEDS_3[@]}"; do
+#         ARGS=(
+#             --task=permuted_mnist --model=TargetNetwork
+#             --methods=$METHOD --no-regulizer
+#             --grads_per_task=80 --max_directions=400
+#             --fisher_samples=60000
+#             --lr=${LR1[$METHOD]} --max_epochs=5 --batch_size=10
+            
+#             # THE FIX: Universal SGD initialization at a convergent learning rate
+#             --first_task_opt=sgd --first_task_lr=1e-3 
+            
+#             --device_mode=$DEVICE --seed=$SEED --experiment_id=401
+#         )
+#         [ "${LAM1[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM1[$METHOD]})
+#         echo "--> C1 $METHOD seed=$SEED"
+#         python main.py "${ARGS[@]}"
+#     done
+# done
+
+# # ──────────────────────────────────────────────────────────────────────────────
 # # CONFIG 2 — Split-MNIST Multi-Head Standalone  (Sub-RQ4, Sub-RQ1 Panel a B1)
 # # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (~12K)
 # # ──────────────────────────────────────────────────────────────────────────────
@@ -206,6 +245,84 @@ echo "=== CONFIG 7: SKIPPED — already complete (5 seeds) ==="
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 8: SKIPPED — already complete (3 seeds) ==="
 
+# # ──────────────────────────────────────────────────────────────────────────────
+# # CONFIG 9 — Split-CIFAR10 Standard HN, NO normalization
+# # (Sub-RQ2 Condition 1 — negative control, expected to crash)
+# # eFOPNG only — 3 seeds sufficient to demonstrate the pathology
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== CONFIG 9: Split-CIFAR10 HN — No normalization (Sub-RQ2 Cond 1) ==="
+
+# for SEED in "${SEEDS_3[@]}"; do
+#     echo "--> C9 efopng seed=$SEED"
+#     python main.py \
+#         --task=split_cifar10 \
+#         --methods=efopng \
+#         --regulizer \
+#         --hyper_hidden_dim=64 \
+#         --task_embedding_dim=32 \
+#         --chunk_embedding_dim=32 \
+#         --chunk_size=256 \
+#         --grads_per_task=80 --max_directions=400 \
+#         --fisher_samples=1024 \
+#         --lr=1e-3 --max_epochs=50 --batch_size=64 \
+#         --lam=1e-3 \
+#         --first_task_opt=adamw --first_task_lr=1e-3 \
+#         --device_mode=$DEVICE --seed=$SEED --experiment_id=409
+#         # NOTE: no --normalize flag — this is the negative control
+# done
+
+# # ──────────────────────────────────────────────────────────────────────────────
+# # CONFIG 10 — Split-CIFAR10 Standard HN, GRADIENT normalization only
+# # (Sub-RQ2 Condition 2)
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== CONFIG 10: Split-CIFAR10 HN — Gradient-only normalization (Sub-RQ2 Cond 2) ==="
+
+# for SEED in "${SEEDS_3[@]}"; do
+#     echo "--> C10 efopng seed=$SEED"
+#     python main.py \
+#         --task=split_cifar10 \
+#         --methods=efopng \
+#         --regulizer \
+#         --hyper_hidden_dim=64 \
+#         --task_embedding_dim=32 \
+#         --chunk_embedding_dim=32 \
+#         --chunk_size=256 \
+#         --grads_per_task=80 --max_directions=400 \
+#         --fisher_samples=1024 \
+#         --lr=1e-3 --max_epochs=50 --batch_size=64 \
+#         --lam=1e-3 \
+#         --first_task_opt=adamw --first_task_lr=1e-3 \
+#         --normalize_gradients_only \
+#         --device_mode=$DEVICE --seed=$SEED --experiment_id=410
+# done
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIG 11 — Split-CIFAR100 Standard HN  (Sub-RQ1 Panel b B3)
+# ──────────────────────────────────────────────────────────────────────────────
+# echo "=== CONFIG 11: Split-CIFAR100 Standard HN (Sub-RQ1 Panel b B3) ==="
+
+# for METHOD in "${ALL_METHODS[@]}"; do
+#     for SEED in "${SEEDS_3[@]}"; do
+#         ARGS=(
+#             --task=split_cifar100
+#             --methods=$METHOD
+#             --regulizer
+#             --normalize
+#             --hyper_hidden_dim=128
+#             --task_embedding_dim=64
+#             --chunk_embedding_dim=64
+#             --chunk_size=6000
+#             --grads_per_task=80 --max_directions=400
+#             --fisher_samples=1024
+#             --lr=1e-3 --max_epochs=50 --batch_size=64
+#             --first_task_opt=adamw --first_task_lr=1e-3
+#             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411
+#         )
+#         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
+#         echo "--> C11 $METHOD seed=$SEED"
+#         python main.py "${ARGS[@]}"
+#     done
+# done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 12 — Preliminary sweep: d_h=4  (Appendix — shows total failure)

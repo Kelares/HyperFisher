@@ -23,6 +23,12 @@ conda activate venv
 #                Adam serves as the unconstrained baseline.
 # ==============================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIG 7 — Split-MNIST SH Suffocated HN, d_h=8  (Sub-RQ1 Panel b B1)
+# ALREADY DONE with 5 seeds. Skipping.
+# ──────────────────────────────────────────────────────────────────────────────
+echo "=== CONFIG 7: SKIPPED — already complete (5 seeds) ==="
+
 TASK="split_mnist_sh"
 DEVICE="gpu"
 

@@ -110,9 +110,7 @@ if __name__ == "__main__":
         first_task_optimizer_cls = FIRST_TASK_OPT[config.first_task_opt]
 
     if config.get("num_of_tasks", False):
-        print(config.num_of_tasks)
         task_config.num_tasks = config.num_of_tasks
-        Task.num_tasks = config.num_of_tasks
 
     
     config.update({"num_tasks": task_config.num_tasks, "task_classes": getattr(task_config, 'task_classes', None)})
@@ -120,7 +118,7 @@ if __name__ == "__main__":
     if config.check_vram:
         stress_test_fopng_memory()
 
-    datasets = [Task.generate(task_id=t, batch_size=config.batch_size) for t in range(config.num_tasks)]
+    datasets = [Task.generate(task_id=t, batch_size=config.batch_size) for t in range(task_config.num_tasks)]
     print(Task)
     train_loaders = [d[0] for d in datasets]
     test_loaders = [d[1] for d in datasets]
@@ -131,7 +129,7 @@ if __name__ == "__main__":
     print(config.model)
     match config.model:
         case "HyperNetwork":
-            target_network = target_network(Task.config.num_tasks, device)
+            target_network = target_network(task_config.num_classes, device)
             model = HyperNetwork(
                 target_network_template=target_network,
                 device=device, 
@@ -140,11 +138,11 @@ if __name__ == "__main__":
 
         case "TargetNetwork":
             if config.task == "split_cifar10":
-                model = Task.solo_target(Task.config.num_tasks, device,  [2 for _ in range(Task.config.num_tasks)])
+                model = Task.solo_target(task_config.num_tasks, device,  [2 for _ in range(task_config.num_classes)])
             elif config.task == "split_cifar100":
-                model = Task.solo_target(Task.config.num_tasks, device, [10 for _ in range(Task.config.num_tasks)])
+                model = Task.solo_target(task_config.num_tasks, device, [10 for _ in range(task_config.num_classes)])
             else:
-                model = Task.solo_target(Task.config.num_tasks, device)
+                model = Task.solo_target(task_config.num_tasks, device)
 
 
     print(model)
