@@ -45,6 +45,12 @@ ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
+QUESTION='Do projection methods outperform EWC and baselines
+on a visual benchmark? Serves as Panel (a) reference for
+Sub-RQ1 Benchmark 2'
+
+ 
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 4: Split-CIFAR10 MH Standalone (Adam first task) ==="
 
 declare -A LR4

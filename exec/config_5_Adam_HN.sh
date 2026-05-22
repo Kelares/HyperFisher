@@ -50,6 +50,11 @@ SEEDS_5=(42 1234 2137 811 111)
 # (Sub-RQ3 Condition A — paired comparison with Config 4)
 # Identical to Config 4 except first_task_opt=adam
 # ──────────────────────────────────────────────────────────────────────────────
+QUESTION='Does Adam with coupled L2 on the first task contaminate
+gradient memory G relative to AdamW? Paired against
+Config 8 (AdamW first task).'
+
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 5: Split-CIFAR10 MH Standalone (Adam first task — Sub-RQ3 Cond A) ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do

@@ -50,7 +50,12 @@ SEEDS_5=(42 1234 2137 811 111)
 # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (60K)
 # ──────────────────────────────────────────────────────────────────────────────
 
+QUESTION='Does eFOPNG improve retention over FOPNG on a
+# domain-incremental benchmark with high inter-task Fisher
+# overlap?'
 
+ 
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 1: Permuted-MNIST Standalone ==="
 
 declare -A LR1

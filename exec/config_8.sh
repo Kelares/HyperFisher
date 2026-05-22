@@ -49,6 +49,10 @@ SEEDS_5=(42 1234 2137 811 111)
 # CONFIG 8 — Split-CIFAR10 Standard HN (Sub-RQ 1b, 2C3, 3B)
 # Conditions: full normalization (2C3), AdamW first task (3B), chunk_size=6000, beta=0.1
 # ──────────────────────────────────────────────────────────────────────────────
+QUESTION='Does eFOPNG scale to 10 tasks and 10-class per-task splits?
+Serves as Panel (a) reference for Sub-RQ1 Benchmark 3.'
+
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 8: Split-CIFAR10 Standard HN ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do

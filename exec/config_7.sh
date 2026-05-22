@@ -70,6 +70,12 @@ LAM["efopng"]="1e-3"
 
 ALL_METHODS=("adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "efopng")
 
+QUESTION='Primary Sub-RQ1 Panel (b) result on CIFAR-10. Also Sub-
+RQ2 Condition 3 (full normalization as proposed) and
+Sub-RQ3 Condition B (AdamW first task).'
+
+
+echo "|----------SOLVES-------------|: ${Question}"
 echo "======================================================================"
 echo " Starting HyperNetwork Bottleneck Run on $TASK"
 echo " Batch=$BATCH | Epochs=$EPOCHS | Fisher Samples=$FISHER"

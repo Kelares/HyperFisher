@@ -49,6 +49,13 @@ SEEDS_5=(42 1234 2137 811 111)
 # CONFIG 2 — Split-MNIST Multi-Head Standalone  (Sub-RQ4, Sub-RQ1 Panel a B1)
 # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (~12K)
 # ──────────────────────────────────────────────────────────────────────────────
+
+QUESTION='does eFOPNG replicate and extend FOPNG’s canonical
+result? Serves as Panel (a) unconstrained reference for
+Sub-RQ1 Benchmark 1'
+
+ 
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 2: Split-MNIST MH Standalone ==="
 
 declare -A LR2

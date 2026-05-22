@@ -49,6 +49,13 @@ SEEDS_5=(42 1234 2137 811 111)
 # CONFIG 3 — Split-MNIST Single-Head Standalone  (Sub-RQ4)
 # Same HPs as MH but task=split_mnist_sh, single 10-output head
 # ──────────────────────────────────────────────────────────────────────────────
+
+QUESTION='Does the eFOPNG advantage survive the harder single-
+head protocol (?) where separate task heads do not sup-
+press output-level interference?'
+
+ 
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 3: Split-MNIST SH Standalone ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do

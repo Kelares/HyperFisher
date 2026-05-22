@@ -51,6 +51,10 @@ SEEDS_5=(42 1234 2137 811 111)
 # CONFIG 6 — Split-CIFAR100 MH Standalone  (Sub-RQ4, Sub-RQ1 Panel a B3)
 # Table 1: batch=10, epochs=10, first_task=SGD 1e-2, Fisher=1024
 # ──────────────────────────────────────────────────────────────────────────────
+QUESTION='Does eFOPNG scale to 10 tasks and 10-class per-task splits?
+Serves as Panel (a) reference for Sub-RQ1 Benchmark 3.'
+
+echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 6: Split-CIFAR100 MH Standalone ==="
 
 declare -A LR6

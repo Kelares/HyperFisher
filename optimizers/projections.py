@@ -447,7 +447,7 @@ class FOPNG(OP):
         
 
         A = G.T @ weighted_G + scaled_lam * torch.eye(G.size(1), device=G.device)
-        self.A_inv = torch.pinverse(A)
+        self.A_inv = torch.linalg.pinv(A)
         self.A = A
                
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
@@ -527,7 +527,7 @@ class eFOPNG(OP):
         weighted_G = F_old_diag * (F_c_inv.view(-1, 1) * F_old_G)
 
         A = G.T @ weighted_G + scaled_lam * torch.eye(G.size(1), device=G.device)
-        self.A_inv = torch.pinverse(A)
+        self.A_inv = torch.linalg.pinv(A)
         self.A = A
          
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
