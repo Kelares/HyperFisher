@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--chunk_embedding_dim", type=int, default=10)
     parser.add_argument("--chunk_size", type=int, default=1000)
     parser.add_argument("--regulizer", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--beta", action=float, default=0.1)
+    parser.add_argument("--beta", type=float, default=0.1)
 
     # Infrastructure
     parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)
