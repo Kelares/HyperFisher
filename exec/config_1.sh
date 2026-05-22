@@ -54,7 +54,8 @@ SEEDS_5=(42 1234 2137 811 111)
 echo "=== CONFIG 1: Permuted-MNIST Standalone ==="
 
 declare -A LR1
-LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-4" 
+# These are the learning rates used for Task 2 onwards
+LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-4"
 LR1["fng"]="1e-3";  LR1["ogd"]="5e-3"; LR1["ong"]="5e-3"
 LR1["fopng"]="1e-4"; LR1["efopng"]="1e-4"
 
@@ -62,12 +63,6 @@ declare -A LAM1
 LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
 LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
 LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
-
-# NEW: Define the correct first-task optimizer per method
-declare -A OPT1
-OPT1["adam"]="adam"; OPT1["sgd"]="sgd"; OPT1["ewc"]="adam"
-OPT1["fng"]="sgd";  OPT1["ogd"]="sgd"; OPT1["ong"]="sgd"
-OPT1["fopng"]="adam"; OPT1["efopng"]="adam"
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
@@ -77,8 +72,10 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --grads_per_task=80 --max_directions=400
             --fisher_samples=60000
             --lr=${LR1[$METHOD]} --max_epochs=5 --batch_size=10
-            # FIX: Dynamically assign the first task optimizer
-            --first_task_opt=${OPT1[$METHODg9]} --first_task_lr=${LR1[$METHOD]}
+            
+            # THE FIX: Universal SGD initialization at a convergent learning rate
+            --first_task_opt=sgd --first_task_lr=1e-3 
+            
             --device_mode=$DEVICE --seed=$SEED --experiment_id=401
         )
         [ "${LAM1[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM1[$METHOD]})
