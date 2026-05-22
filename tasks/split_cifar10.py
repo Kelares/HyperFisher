@@ -52,7 +52,7 @@ class TaskGenerator:
     )
     # Continual Learning Task Configurations
 
-    target_network = SimpleCIFARCNN(num_classes=config.num_classes)
+    target_network = SimpleCIFARCNN
 
     # B. Multi-Head CIFAR CNN (Isolated visual classification pathways)
     solo_target = MultiHeadCIFARCNN
