@@ -20,7 +20,6 @@ def get_grad_vector(model: nn.Module) -> torch.Tensor:
         else:
             grads.append(p.grad.view(-1))
     grads = torch.cat(grads)
-    # grads /= model.num_of_chunks
     return grads
 
 def _apply_flat_update(model: nn.Module, update: Tensor) -> None:

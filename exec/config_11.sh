@@ -46,9 +46,9 @@ SEEDS_5=(42 1234 2137 811 111)
 
 # DIFFERENT LR FOR HYPERNETWORK RUN
 declare -A LR4
-LR4["adam"]="1e-3"; LR4["sgd"]="1e-2"; LR4["ewc"]="1e-3"
-LR4["fng"]="1e-2";  LR4["ogd"]="1e-2"; LR4["ong"]="1e-2"
-LR4["fopng"]="1e-2"; LR4["efopng"]="1e-2"
+LR4["adam"]="1e-3"; LR4["sgd"]="1e-3"; LR4["ewc"]="1e-3"
+LR4["fng"]="1e-3";  LR4["ogd"]="1e-3"; LR4["ong"]="1e-3"
+LR4["fopng"]="1e-3"; LR4["efopng"]="1e-3"
 
 declare -A LAM4
 LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50" # DOUBLE CHECK THE LAMBDA FOR EWC AND HYPERNETWORK. I SHOULD SWEEP IT SOMEHOW. ########################################################################
@@ -67,11 +67,12 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --regulizer
             --normalize
             --hyper_hidden_dim=128
-            --task_embedding_dim=64
-            --chunk_embedding_dim=64
-            --chunk_size=6000
+            --task_embedding_dim=32
+            --chunk_embedding_dim=32
+            --chunk_size=2048
             --grads_per_task=80 --max_directions=400
             --fisher_samples=1024
+            --beta=0.01
             --lr="${LR4[$METHOD]}" --max_epochs=50 --batch_size=64
             --first_task_opt=adamw --first_task_lr=1e-3
             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411

@@ -835,8 +835,6 @@ class ONG(OP):
 
 class OGD(FOPNG):
     __name__ = "OGD"
-    def prepare_epoch(self, F_new: Tensor) -> None:
-        self.build_A_inv(self.gradient_memory.matrix, self.F_old, self.F_new)
 
     def build_A_inv(self, G: Tensor, F_old: Tensor, F_new: Tensor) -> None:
         """
@@ -875,13 +873,13 @@ class OGD(FOPNG):
 
         # 3. Metrics (using standard Euclidean norms)
         rho = (Pg.norm() / (g.norm() + eps)).item()
-        
         # Return signature matches FOPNG.step
         return v_star.to(g.device), rho, correction.norm().item(), rho
    
     def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
-        self.F_old = None
-        
+        self.F_old = 1
+        self.F_new = 1
+
         # 1. Collect the raw gradients for the current task
         self.GradientCollector.collect(
             memory = self.gradient_memory, 
