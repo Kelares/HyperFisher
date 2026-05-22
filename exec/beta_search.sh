@@ -27,44 +27,44 @@ DEVICE="gpu"
 SEED=42  # Only one seed needed for structural stability checks
 METHOD="adam" # Isolate Hypernetwork mechanics from projection math
 
-# ──────────────────────────────────────────────────────────────────────────────
-# SWEEP A: The MNIST Scale (Base: Config 7)
-# Target: Small MLPs, suffocated HN. Sweep beta.
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== SWEEP A: Split-MNIST SH ==="
-BETA_A=(0.01 0.05 0.1)
+# # ──────────────────────────────────────────────────────────────────────────────
+# # SWEEP A: The MNIST Scale (Base: Config 7)
+# # Target: Small MLPs, suffocated HN. Sweep beta.
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== SWEEP A: Split-MNIST SH ==="
+# BETA_A=(0.01 0.05 0.1)
 
-for BETA in "${BETA_A[@]}"; do
-    echo "--> MNIST Sweep: Beta=$BETA"
-    python main.py \
-        --task=split_mnist_sh --methods=$METHOD --regulizer \
-        --normalize --hyper_hidden_dim=8 --task_embedding_dim=4 --chunk_embedding_dim=10 \
-        --beta=$BETA --chunk_size=1000 \
-        --lr=1e-3 --max_epochs=5 --batch_size=10 \
-        --first_task_opt=adamw --first_task_lr=1e-3 \
-        --device_mode=$DEVICE --seed=$SEED --experiment_id=701
-done
+# for BETA in "${BETA_A[@]}"; do
+#     echo "--> MNIST Sweep: Beta=$BETA"
+#     python main.py \
+#         --task=split_mnist_sh --methods=$METHOD --regulizer \
+#         --normalize --hyper_hidden_dim=8 --task_embedding_dim=4 --chunk_embedding_dim=10 \
+#         --beta=$BETA --chunk_size=1000 \
+#         --lr=1e-3 --max_epochs=5 --batch_size=10 \
+#         --first_task_opt=adamw --first_task_lr=1e-3 \
+#         --device_mode=$DEVICE --seed=$SEED --experiment_id=701
+# done
 
-# ──────────────────────────────────────────────────────────────────────────────
-# SWEEP B: The CIFAR-10 Scale (Base: Config 8)
-# Target: Medium CNNs. Sweep beta and chunk_size.
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== SWEEP B: Split-CIFAR10 ==="
-BETA_B=(0.05 0.1 0.5)
-CHUNK_B=(500 2000 5000)
+# # ──────────────────────────────────────────────────────────────────────────────
+# # SWEEP B: The CIFAR-10 Scale (Base: Config 8)
+# # Target: Medium CNNs. Sweep beta and chunk_size.
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== SWEEP B: Split-CIFAR10 ==="
+# BETA_B=(0.05 0.1 0.5)
+# CHUNK_B=(500 2000 5000)
 
-for CHUNK in "${CHUNK_B[@]}"; do
-    for BETA in "${BETA_B[@]}"; do
-        echo "--> CIFAR-10 Sweep: Chunk=$CHUNK, Beta=$BETA"
-        python main.py \
-            --task=split_cifar10 --methods=$METHOD --regulizer \
-            --normalize --hyper_hidden_dim=32 --task_embedding_dim=16 --chunk_embedding_dim=16 \
-            --beta=$BETA --chunk_size=$CHUNK \
-            --lr=1e-3 --max_epochs=10 --batch_size=64 \
-            --first_task_opt=adamw --first_task_lr=1e-3 \
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=702
-    done
-done
+# for CHUNK in "${CHUNK_B[@]}"; do
+#     for BETA in "${BETA_B[@]}"; do
+#         echo "--> CIFAR-10 Sweep: Chunk=$CHUNK, Beta=$BETA"
+#         python main.py \
+#             --task=split_cifar10 --methods=$METHOD --regulizer \
+#             --normalize --hyper_hidden_dim=32 --task_embedding_dim=16 --chunk_embedding_dim=16 \
+#             --beta=$BETA --chunk_size=$CHUNK \
+#             --lr=1e-3 --max_epochs=10 --batch_size=64 \
+#             --first_task_opt=adamw --first_task_lr=1e-3 \
+#             --device_mode=$DEVICE --seed=$SEED --experiment_id=702
+#     done
+# done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # SWEEP C: The CIFAR-100 Scale (Base: Config 11)
@@ -73,7 +73,7 @@ done
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== SWEEP C: Split-CIFAR100 ==="
 BETA_C=(0.01 0.1)  # Kept smaller due to massive chunk penalties
-CHUNK_C=(3000 6000)
+CHUNK_C=(6000)
 
 for CHUNK in "${CHUNK_C[@]}"; do
     for BETA in "${BETA_C[@]}"; do
