@@ -39,6 +39,7 @@ def train_vanilla(
     task_classes: Optional[list] = None,
     verbose: bool = True,
     warmup: bool = False,
+    beta: float = 0.1,
 ):
     """
     Standard training baseline refactored to match the Projection Train structure.
@@ -52,7 +53,7 @@ def train_vanilla(
     loss_to_achieve = 0.1
     _max_epochs = max_epochs if max_epochs else epochs
     base_lr = lr
-    regulizer_instance = HyperRegulizer() if regulizer else None
+    regulizer_instance = HyperRegulizer(beta=beta) if regulizer else None
 
 
     for t, loader in enumerate(train_loaders):
