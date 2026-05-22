@@ -46,61 +46,61 @@ SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 2 — Split-MNIST Multi-Head Standalone  (Sub-RQ4, Sub-RQ1 Panel a B1)
-# Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (~12K)
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== CONFIG 2: Split-MNIST MH Standalone ==="
+# # ──────────────────────────────────────────────────────────────────────────────
+# # CONFIG 2 — Split-MNIST Multi-Head Standalone  (Sub-RQ4, Sub-RQ1 Panel a B1)
+# # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (~12K)
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== CONFIG 2: Split-MNIST MH Standalone ==="
 
-declare -A LR2
-LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
-LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
-LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
+# declare -A LR2
+# LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
+# LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
+# LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
 
-declare -A LAM2
-LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
-LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
-LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
+# declare -A LAM2
+# LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
+# LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
+# LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
 
-for METHOD in "${ALL_METHODS[@]}"; do
-    for SEED in "${SEEDS_3[@]}"; do
-        ARGS=(
-            --task=split_mnist --model=TargetNetwork
-            --methods=$METHOD --no-regulizer
-            --grads_per_task=80 --max_directions=400
-            --fisher_samples=12000
-            --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=402
-        )
-        [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
-        echo "--> C2 $METHOD seed=$SEED"
-        python main.py "${ARGS[@]}"
-    done
-done
+# for METHOD in "${ALL_METHODS[@]}"; do
+#     for SEED in "${SEEDS_3[@]}"; do
+#         ARGS=(
+#             --task=split_mnist --model=TargetNetwork
+#             --methods=$METHOD --no-regulizer
+#             --grads_per_task=80 --max_directions=400
+#             --fisher_samples=12000
+#             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
+#             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
+#             --device_mode=$DEVICE --seed=$SEED --experiment_id=402
+#         )
+#         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
+#         echo "--> C2 $METHOD seed=$SEED"
+#         python main.py "${ARGS[@]}"
+#     done
+# done
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 3 — Split-MNIST Single-Head Standalone  (Sub-RQ4)
-# Same HPs as MH but task=split_mnist_sh, single 10-output head
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== CONFIG 3: Split-MNIST SH Standalone ==="
+# # ──────────────────────────────────────────────────────────────────────────────
+# # CONFIG 3 — Split-MNIST Single-Head Standalone  (Sub-RQ4)
+# # Same HPs as MH but task=split_mnist_sh, single 10-output head
+# # ──────────────────────────────────────────────────────────────────────────────
+# echo "=== CONFIG 3: Split-MNIST SH Standalone ==="
 
-for METHOD in "${ALL_METHODS[@]}"; do
-    for SEED in "${SEEDS_3[@]}"; do
-        ARGS=(
-            --task=split_mnist_sh --model=TargetNetwork
-            --methods=$METHOD --no-regulizer
-            --grads_per_task=80 --max_directions=400
-            --fisher_samples=12000
-            --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=403
-        )
-        [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
-        echo "--> C3 $METHOD seed=$SEED"
-        python main.py "${ARGS[@]}"
-    done
-done
+# for METHOD in "${ALL_METHODS[@]}"; do
+#     for SEED in "${SEEDS_3[@]}"; do
+#         ARGS=(
+#             --task=split_mnist_sh --model=TargetNetwork
+#             --methods=$METHOD --no-regulizer
+#             --grads_per_task=80 --max_directions=400
+#             --fisher_samples=12000
+#             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
+#             --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
+#             --device_mode=$DEVICE --seed=$SEED --experiment_id=403
+#         )
+#         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
+#         echo "--> C3 $METHOD seed=$SEED"
+#         python main.py "${ARGS[@]}"
+#     done
+# done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 4 — Split-CIFAR10 MH Standalone, AdamW first task
