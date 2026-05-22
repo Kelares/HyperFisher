@@ -206,58 +206,6 @@ echo "=== CONFIG 7: SKIPPED — already complete (5 seeds) ==="
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 8: SKIPPED — already complete (3 seeds) ==="
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 9 — Split-CIFAR10 Standard HN, NO normalization
-# (Sub-RQ2 Condition 1 — negative control, expected to crash)
-# eFOPNG only — 3 seeds sufficient to demonstrate the pathology
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== CONFIG 9: Split-CIFAR10 HN — No normalization (Sub-RQ2 Cond 1) ==="
-
-for SEED in "${SEEDS_3[@]}"; do
-    echo "--> C9 efopng seed=$SEED"
-    python main.py \
-        --task=split_cifar10 \
-        --methods=efopng \
-        --regulizer \
-        --hyper_hidden_dim=64 \
-        --task_embedding_dim=32 \
-        --chunk_embedding_dim=32 \
-        --chunk_size=256 \
-        --grads_per_task=80 --max_directions=400 \
-        --fisher_samples=1024 \
-        --lr=1e-3 --max_epochs=50 --batch_size=64 \
-        --lam=1e-3 \
-        --first_task_opt=adamw --first_task_lr=1e-3 \
-        --device_mode=$DEVICE --seed=$SEED --experiment_id=409
-        # NOTE: no --normalize flag — this is the negative control
-done
-
-# ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 10 — Split-CIFAR10 Standard HN, GRADIENT normalization only
-# (Sub-RQ2 Condition 2)
-# ──────────────────────────────────────────────────────────────────────────────
-echo "=== CONFIG 10: Split-CIFAR10 HN — Gradient-only normalization (Sub-RQ2 Cond 2) ==="
-
-for SEED in "${SEEDS_3[@]}"; do
-    echo "--> C10 efopng seed=$SEED"
-    python main.py \
-        --task=split_cifar10 \
-        --methods=efopng \
-        --regulizer \
-        --hyper_hidden_dim=64 \
-        --task_embedding_dim=32 \
-        --chunk_embedding_dim=32 \
-        --chunk_size=256 \
-        --grads_per_task=80 --max_directions=400 \
-        --fisher_samples=1024 \
-        --lr=1e-3 --max_epochs=50 --batch_size=64 \
-        --lam=1e-3 \
-        --first_task_opt=adamw --first_task_lr=1e-3 \
-        --normalize_gradients_only \
-        --device_mode=$DEVICE --seed=$SEED --experiment_id=410
-done
-
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 12 — Preliminary sweep: d_h=4  (Appendix — shows total failure)

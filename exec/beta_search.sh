@@ -37,7 +37,7 @@ BETA_A=(0.01 0.05 0.1)
 for BETA in "${BETA_A[@]}"; do
     echo "--> MNIST Sweep: Beta=$BETA"
     python main.py \
-        --task=split_mnist --methods=$METHOD --regulizer \
+        --task=split_mnist_sh --methods=$METHOD --regulizer \
         --normalize --hyper_hidden_dim=8 --task_embedding_dim=4 --chunk_embedding_dim=10 \
         --beta=$BETA --chunk_size=1000 \
         --lr=1e-3 --max_epochs=5 --batch_size=10 \
