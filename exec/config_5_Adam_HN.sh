@@ -14,7 +14,7 @@ fi
 
 cd ~/HyperFisher/
 conda activate venv
-
+# CHANGE TO HN
 # ==============================================================================
 # Full Thesis Experiment Suite — All 13 Configurations
 # ==============================================================================
@@ -52,18 +52,44 @@ SEEDS_5=(42 1234 2137 811 111)
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 5: Split-CIFAR10 MH Standalone (Adam first task — Sub-RQ3 Cond A) ==="
 
-for METHOD in "${PROJ_METHODS[@]}"; do     # projection methods only — baselines unaffected
+for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
         ARGS=(
-            --task=split_cifar10 --model=TargetNetwork
-            --methods=$METHOD --no-regulizer
-            --grads_per_task=80 --max_directions=400
-            --fisher_samples=1024
-            --lr=${LR4[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=adam --first_task_lr=1e-3
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=405
+            --task=split_cifar10 
+            --model=HyperNetwork 
+            --methods=$METHOD 
+            
+            # Sub-RQ3 Condition B: AdamW first task
+            --first_task_opt=adam
+            --first_task_lr=1e-3
+            
+            # Model & Architecture dimensions
+            --task_embedding_dim=16 
+            --chunk_embedding_dim=16 
+            --hyper_hidden_dim=32 
+            
+            # Updated hyperparameters from Sweep B
+            --chunk_size=6000 
+            --beta=0.1 
+            --regulizer
+            
+            # Sub-RQ2 Condition 3: Full Normalization
+            --normalize 
+            
+            # Optimization & Fisher settings
+            --lr=1e-3 
+            --batch_size=32 
+            --max_epochs=50 
+            --grads_per_task=80 
+            --max_directions=1000 
+            --fisher_samples=1024 
+            
+            # Hardware & Tracking
+            --device_mode=$DEVICE 
+            --seed=$SEED 
+            --experiment_id=408
         )
-        [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
-        echo "--> C5 $METHOD seed=$SEED"
+        echo "--> C8 $METHOD seed=$SEED"
         python main.py "${ARGS[@]}"
     done
+done
