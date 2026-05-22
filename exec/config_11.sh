@@ -38,9 +38,9 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-
+# ("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 DEVICE="gpu"
-ALL_METHODS=("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
