@@ -87,7 +87,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             # Hardware & Tracking
             --device_mode=$DEVICE 
             --seed=$SEED 
-            --experiment_id=408
+            --experiment_id=405
         )
         echo "--> C8 $METHOD seed=$SEED"
         python main.py "${ARGS[@]}"
