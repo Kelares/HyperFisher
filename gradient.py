@@ -85,7 +85,7 @@ class GradientMemory:
         U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
         if self.basis.size(1) > self.max_directions:
             if self.normalization:
-                U,= U[:, :self.max_directions]
+                U= U[:, :self.max_directions]
                 S = S[:self.max_directions]
         
         if self.normalization:
