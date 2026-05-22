@@ -23,7 +23,7 @@ conda activate venv
 # ──────  ─────────────────────────  ───────────────  ───────  ──────────
 # 1       Permuted-MNIST             Standalone       4        TODO
 # 2       Split-MNIST MH             Standalone       4, 1a    TODO
-# 3       Split-MNIST SH             Standalone       4        TODO
+# 3       Split-MNIST SH             Standalone       4        DONE (3 seeds) SH IS TOO POOR.
 # 4       Split-CIFAR10 MH           Standalone AdamW 4,1a,3B  TODO
 # 5       Split-CIFAR10 MH           Standalone Adam  3A       TODO
 # 6       Split-CIFAR100 MH          Standalone       4, 1a    TODO
