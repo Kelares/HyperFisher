@@ -78,7 +78,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=60000
             --lr=${LR1[$METHOD]} --max_epochs=5 --batch_size=10
             # FIX: Dynamically assign the first task optimizer
-            --first_task_opt=${OPT1[$METHOD]} --first_task_lr=${LR1[$METHOD]}
+            --first_task_opt=${OPT1[$METHODg9]} --first_task_lr=${LR1[$METHOD]}
             --device_mode=$DEVICE --seed=$SEED --experiment_id=401
         )
         [ "${LAM1[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM1[$METHOD]})
