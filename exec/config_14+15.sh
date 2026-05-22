@@ -20,6 +20,8 @@ conda activate venv
 # Testing EMA vs MAX Fisher Accumulation
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 14 & 15: Permuted-MNIST 20 Tasks (Sub-RQ5) ==="
+SEEDS_5=(42 1234 2137 811 111)
+DEVICE="gpu"
 
 # For Sub-RQ5, we only need to test eFOPNG
 LR="1e-4"
@@ -41,9 +43,8 @@ for ACC_TYPE in "${ACCUMULATION_TYPES[@]}"; do
     for SEED in "${SEEDS_5[@]}"; do
         ARGS=(
             --task=permuted_mnist --model=TargetNetwork
-            --methods="${METHOD}_{ACC_TYPE}" --no-regulizer
+            --methods=$METHOD --no-regulizer
             --num_of_tasks=20
-            --fisher_accumulation=$ACC_TYPE
             --grads_per_task=80 --max_directions=400
             --fisher_samples=60000
             --lr=$LR --max_epochs=5 --batch_size=10
