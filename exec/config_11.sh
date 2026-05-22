@@ -72,7 +72,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --chunk_size=6000
             --grads_per_task=80 --max_directions=400
             --fisher_samples=1024
-            --lr=1e-3 --max_epochs=50 --batch_size=64
+            --lr="${LR4[$METHOD]}" --max_epochs=50 --batch_size=64
             --first_task_opt=adamw --first_task_lr=1e-3
             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411
         )
