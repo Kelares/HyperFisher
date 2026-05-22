@@ -18,7 +18,12 @@ if __name__ == "__main__":
     
     # Core parameters
     parser.add_argument("--model", type=str, default="HyperNetwork", choices=["HyperNetwork", "TargetNetwork"])
-    parser.add_argument("--task", type=str, required=True, choices=["permuted_mnist", "split_mnist_sh", "split_mnist_mh", "split_cifar10", "split_cifar100"])
+    parser.add_argument(
+        "--task", 
+        type=str, 
+        required=True, 
+        choices=["permuted_mnist", "split_mnist_sh", "split_mnist_mh", "split_cifar10", "split_cifar100"]
+    )
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
@@ -32,7 +37,7 @@ if __name__ == "__main__":
         nargs='+', 
         required=False,
         default=["fopng", "adam"],
-        choices=["sgd", "adam", "ogd", "ong", "fopng", "fopng_prefisher", "fng", "efopng", "efopng_prefisher", "ewc"],
+        choices=["sgd", "adam", "ogd", "ong", "fopng", "fopng_prefisher", "fng", "efopng", "efopng_prefisher", "efopng_ema" "ewc"],
     )
 
     # Optimization/Fisher parameters
@@ -58,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--chunk_embedding_dim", type=int, default=10)
     parser.add_argument("--chunk_size", type=int, default=1000)
     parser.add_argument("--regulizer", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--beta", action=float, default=0.1)
 
     # Infrastructure
     parser.add_argument("--check_vram", action=argparse.BooleanOptionalAction, default=False)
@@ -178,8 +184,8 @@ if __name__ == "__main__":
                     verbose=config.get("verbose", True),
                     regulizer=config.get("regulizer", True),
                     optimizer_cls = config.get("optimizer_cls", first_task_optimizer_cls),
-                    first_task_optimizer_cls=first_task_optimizer_cls
-                    
+                    first_task_optimizer_cls=first_task_optimizer_cls,
+                    beta=config.get("beta", 0.1)
 
                 )
 
@@ -196,7 +202,8 @@ if __name__ == "__main__":
                     task_classes=config.get("task_classes"),
                     verbose=config.get("verbose", True),
                     warmup=config.get("warmup", False), 
-                    regulizer=config.get("regulizer", True)
+                    regulizer=config.get("regulizer", True),
+                    beta=config.get("beta", 0.1)
 
                 )
 

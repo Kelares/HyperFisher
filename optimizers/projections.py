@@ -122,7 +122,7 @@ class OP(ABC):
             # n = task_id.item()+1
             # self.F_old = ((n - 1) / n) * self.F_old + (1.0 / n) * F_new.detach().to(self.calc_device)
             self.F_old = torch.max(self.F_old, F_new.detach())
-            # self.F_old = (1 - self.alpha) * self.F_old + self.alpha * F_new.detach().to(self.calc_device)
+            # self.F_old = (1 - self.3) * self.F_old + self.alpha * F_new.detach().to(self.calc_device)
             # CULPRIT FIX: Re-normalize so the combined history peak is always 1.0
             # self.F_old += F_new.detach()
             
@@ -650,6 +650,59 @@ class preEFOPNG(OP):
         torch.cuda.empty_cache()
         gc.collect()
 
+class eFOPNG_ema(eFOPNG):
+    __name__ = "eFOPNG_ema"
+    def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
+        F_new = self.FisherEstimator.estimate(model, task_id, loader, criterion, self.calc_device)
+        self.fisher_after_task[task_id.item()] = F_new 
+        
+        # 1. CALCULATE OVERLAP BEFORE UPDATING F_OLD
+        # At task 0, F_old is None, so we log 1.0 (perfect correlation with itself) or 0.0
+        if self.F_old is not None:
+            cosine_sim = self._cosine_similarity(self.F_old, F_new)
+            pearson_corr = self._pearson_correlation(self.F_old, F_new)
+            topk_iou = self._calculate_topk_iou(self.F_old, F_new)
+        else:
+            cosine_sim = 1.0
+            pearson_corr = 1.0
+            topk_iou = 1.0
+
+        if self.F_old is None:
+            self.F_old = F_new.detach().to(self.calc_device)
+        else:
+            # Arithmetic Mean: All tasks have exactly 1/N weight BIG CHANGE
+            self.F_old = (1 - self.alpha) * self.F_old + self.alpha * F_new.detach().to(self.calc_device)
+            
+        # 1. Collect the raw gradients for the current task
+        self.GradientCollector.collect(
+            memory = self.gradient_memory, 
+            model = model, 
+            dataloader = loader,
+            device = self.calc_device, 
+            task_id = task_id,
+        )
+
+        if self.debug:
+            print(f"[{self.__name__}] Current G memory size: {len(self.gradient_memory)} / {self.max_directions}")
+
+        logs = {
+            f"{self.__name__}/fisher/min": self.F_old.min().item(),
+            f"{self.__name__}/fisher/max": self.F_old.max().item(),
+            f"{self.__name__}/fisher/mean": self.F_old.mean().item(),
+            # mean over non-zero entries — should be 0.1–0.4 with healthy Fisher
+            # (was 0.0002 with /max normalization, indicating near-delta distribution)
+            f"{self.__name__}/memory/G_cols": len(self.gradient_memory),
+            f"{self.__name__}/fisher_overlap/cosine": cosine_sim,
+            f"{self.__name__}/fisher_overlap/pearson": pearson_corr,
+            f"{self.__name__}/fisher_overlap/topk_iou": topk_iou,
+            "task_completed": task_id.item() + 1
+        }
+        print(logs)
+
+        wandb.log(logs)
+        torch.cuda.empty_cache()
+        gc.collect()
+
 class FNG(OP):
     """
     Fisher Natural Gradient.
@@ -854,6 +907,7 @@ METHOD_MAP = {
     "fng": FNG,
     "fopng_prefisher": PreFOPNG,
     "efopng_prefisher": preEFOPNG,
+    "efopng_ema": eFOPNG_ema
 }    
 
 def run_continual_method(
@@ -874,7 +928,7 @@ def run_continual_method(
 
     # 1. Handle Regularizer instance
     # We create it here so it can be shared between the Optimizer and the Train loop
-    regulizer_instance = HyperRegulizer() if config.get("regulizer", True) else None
+    regulizer_instance = HyperRegulizer(config.get("beta", 0.1)) if config.get("regulizer", True) else None
     
     # 2. Instantiate the specific OP class
     # We filter/pass relevant config args to the constructor
@@ -890,7 +944,8 @@ def run_continual_method(
         fisher_clipping=config.get("fisher_clipping", False),
         normalize=config.get("normalize", False),
         
-    )
+    )                    
+
 
     # 3. Call the generic engine
     return train(

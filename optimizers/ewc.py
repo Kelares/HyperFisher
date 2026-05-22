@@ -162,35 +162,35 @@ class EWC:
                 self.fishers[tid] = f / max_val
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Entry point  (mirrors run_continual_method)
-# ─────────────────────────────────────────────────────────────────────────────
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Entry point  (mirrors run_continual_method)
+# # ─────────────────────────────────────────────────────────────────────────────
 
-def run_ewc(
-    model:         nn.Module,
-    train_loaders: List[DataLoader],
-    test_loaders:  List[DataLoader],
-    criterion:     Callable,
-    config:        dict,
-):
-    """Unified entry point for EWC — mirrors run_continual_method."""
+# def run_ewc(
+#     model:         nn.Module,
+#     train_loaders: List[DataLoader],
+#     test_loaders:  List[DataLoader],
+#     criterion:     Callable,
+#     config:        dict,
+# ):
+#     """Unified entry point for EWC — mirrors run_continual_method."""
 
-    return train_ewc(
-        model          = model,
-        train_loaders  = train_loaders,
-        test_loaders   = test_loaders,
-        criterion      = criterion,
-        regulizer      = regulizer_instance,
-        lr             = config.get("lr",             1e-3),
-        lam            = config.get("lam",            1e5),
-        fisher_samples = config.get("fisher_samples", 1024),
-        epochs         = config.get("epochs",         5),
-        max_epochs     = config.get("max_epochs",     None),
-        task_classes   = config.get("task_classes",   None),
-        verbose        = config.get("verbose",        True),
-        saved          = config.get("saved",          False),
-        warmup         = config.get("warmup",         False),
-    )
+#     return train_ewc(
+#         model          = model,
+#         train_loaders  = train_loaders,
+#         test_loaders   = test_loaders,
+#         criterion      = criterion,
+#         regulizer      = regulizer_instance,
+#         lr             = config.get("lr",             1e-3),
+#         lam            = config.get("lam",            1e5),
+#         fisher_samples = config.get("fisher_samples", 1024),
+#         epochs         = config.get("epochs",         5),
+#         max_epochs     = config.get("max_epochs",     None),
+#         task_classes   = config.get("task_classes",   None),
+#         verbose        = config.get("verbose",        True),
+#         saved          = config.get("saved",          False),
+#         warmup         = config.get("warmup",         False),
+#     )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -215,12 +215,13 @@ def train_ewc(
     verbose:        bool           = True,
     saved:          bool           = False,
     warmup:         bool           = False,
+    beta:           float          = 0.01,
 ) -> Dict:
     device      = next(model.parameters()).device
     has_spawn   = hasattr(model, "spawn")
     ewc         = EWC(lr=lr, lam=lam, fisher_samples=fisher_samples, optimizer_cls=optimizer_cls)
     name        = ewc.__name__   # "EWC" — used as wandb key prefix
-    regulizer = HyperRegulizer() if regulizer else None
+    regulizer = HyperRegulizer(beta=beta) if regulizer else None
 
     results         = {"acc": {}}
     global_epoch    = 0
