@@ -54,6 +54,15 @@ QUESTION='Does the eFOPNG advantage survive the harder single-
 head protocol (?) where separate task heads do not sup-
 press output-level interference?'
 
+declare -A LR2
+LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
+LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
+LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
+
+declare -A LAM2
+LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
+LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
+LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
  
 echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 3: Split-MNIST SH Standalone ==="
@@ -66,7 +75,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --grads_per_task=80 --max_directions=400
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=sgd --first_task_lr=${LR2[$METHOD]}
+            --first_task_opt=adam --first_task_lr=${LR2[$METHOD]}         # CHANGED THE INITIALIZATION AS SGD FAILS FOR SH
             --device_mode=$DEVICE --seed=$SEED --experiment_id=403
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
