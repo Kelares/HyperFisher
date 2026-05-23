@@ -78,9 +78,6 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --beta=0.1 
             --regulizer
             
-            # Sub-RQ2 Condition 3: Full Normalization
-            --normalize 
-            
             # Optimization & Fisher settings
             --lr=1e-3 
             --batch_size=32 

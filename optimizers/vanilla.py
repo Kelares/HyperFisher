@@ -247,5 +247,5 @@ def train_vanilla(
     
     wandb.log({f"{optimizer_name} Overlapping Accuracies": wandb.Image(plt)})
     plt.close()
-
+    results["bwt"] = 0
     return results

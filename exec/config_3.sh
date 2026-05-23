@@ -41,7 +41,7 @@ conda activate venv
 # "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 DEVICE="gpu"
 PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("fopng" "efopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -75,7 +75,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --grads_per_task=80 --max_directions=400
             --fisher_samples=12000
             --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
-            --first_task_opt=adam --first_task_lr=${LR2[$METHOD]}         # CHANGED THE INITIALIZATION AS SGD FAILS FOR SH
+            --first_task_opt=sgd --first_task_lr=1e-4        # CHANGED THE INITIALIZATION AS SGD FAILS FOR SH
             --device_mode=$DEVICE --seed=$SEED --experiment_id=403
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})
