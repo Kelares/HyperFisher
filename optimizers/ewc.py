@@ -219,6 +219,7 @@ def train_ewc(
 ) -> Dict:
     device      = next(model.parameters()).device
     has_spawn   = hasattr(model, "spawn")
+    print(optimizer_cls, first_task_optimizer_cls)
     ewc         = EWC(lr=lr, lam=lam, fisher_samples=fisher_samples, optimizer_cls=optimizer_cls)
     name        = ewc.__name__   # "EWC" — used as wandb key prefix
     regulizer = HyperRegulizer(beta=beta) if regulizer else None

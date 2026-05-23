@@ -169,6 +169,7 @@ if __name__ == "__main__":
         
 
             if method == "ewc":
+                optimizer = config["optimizer_cls"] if config.get("optimizer_cls", False) else first_task_optimizer_cls
                 results = train_ewc(
                     model=model,
                     train_loaders=train_loaders,
@@ -181,7 +182,7 @@ if __name__ == "__main__":
                     task_classes=config.get("task_classes"),
                     verbose=config.get("verbose", True),
                     regulizer=config.get("regulizer", True),
-                    optimizer_cls = config.get("optimizer_cls", first_task_optimizer_cls),
+                    optimizer_cls = optimizer,
                     first_task_optimizer_cls=first_task_optimizer_cls,
                     beta=config.get("beta", 0.1)
 
