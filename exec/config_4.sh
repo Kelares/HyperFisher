@@ -54,7 +54,7 @@ echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 4: Split-CIFAR10 MH Standalone (Adam first task) ==="
 
 declare -A LR4
-LR4["adam"]="1e-3"; LR4["sgd"]="5e-2"; LR4["ewc"]="1e-2"
+LR4["adam"]="1e-3"; LR4["sgd"]="5e-2"; LR4["ewc"]="1e-3"
 LR4["fng"]="1e-2";  LR4["ogd"]="5e-2"; LR4["ong"]="1e-2" # FNG AND ONG SHOULD MIMIC EACH OTHER.
 LR4["fopng"]="1e-3"; LR4["efopng"]="1e-3"
 

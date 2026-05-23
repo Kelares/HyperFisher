@@ -350,7 +350,7 @@ def train_ewc(
 
             # ── Main EWC loop ─────────────────────────────────────────────────
             opt = ewc.optimizer_cls(model.parameters(), lr=ewc.lr)
-
+            print(opt.__class__)
             while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
                 total_loss    = 0.0
                 total_penalty = 0.0
