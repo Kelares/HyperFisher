@@ -55,13 +55,13 @@ for SEED in "${SEEDS_3[@]}"; do
         --task=split_cifar10 \
         --methods=efopng \
         --regulizer \
-        --hyper_hidden_dim=64 \
-        --task_embedding_dim=32 \
-        --chunk_embedding_dim=32 \
-        --chunk_size=256 \
-        --grads_per_task=80 --max_directions=400 \
+        --hyper_hidden_dim=32 \
+        --task_embedding_dim=16 \
+        --chunk_embedding_dim=16 \
+        --chunk_size=6000 \
+        --grads_per_task=80 --max_directions=1000 \
         --fisher_samples=1024 \
-        --lr=1e-3 --max_epochs=50 --batch_size=64 \
+        --lr=1e-3 --max_epochs=50 --batch_size=32 \
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
         --device_mode=$DEVICE --seed=$SEED --experiment_id=409
