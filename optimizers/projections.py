@@ -836,7 +836,7 @@ class ONG(OP):
         self.A_inv = torch.linalg.pinv(self.A)
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
@@ -905,7 +905,7 @@ class OGD(FOPNG):
 
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
