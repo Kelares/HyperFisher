@@ -85,13 +85,13 @@ class GradientMemory:
         U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
         if self.basis.size(1) > self.max_directions:
             if self.normalization:
-                U= U[:, :self.max_directions]
+                U = U[:, :self.max_directions]
                 S = S[:self.max_directions]
         
         if self.normalization:
-            self.basis = U @ torch.diag(S)
-        else:
             self.basis = U
+        else:
+            self.basis = U @ torch.diag(S)
 
         # 🔍 DEBUG: Verify U columns are unit-norm
         if self.debug:

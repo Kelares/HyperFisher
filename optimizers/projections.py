@@ -346,7 +346,7 @@ class PreFOPNG(OP):
 
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
@@ -464,7 +464,7 @@ class FOPNG(OP):
                
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
@@ -554,7 +554,7 @@ class eFOPNG(OP):
 
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
@@ -591,7 +591,7 @@ class preEFOPNG(OP):
 
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(A).item()
+            cond = torch.linalg.cond(self.A).item()
         wandb.log({
             f"{self.__name__}/projection/cond_A/{self.T}":       cond,
             f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
