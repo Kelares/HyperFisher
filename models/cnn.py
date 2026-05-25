@@ -46,10 +46,8 @@ class SimpleCIFARCNN(nn.Module):
             nn.Flatten(),
             nn.Linear(CIFAR_FEATURE_DIM, 256),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
             nn.Linear(256, 256),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout),
             nn.Linear(256, num_classes)
         ).to(device)
     
