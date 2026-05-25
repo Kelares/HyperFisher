@@ -71,6 +71,7 @@ class OP(ABC):
         )
         self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions, normalization=normalize)
         self.GradientCollector = GTLCollector(grads_per_task)
+        self.T = 1
 
     def prepare_epoch(self, F_new: Tensor) -> None:
         assert self.F_old is not None, "Call after_task() after task 1 before training task 2."
@@ -347,9 +348,10 @@ class PreFOPNG(OP):
         with torch.no_grad():
             cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
     def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
@@ -464,9 +466,10 @@ class FOPNG(OP):
         with torch.no_grad():
             cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
@@ -553,9 +556,10 @@ class eFOPNG(OP):
         with torch.no_grad():
             cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
@@ -589,9 +593,10 @@ class preEFOPNG(OP):
         with torch.no_grad():
             cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
         print("A: ", A.min().item(), A.mean().item(), A.max().item())
@@ -831,11 +836,12 @@ class ONG(OP):
         self.A_inv = torch.linalg.pinv(self.A)
         # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(self.A).item()
+            cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
         
@@ -897,13 +903,14 @@ class OGD(FOPNG):
         # Invert the Euclidean correlation matrix
         self.A_inv = torch.linalg.pinv(self.A + adaptive_lam * torch.eye(G.size(1), device=G.device))
 
-                # ── Condition number logging ──────────────────────────────────────────
+        # ── Condition number logging ──────────────────────────────────────────
         with torch.no_grad():
-            cond = torch.linalg.cond(self.A).item()
+            cond = torch.linalg.cond(A).item()
         wandb.log({
-            f"{self.__name__}/projection/cond_A":       cond,
-            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+            f"{self.__name__}/projection/cond_A/{self.T}":       cond,
+            f"{self.__name__}/projection/log10_cond_A/{self.T}": math.log10(max(cond, 1e-30)),
         })
+        self.T += 1
         # ─────────────────────────────────────────────────────────────────────
             
             

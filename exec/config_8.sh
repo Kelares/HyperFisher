@@ -56,7 +56,7 @@ echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 8: Split-CIFAR10 Standard HN ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do
-    for SEED in "${SEEDS_3[@]}"; do
+    for SEED in "${SEEDS_5[@]}"; do
         ARGS=(
             --task=split_cifar10 
             --model=HyperNetwork 

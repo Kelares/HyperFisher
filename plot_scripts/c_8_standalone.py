@@ -166,6 +166,8 @@ for run in runs:
         page_size=500,
     )
 
+    print(history, '\n', run.summary)
+
     acc_by_task, bwt_by_task = {}, {}
     for row in history:
         t = row.get("task_completed")
