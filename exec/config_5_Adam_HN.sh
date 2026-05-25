@@ -46,16 +46,16 @@ SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# CONFIG 5 — Split-CIFAR10 MH Standalone, Adam first task
-# (Sub-RQ3 Condition A — paired comparison with Config 4)
-# Identical to Config 4 except first_task_opt=adam
+# CONFIG 5 — Split-CIFAR10 HN Standalone, Adam first task
+# (Sub-RQ3 Condition A — paired comparison with Config 8)
+# Identical to Config 8 except first_task_opt=adam
 # ──────────────────────────────────────────────────────────────────────────────
 QUESTION='Does Adam with coupled L2 on the first task contaminate
 gradient memory G relative to AdamW? Paired against
 Config 8 (AdamW first task).'
 
 echo "|----------SOLVES-------------|: ${Question}"
-echo "=== CONFIG 5: Split-CIFAR10 MH Standalone (Adam first task — Sub-RQ3 Cond A) ==="
+echo "=== CONFIG 5: Split-CIFAR10 HN Standalone (Adam first task — Sub-RQ3 Cond A) ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
@@ -74,8 +74,8 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --hyper_hidden_dim=32 
             
             # Updated hyperparameters from Sweep B
-            # --normalize
-            --chunk_size=64 
+            --normalize
+            --chunk_size=6000 
             --beta=0.1 
             --regulizer
             
