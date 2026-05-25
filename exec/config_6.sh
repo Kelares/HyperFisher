@@ -58,16 +58,16 @@ echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 6: Split-CIFAR100 MH Standalone ==="
 
 declare -A LR6
-LR6["adam"]="1e-4"; LR6["sgd"]="5e-3"; LR6["ewc"]="1e-2"
-LR6["fng"]="5e-3";  LR6["ogd"]="1e-2"; LR6["ong"]="1e-2"
-LR6["fopng"]="5e-3"; LR6["efopng"]="5e-3"
+LR6["adam"]="1e-3"; LR6["sgd"]="1e-2"; LR6["ewc"]="1e-2"
+LR6["fng"]="1e-2";  LR6["ogd"]="1e-2"; LR6["ong"]="1e-2"
+LR6["fopng"]="1e-2"; LR6["efopng"]="1e-2
 
 declare -A LAM6
 LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="50"
 LAM6["fng"]="1e-3"; LAM6["ogd"]="0"; LAM6["ong"]="0"
 LAM6["fopng"]="1e-3"; LAM6["efopng"]="1e-3"
 
-for METHOD in "${LEFT_METHODS[@]}"; do
+for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
         ARGS=(
             --task=split_cifar100 --model=TargetNetwork

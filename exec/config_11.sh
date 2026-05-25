@@ -66,13 +66,13 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --methods=$METHOD
             --regulizer
             --normalize
-            --hyper_hidden_dim=128
-            --task_embedding_dim=32
-            --chunk_embedding_dim=32
-            --chunk_size=2048
-            --grads_per_task=80 --max_directions=400
+            --hyper_hidden_dim=32
+            --task_embedding_dim=16
+            --chunk_embedding_dim=16
+            --chunk_size=6000
+            --grads_per_task=200 --max_directions=800
             --fisher_samples=1024
-            --beta=0.01
+            --beta=0.1
             --lr="${LR4[$METHOD]}" --max_epochs=50 --batch_size=64
             --first_task_opt=adamw --first_task_lr=1e-3
             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411
