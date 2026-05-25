@@ -16,6 +16,7 @@ from math import inf
 from fisher import DiagonalFisherEstimator
 from gradient import AVECollector, GradientMemory, GTLCollector, BoundaryCollector
 from models.hyper_network import HyperRegulizer
+import math
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -341,6 +342,15 @@ class PreFOPNG(OP):
         self.A_inv = torch.pinverse(A)
         print(self.A_inv)
         self.A = A
+
+        # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
             
     def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
         F_new = self.FisherEstimator.estimate(model, task_id, loader, criterion, self.calc_device)
@@ -450,6 +460,15 @@ class FOPNG(OP):
         self.A_inv = torch.linalg.pinv(A)
         self.A = A
                
+        # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
+            
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
@@ -529,7 +548,16 @@ class eFOPNG(OP):
         A = G.T @ weighted_G + scaled_lam * torch.eye(G.size(1), device=G.device)
         self.A_inv = torch.linalg.pinv(A)
         self.A = A
-         
+
+        # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
+            
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
@@ -557,6 +585,15 @@ class preEFOPNG(OP):
         self.A = A
         self._scale_factor = scale_factor          # cache for update()
 
+        # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
+            
         print("A: ", A.min().item(), A.mean().item(), A.max().item())
         print("A_inv: ", self.A_inv.min().item(),
               self.A_inv.mean().item(), self.A_inv.max().item())
@@ -792,6 +829,15 @@ class ONG(OP):
         # Use an adaptive damping scaled to the basis energy
         print(self.A)
         self.A_inv = torch.linalg.pinv(self.A)
+        # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(self.A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
+            
         
     def update(self, g, G, F_old, F_new, eps=1e-8):
         """
@@ -851,6 +897,16 @@ class OGD(FOPNG):
         # Invert the Euclidean correlation matrix
         self.A_inv = torch.linalg.pinv(self.A + adaptive_lam * torch.eye(G.size(1), device=G.device))
 
+                # ── Condition number logging ──────────────────────────────────────────
+        with torch.no_grad():
+            cond = torch.linalg.cond(self.A).item()
+        wandb.log({
+            f"{self.__name__}/projection/cond_A":       cond,
+            f"{self.__name__}/projection/log10_cond_A": math.log10(max(cond, 1e-30)),
+        })
+        # ─────────────────────────────────────────────────────────────────────
+            
+            
     def update(self, g, G, F_old, F_new, eps=1e-8):
         """
         Standard OGD Update:

@@ -33,7 +33,7 @@ TASK="split_mnist_sh"
 DEVICE="gpu"
 
 # Hypernetwork specific dimensions
-HYPER_HIDDEN=4
+HYPER_HIDDEN=8
 TASK_EMBED=32
 CHUNK_EMBED=32
 CHUNK_SIZE=64
