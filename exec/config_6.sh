@@ -60,7 +60,7 @@ echo "=== CONFIG 6: Split-CIFAR100 MH Standalone ==="
 declare -A LR6
 LR6["adam"]="1e-3"; LR6["sgd"]="1e-2"; LR6["ewc"]="1e-2"
 LR6["fng"]="1e-2";  LR6["ogd"]="1e-2"; LR6["ong"]="1e-2"
-LR6["fopng"]="1e-2"; LR6["efopng"]="1e-2
+LR6["fopng"]="1e-2"; LR6["efopng"]="1e-2"
 
 declare -A LAM6
 LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="10"

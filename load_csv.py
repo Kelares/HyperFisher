@@ -1,9 +1,9 @@
 import pandas as pd
 import wandb
 api = wandb.Api()
-
+IDS = [405] #[401, 402, 405, 406, 412, 413]
 # Project is specified by <entity/project-name>
-runs = api.runs("michalowski-jb-tilburg-university/HyperFisher", filters={"config.experiment_id": {"$ne": None}})
+runs = api.runs("michalowski-jb-tilburg-university/HyperFisher", filters={"config.experiment_id": {"$in": IDS}})
 print(f"Found {len(runs)} runs.")
 
 d = {}
