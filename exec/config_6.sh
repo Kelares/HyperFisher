@@ -44,7 +44,7 @@ PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
 ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 LEFT_METHODS=("ewc")
 
-SEEDS_3= (111 2137)
+SEEDS_3=(111 2137)
 SEEDS_5=(42 1234 2137 811 111)
 
 # ──────────────────────────────────────────────────────────────────────────────
