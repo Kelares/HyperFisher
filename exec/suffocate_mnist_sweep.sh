@@ -15,7 +15,7 @@ fi
 cd ~/HyperFisher/
 conda activate venv
 
-
+DEVICE="gpu"
 ALL_METHODS=("efopng" "fopng" "efopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
