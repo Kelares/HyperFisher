@@ -41,7 +41,7 @@ conda activate venv
 # "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 DEVICE="gpu"
 PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("efopng") #"fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 

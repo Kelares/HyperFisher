@@ -42,7 +42,7 @@ conda activate venv
 DEVICE="gpu"
 PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
 ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
-LEFT_METHODS=("adam" "sgd")
+LEFT_METHODS=("ewc")
 
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
@@ -63,11 +63,11 @@ LR6["fng"]="1e-2";  LR6["ogd"]="1e-2"; LR6["ong"]="1e-2"
 LR6["fopng"]="1e-2"; LR6["efopng"]="1e-2
 
 declare -A LAM6
-LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="50"
+LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="10"
 LAM6["fng"]="1e-3"; LAM6["ogd"]="0"; LAM6["ong"]="0"
 LAM6["fopng"]="1e-3"; LAM6["efopng"]="1e-3"
 
-for METHOD in "${ALL_METHODS[@]}"; do
+for METHOD in "${LEFT_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
         ARGS=(
             --task=split_cifar100 --model=TargetNetwork

@@ -69,9 +69,10 @@ LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
 LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
 LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
 BASELINE_METHODS=("adam" "sgd")
+ewc=("ewc")
 
 
-for METHOD in "${BASELINE_METHODS[@]}"; do
+for METHOD in "${ewc[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
         ARGS=(
             --task=permuted_mnist --model=TargetNetwork
