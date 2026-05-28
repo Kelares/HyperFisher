@@ -40,20 +40,23 @@ conda activate venv
 # ==============================================================================
 # ("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 DEVICE="gpu"
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+ALL_METHODS=("ogd") #"efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
 # DIFFERENT LR FOR HYPERNETWORK RUN
 declare -A LR4
 LR4["adam"]="1e-3"; LR4["sgd"]="1e-2"; LR4["ewc"]="1e-3"
-LR4["fng"]="1e-2";  LR4["ogd"]="1e-2"; LR4["ong"]="1e-2"
+LR4["fng"]="1e-2";  LR4["ogd"]="1e-4"; LR4["ong"]="1e-2"
 LR4["fopng"]="1e-2"; LR4["efopng"]="1e-2"
 
 declare -A LAM4
 LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50" # DOUBLE CHECK THE LAMBDA FOR EWC AND HYPERNETWORK. I SHOULD SWEEP IT SOMEHOW. ########################################################################
 LAM4["fng"]="1e-3"; LAM4["ogd"]="0"; LAM4["ong"]="0"
 LAM4["fopng"]="1e-3"; LAM4["efopng"]="1e-3"
+
+
+LRS=(0.005 0.001 0.0005)
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 11 — Split-CIFAR100 Standard HN  (Sub-RQ1 Panel b B3)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -61,6 +64,7 @@ echo "=== CONFIG 11: Split-CIFAR100 Standard HN (Sub-RQ1 Panel b B3) ==="
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
+        for LR in "${LRS[@]}"; do
         ARGS=(
             --task=split_cifar100
             --methods=$METHOD
@@ -73,13 +77,14 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --grads_per_task=200 --max_directions=800
             --fisher_samples=1024
             --beta=0.1
-            --lr="${LR4[$METHOD]}" --max_epochs=50 --batch_size=64
+            --lr=$LR--max_epochs=50 --batch_size=64
             --first_task_opt=adamw --first_task_lr=1e-3
             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411
         )
         [ "${LAM4[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM4[$METHOD]})
         echo "--> C11 $METHOD seed=$SEED"
         python main.py "${ARGS[@]}"
+        done
     done
 done
 
