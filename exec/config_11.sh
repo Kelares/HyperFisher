@@ -77,7 +77,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --grads_per_task=200 --max_directions=800
             --fisher_samples=1024
             --beta=0.1
-            --lr=$LR--max_epochs=50 --batch_size=64
+            --lr=$LR --max_epochs=50 --batch_size=64
             --first_task_opt=adamw --first_task_lr=1e-3
             --device_mode=$DEVICE --seed=$SEED  --experiment_id=411
         )
