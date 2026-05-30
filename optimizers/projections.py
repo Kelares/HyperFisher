@@ -413,10 +413,10 @@ class FOPNG(OP):
     __name__ = "FOPNG"
 
     def update(self, g, G, F_old, F_new, eps=1e-8):
-        if self.normalize:
-            scale_factor = F_new.max().clamp(min=1.0)
-        else:
-            scale_factor = 1
+        # if self.normalize:
+        #     scale_factor = F_new.max().clamp(min=1.0)
+        # else:
+        scale_factor = 1
         
         F_old_s = F_old / scale_factor
         F_new_s = F_new / scale_factor
@@ -442,10 +442,10 @@ class FOPNG(OP):
         return v_star, w_rho, correction.norm().item(), (P_g.norm() / (g.norm() + eps)).item()
 
     def build_A_inv(self, G, F_old, F_new) -> None:
-        if self.normalize:
-            scale_factor = F_new.max().clamp(min=1.0)
-        else:
-            scale_factor = 1
+        # if self.normalize:
+        #     scale_factor = F_new.max().clamp(min=1.0)
+        # else:
+        scale_factor = 1
 
         F_new_s = F_new / scale_factor
         F_old_s = F_old / scale_factor

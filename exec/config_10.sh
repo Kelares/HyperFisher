@@ -50,22 +50,22 @@ SEEDS_3=(42 1234 811)
 # (Sub-RQ2 Condition 2)
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 10: Split-CIFAR10 HN — Gradient-only normalization (Sub-RQ2 Cond 2) ==="
-
 for SEED in "${SEEDS_3[@]}"; do
     echo "--> C10 efopng seed=$SEED"
     python main.py \
         --task=split_cifar10 \
         --methods=efopng \
         --regulizer \
-        --hyper_hidden_dim=64 \
-        --task_embedding_dim=32 \
-        --chunk_embedding_dim=32 \
-        --chunk_size=256 \
-        --grads_per_task=80 --max_directions=400 \
+        --normalize \
+        --hyper_hidden_dim=32 \
+        --task_embedding_dim=16 \
+        --chunk_embedding_dim=16 \
+        --chunk_size=6000 \
+        --grads_per_task=80 --max_directions=1000 \
         --fisher_samples=1024 \
-        --lr=1e-3 --max_epochs=50 --batch_size=64 \
+        --lr=1e-3 --max_epochs=50 --batch_size=32 \
         --lam=1e-3 \
         --first_task_opt=adamw --first_task_lr=1e-3 \
-        --normalize_gradients_only \
         --device_mode=$DEVICE --seed=$SEED --experiment_id=410
 done
+
