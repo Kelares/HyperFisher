@@ -45,16 +45,16 @@ plt.rcParams.update({
 # ── Method config ──────────────────────────────────────────────────────────
 # summary key for full results = f"{CONFIG_VALUE}/results"   (main.py uses CLI arg)
 # summary key for cond_A       = f"{WANDB_PREFIX}/projection/log10_cond_A"
-CONFIG_VALUES   = ["efopng","fopng","ogd","ong","fng","ewc","adam","sgd"]
-WANDB_PREFIXES  = ["eFOPNG","FOPNG","OGD","ONG","FNG","EWC","ADAM","SGD"]
-DISPLAY_NAMES   = ["eFOPNG","FOPNG","OGD","ONG","FNG","EWC","Adam","SGD"]
+CONFIG_VALUES   = ["ifopng","fopng","ogd","ong","fng","ewc","adam","sgd"]
+WANDB_PREFIXES  = ["iFOPNG","FOPNG","OGD","ONG","FNG","EWC","ADAM","SGD"]
+DISPLAY_NAMES   = ["iFOPNG","FOPNG","OGD","ONG","FNG","EWC","Adam","SGD"]
 
 CFG_TO_PREFIX  = dict(zip(CONFIG_VALUES, WANDB_PREFIXES))
 CFG_TO_DISPLAY = dict(zip(CONFIG_VALUES, DISPLAY_NAMES))
 DISPLAY_ORDER  = DISPLAY_NAMES
 
 COLORS = {
-    "eFOPNG":"#1f77b4","FOPNG":"#ff7f0e","OGD":"#2ca02c",
+    "iFOPNG":"#1f77b4","FOPNG":"#ff7f0e","OGD":"#2ca02c",
     "ONG":"#d62728",   "FNG":"#9467bd",  "EWC":"#8c564b",
     "Adam":"#e377c2",  "SGD":"#7f7f7f",
 }
@@ -232,7 +232,7 @@ if rows:
 # ═══════════════════════════════════════════════════════════════════════════
 # Figure 3 — Per-task heatmaps
 # ═══════════════════════════════════════════════════════════════════════════
-HM_METHODS = [m for m in ["eFOPNG","FOPNG","EWC","Adam"] if data[m]]
+HM_METHODS = [m for m in ["iFOPNG","FOPNG","EWC","Adam"] if data[m]]
 if HM_METHODS:
     fig3, axes3 = plt.subplots(1, len(HM_METHODS),
                                 figsize=(3.8*len(HM_METHODS), 3.6), sharey=True)

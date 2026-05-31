@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==============================================================================
-# Split-CIFAR100 — Replication of Garg et al. (2026) Table 1 + eFOPNG
+# Split-CIFAR100 — Replication of Garg et al. (2026) Table 1 + iFOPNG
 # ==============================================================================
 # Architecture : MultiHeadCNN100 (same backbone as CIFAR10, 10-class heads)
 #                Multi-head, 10 outputs per task, labels remapped to 0…9
 #                No data augmentation — ToTensor + Normalize only
 # Hyperparams  : Matched exactly to Table 1 (Split-CIFAR100 column)
-# eFOPNG       : Same hyperparameters as FOPNG (novel contribution)
+# iFOPNG       : Same hyperparameters as FOPNG (novel contribution)
 # ONG          : Not in paper; uses OGD settings as closest reference
 # Seeds        : 3  (paper uses 5; reduce if time is short)
 #
@@ -18,7 +18,7 @@
 #   FNG     5e-3    1e-3   80     —         1024    10
 #   OGD     1e-2    —      80     800       —       10
 #   FOPNG   5e-3    1e-3   80     800       1024    10
-#   eFOPNG  5e-3    1e-3   80     800       1024    10  ← same as FOPNG
+#   iFOPNG  5e-3    1e-3   80     800       1024    10  ← same as FOPNG
 # ==============================================================================
 
 #SBATCH -p GPU # partition (queue)
@@ -55,7 +55,7 @@ LR["fng"]="5e-3"
 LR["ogd"]="1e-2"
 LR["ong"]="1e-2"
 LR["fopng"]="5e-3"
-LR["efopng"]="5e-3"
+LR["ifopng"]="5e-3"
 
 # ── Per-method lambda (Table 1; 0 = flag omitted) ────────────────────────────
 declare -A LAM
@@ -66,12 +66,12 @@ LAM["fng"]="1e-3"
 LAM["ogd"]="0"
 LAM["ong"]="0"
 LAM["fopng"]="1e-3"
-LAM["efopng"]="1e-3"
+LAM["ifopng"]="1e-3"
 
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 
 echo "======================================================================"
-echo " Split-CIFAR100 — FOPNG Table 1 replication + eFOPNG"
+echo " Split-CIFAR100 — FOPNG Table 1 replication + iFOPNG"
 echo " Batch=$BATCH  Epochs=$EPOCHS  Fisher=$FISHER  Seeds=${SEEDS[*]}"
 echo "======================================================================"
 

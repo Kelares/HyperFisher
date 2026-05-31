@@ -37,7 +37,7 @@ if __name__ == "__main__":
         nargs='+', 
         required=False,
         default=["fopng", "adam"],
-        choices=["sgd", "adam", "ogd", "ong", "fopng", "fopng_prefisher", "fng", "efopng", "efopng_prefisher", "efopng_ema", "ewc"],
+        choices=["sgd", "adam", "ogd", "ong", "fopng", "fopng_prefisher", "fng", "ifopng", "ifopng_prefisher", "ifopng_ema", "ewc"],
     )
 
     # Optimization/Fisher parameters

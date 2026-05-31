@@ -64,10 +64,10 @@ METHOD_STYLE = {
     "ewc":    dict(color="#9467bd", ls="--", lw=1.8, label="EWC"),
     "adam":   dict(color="#D62728", ls=":",  lw=1.8, label="Adam"),
     "sgd":    dict(color="#FF69B4", ls=":",  lw=1.8, label="SGD"),
-    "efopng": dict(color="#C00000", ls="-",  lw=2.6, label=r"eFOPNG (Ours)"),
+    "ifopng": dict(color="#C00000", ls="-",  lw=2.6, label=r"iFOPNG (Ours)"),
 }
 BAND_ALPHA = 0.13
-DRAW_ORDER = [m for m in METHOD_STYLE if m != "efopng"] + ["efopng"]
+DRAW_ORDER = [m for m in METHOD_STYLE if m != "ifopng"] + ["ifopng"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -211,7 +211,7 @@ def plot_trajectories(trajs: dict, save_path="fig_rq1_trajectory.pdf"):
             mean  = arr.mean(axis=0)
             std   = arr.std(axis=0)
             s     = METHOD_STYLE[method]
-            zord  = 4 if method == "efopng" else 2
+            zord  = 4 if method == "ifopng" else 2
 
             ax.plot(tasks, mean,
                     color=s["color"], ls=s["ls"], lw=s["lw"], zorder=zord)

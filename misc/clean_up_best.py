@@ -31,7 +31,7 @@ for run in runs:
         with open(log_path, "r") as f:
             for line in f:
                 # Identify which task was just finished training
-                # Matches patterns like "[eFOPNG] Task 2" or "[SGD] Task 2"
+                # Matches patterns like "[iFOPNG] Task 2" or "[SGD] Task 2"
                 task_trained_match = re.search(r"\[.*\] Task (\d+)", line)
                 if task_trained_match and "Acc:" not in line:
                     current_training_task = int(task_trained_match.group(1))

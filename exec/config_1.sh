@@ -38,9 +38,9 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-# "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+# "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 DEVICE="gpu"
-PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
+PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
 ALL_METHODS=("fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
@@ -50,7 +50,7 @@ SEEDS_5=(42 1234 2137 811 111)
 # Table 1: batch=10, epochs=5, first_task=SGD at method lr, Fisher=full (60K)
 # ──────────────────────────────────────────────────────────────────────────────
 
-QUESTION='Does eFOPNG improve retention over FOPNG on a
+QUESTION='Does iFOPNG improve retention over FOPNG on a
 # domain-incremental benchmark with high inter-task Fisher
 # overlap?'
 
@@ -62,12 +62,12 @@ declare -A LR1
 # These are the learning rates used for Task 2 onwards
 LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-4"
 LR1["fng"]="1e-3";  LR1["ogd"]="5e-3"; LR1["ong"]="5e-3"
-LR1["fopng"]="1e-4"; LR1["efopng"]="1e-4"
+LR1["fopng"]="1e-4"; LR1["ifopng"]="1e-4"
 
 declare -A LAM1
 LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
 LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
-LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
+LAM1["fopng"]="1e-2"; LAM1["ifopng"]="1e-2"
 BASELINE_METHODS=("adam" "sgd")
 ewc=("ewc")
 

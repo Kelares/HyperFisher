@@ -21,7 +21,7 @@ ALL_SEEDS=(42 2137 1234 811 111)
 # PHASE 1: Geometric & Projection Methods Suite (LR Locked to 1e-2)
 # ------------------------------------------------------------------------------
 # These methods require higher velocity to compensate for subspace tracking vector clipping.
-GEOMETRIC_METHODS=("ewc") # "ong" "ewc" "fng" "fopng" "prefopng" "efopng")
+GEOMETRIC_METHODS=("ewc") # "ong" "ewc" "fng" "fopng" "prefopng" "ifopng")
 
 echo "=== PHASE 1: Launching Subspace Projections and Geometric CL (LR=1e-2) ==="
 for METHOD in "${GEOMETRIC_METHODS[@]}"; do

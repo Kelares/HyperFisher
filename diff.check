@@ -14,9 +14,9 @@ index b41e521..7e55d77
  # ==============================================================================
  
  DEVICE="gpu"
--PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
--ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
-+ALL_METHODS=("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+-PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
+-ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
++ALL_METHODS=("adam" "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
  SEEDS_3=(42 1234 811)
  SEEDS_5=(42 1234 2137 811 111)
  

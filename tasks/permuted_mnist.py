@@ -56,7 +56,7 @@ class TaskGenerator:
         criterion    = nn.CrossEntropyLoss(),
         task_classes = None,   # no class filtering — all 10 digits every task
         # Canonical hyperparameters from Table 1 (Permuted-MNIST):
-        #   lr=1e-4 (Adam), 5e-3 (SGD), 1e-4 (FOPNG/eFOPNG)
+        #   lr=1e-4 (Adam), 5e-3 (SGD), 1e-4 (FOPNG/iFOPNG)
         #   batch_size=10, epochs=5, grads_per_task=80, max_dirs=400
         grads_per_task  = 80,
         max_directions  = 400,

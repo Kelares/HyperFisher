@@ -38,10 +38,10 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-# "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+# "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 DEVICE="gpu"
-PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("fopng" "efopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
+ALL_METHODS=("ifopng" "fopng" "ifopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -50,19 +50,19 @@ SEEDS_5=(42 1234 2137 811 111)
 # Same HPs as MH but task=split_mnist_sh, single 10-output head
 # ──────────────────────────────────────────────────────────────────────────────
 
-QUESTION='Does the eFOPNG advantage survive the harder single-
+QUESTION='Does the iFOPNG advantage survive the harder single-
 head protocol (?) where separate task heads do not sup-
 press output-level interference?'
 
 declare -A LR2
 LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
 LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
-LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
+LR2["fopng"]="1e-5"; LR2["ifopng"]="1e-5"
 
 declare -A LAM2
 LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
 LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
-LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
+LAM2["fopng"]="5e-4"; LAM2["ifopng"]="5e-4"
  
 echo "|----------SOLVES-------------|: ${Question}"
 echo "=== CONFIG 3: Split-MNIST SH Standalone ==="

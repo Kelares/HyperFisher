@@ -27,7 +27,7 @@ def plotJob(job_type):
         results = run.summary.get("best/results") or run.summary.get("results")
         
         if not results or "acc" not in results:
-            # Check if it's stored under method/results (e.g., efopng/results)
+            # Check if it's stored under method/results (e.g., ifopng/results)
             method_name = run.config.get("methods", [""])[0].lower()
             results = run.summary.get(f"{method_name}/results")
             

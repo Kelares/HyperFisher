@@ -478,10 +478,14 @@ class FOPNG(OP):
 
 
 
-class eFOPNG(OP):
-    __name__ = "eFOPNG"
-    '''Geometric interpretation of new kernel.'''
-    '''The first term bounds the KL divergence on the new task; the second bounds the Fisher distance in the old task geometry. So a single trust region simultaneously constrains both — this is the precise sense in which the method is elastic, and it gives you the clean contrast with EWC: EWC achieves elasticity through an explicit penalty; eFOPNG achieves it by embedding the old-task geometry directly into the ambient metric.'''
+class iFOPNG(OP):
+    __name__ = "iFOPNG"
+    '''The combined metric F_c = F_new + F_old gives parameters important to
+    previous tasks a higher effective mass, so they naturally resist large
+    steps without any explicit penalty term — this is the inertia principle.
+    Contrast with EWC: EWC uses a spring force (quadratic penalty) to resist
+    movement; iFOPNG uses inertia (increased mass in the ambient metric).'''
+    
     def update(self, g, G, F_old, F_new, eps=1e-8):
         # 1. THE INERTIA INVERSE (The fix for dead parameters)
         # We combine current and past importance so old important weights 
@@ -565,13 +569,13 @@ class eFOPNG(OP):
         print("A: ", self.A.min().item(), self.A.mean().item(), self.A.max().item())
         print("A_inv: ", self.A_inv.min().item(), self.A_inv.mean().item(), self.A_inv.max().item())
 
-class preEFOPNG(OP):
-    __name__ = "preEFOPNG"
+class preIFOPNG(OP):
+    __name__ = "preIFOPNG"
 
     def build_A_inv(self, G, F_old, F_new) -> None:
         """
         G is already G̃ = F_task * g_raw (PreFisher gradients).
-        For eFOPNG-PreFisher: A = G̃ᵀ Fc⁻¹ G̃,  Fc = F_new + F_old
+        For iFOPNG-PreFisher: A = G̃ᵀ Fc⁻¹ G̃,  Fc = F_new + F_old
         """
         F_combined = F_new + F_old
         scale_factor = F_combined.max().clamp(min=1.0)
@@ -692,8 +696,8 @@ class preEFOPNG(OP):
         torch.cuda.empty_cache()
         gc.collect()
 
-class eFOPNG_ema(eFOPNG):
-    __name__ = "eFOPNG_ema"
+class iFOPNG_ema(iFOPNG):
+    __name__ = "iFOPNG_ema"
     def after_task(self, model: nn.Module, task_id, loader: DataLoader, criterion: Callable) -> None:
         F_new = self.FisherEstimator.estimate(model, task_id, loader, criterion, self.calc_device)
         self.fisher_after_task[task_id.item()] = F_new 
@@ -962,13 +966,13 @@ class OGD(FOPNG):
 # Map method names to their respective classes
 METHOD_MAP = {
     "fopng": FOPNG,
-    "efopng": eFOPNG,
+    "ifopng": iFOPNG,
     "ong": ONG,
     "ogd": OGD,
     "fng": FNG,
     "fopng_prefisher": PreFOPNG,
-    "efopng_prefisher": preEFOPNG,
-    "efopng_ema": eFOPNG_ema
+    "ifopng_prefisher": preIFOPNG,
+    "ifopng_ema": iFOPNG_ema
 }    
 
 def run_continual_method(

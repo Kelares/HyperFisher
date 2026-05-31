@@ -23,7 +23,7 @@ echo "=== CONFIG 14 & 15: Permuted-MNIST 20 Tasks (Sub-RQ5) ==="
 SEEDS_5=(42 1234 2137 811 111)
 DEVICE="gpu"
 
-# For Sub-RQ5, we only need to test eFOPNG
+# For Sub-RQ5, we only need to test iFOPNG
 LR="1e-4"
 LAM="1e-2"
 
@@ -34,10 +34,10 @@ for ACC_TYPE in "${ACCUMULATION_TYPES[@]}"; do
     # Assign experiment IDs: 414 for EMA (Config 14), 415 for Max (Config 15)
     if [ "$ACC_TYPE" == "ema" ]; then
         EXP_ID=414
-        METHOD="efopng_ema"
+        METHOD="ifopng_ema"
     else
         EXP_ID=415
-        METHOD="efopng"
+        METHOD="ifopng"
     fi
 
     for SEED in "${SEEDS_5[@]}"; do

@@ -45,15 +45,15 @@ SEEDS_3=(42 1234 811)
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 9 — Split-CIFAR10 Standard HN, NO normalization
 # (Sub-RQ2 Condition 1 — negative control, expected to crash)
-# eFOPNG only — 3 seeds sufficient to demonstrate the pathology
+# iFOPNG only — 3 seeds sufficient to demonstrate the pathology
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 9: Split-CIFAR10 HN — No normalization (Sub-RQ2 Cond 1) ==="
 
 for SEED in "${SEEDS_3[@]}"; do
-    echo "--> C9 efopng seed=$SEED"
+    echo "--> C9 ifopng seed=$SEED"
     python main.py \
         --task=split_cifar10 \
-        --methods=efopng \
+        --methods=ifopng \
         --regulizer \
         --hyper_hidden_dim=32 \
         --task_embedding_dim=16 \

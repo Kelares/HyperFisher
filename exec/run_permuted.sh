@@ -27,7 +27,7 @@ LR=1e-3
 GRADS=80
 MAX_DIRS=400
 
-PROJ_METHODS=("ewc") #, "efopng" "fopng" "ogd" "ong" "fng" "ewc")
+PROJ_METHODS=("ewc") #, "ifopng" "fopng" "ogd" "ong" "fng" "ewc")
 BASELINE_METHODS=("adam" "sgd")
 ALL_METHODS=("${PROJ_METHODS[@]}" "${BASELINE_METHODS[@]}")
 

@@ -29,7 +29,7 @@ plt.rcParams.update({
 # ==============================================================================
 METHOD_STYLES = {
     "EFOPNG":   {"color": "#B31B1B", "linestyle": "-",  "linewidth": 2.2,
-                 "fill_alpha": 0.18, "label": "eFOPNG (Ours)"},
+                 "fill_alpha": 0.18, "label": "iFOPNG (Ours)"},
     "FOPNG":    {"color": "#1F77B4", "linestyle": "-",  "linewidth": 1.4,
                  "fill_alpha": 0.07, "label": "FOPNG"},
     "PREFOPNG": {"color": "#FF7F0E", "linestyle": "-",  "linewidth": 1.4,

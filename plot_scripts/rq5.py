@@ -33,13 +33,13 @@ for run in runs:
     seed = str(run.config.get("seed", "unknown"))
     
     acc_type = "EMA" if exp_id == "414" else "MAX"
-    method_name = "eFOPNG (EMA)" if exp_id == "414" else "eFOPNG (MAX)"
+    method_name = "iFOPNG (EMA)" if exp_id == "414" else "iFOPNG (MAX)"
     
     print(f"Processing Exp {exp_id} | Seed {seed} | {method_name}...")
     
     # Extract the nested accuracy dictionary from run.summary
     acc_dict = None
-    possible_keys = ["best/results", "efopng_ema/results", "efopng/results"]
+    possible_keys = ["best/results", "ifopng_ema/results", "ifopng/results"]
     for key in possible_keys:
         if key in run.summary:
             res_obj = run.summary[key]
@@ -99,7 +99,7 @@ sns.set_theme(style="whitegrid", context="paper", font_scale=1.2)
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 # Define colors to keep EMA and MAX consistent between seeds and averages
-palette = {"eFOPNG (EMA)": "tab:blue", "eFOPNG (MAX)": "tab:orange"}
+palette = {"iFOPNG (EMA)": "tab:blue", "iFOPNG (MAX)": "tab:orange"}
 
 # ----------------------------------------------------
 # Plot 1: Trajectory Accuracy

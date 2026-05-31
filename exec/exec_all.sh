@@ -40,8 +40,8 @@ conda activate venv
 # ==============================================================================
 
 DEVICE="gpu"
-PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
+ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -58,12 +58,12 @@ SEEDS_5=(42 1234 2137 811 111)
 # # These are the learning rates used for Task 2 onwards
 # LR1["adam"]="1e-4"; LR1["sgd"]="5e-3"; LR1["ewc"]="1e-4"
 # LR1["fng"]="1e-3";  LR1["ogd"]="5e-3"; LR1["ong"]="5e-3"
-# LR1["fopng"]="1e-4"; LR1["efopng"]="1e-4"
+# LR1["fopng"]="1e-4"; LR1["ifopng"]="1e-4"
 
 # declare -A LAM1
 # LAM1["adam"]="0"; LAM1["sgd"]="0"; LAM1["ewc"]="10"
 # LAM1["fng"]="1e-3"; LAM1["ogd"]="0"; LAM1["ong"]="0"
-# LAM1["fopng"]="1e-2"; LAM1["efopng"]="1e-2"
+# LAM1["fopng"]="1e-2"; LAM1["ifopng"]="1e-2"
 
 # for METHOD in "${ALL_METHODS[@]}"; do
 #     for SEED in "${SEEDS_3[@]}"; do
@@ -94,12 +94,12 @@ SEEDS_5=(42 1234 2137 811 111)
 # declare -A LR2
 # LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
 # LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
-# LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
+# LR2["fopng"]="1e-5"; LR2["ifopng"]="1e-5"
 
 # declare -A LAM2
 # LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
 # LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
-# LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
+# LAM2["fopng"]="5e-4"; LAM2["ifopng"]="5e-4"
 
 # for METHOD in "${ALL_METHODS[@]}"; do
 #     for SEED in "${SEEDS_3[@]}"; do
@@ -151,12 +151,12 @@ echo "=== CONFIG 4: Split-CIFAR10 MH Standalone (AdamW first task) ==="
 declare -A LR4
 LR4["adam"]="1e-3"; LR4["sgd"]="5e-2"; LR4["ewc"]="1e-2"
 LR4["fng"]="1e-2";  LR4["ogd"]="5e-2"; LR4["ong"]="5e-2"
-LR4["fopng"]="1e-3"; LR4["efopng"]="1e-3"
+LR4["fopng"]="1e-3"; LR4["ifopng"]="1e-3"
 
 declare -A LAM4
 LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50"
 LAM4["fng"]="1e-3"; LAM4["ogd"]="0"; LAM4["ong"]="0"
-LAM4["fopng"]="1e-3"; LAM4["efopng"]="1e-3"
+LAM4["fopng"]="1e-3"; LAM4["ifopng"]="1e-3"
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
@@ -208,12 +208,12 @@ echo "=== CONFIG 6: Split-CIFAR100 MH Standalone ==="
 declare -A LR6
 LR6["adam"]="1e-4"; LR6["sgd"]="5e-3"; LR6["ewc"]="1e-2"
 LR6["fng"]="5e-3";  LR6["ogd"]="1e-2"; LR6["ong"]="1e-2"
-LR6["fopng"]="5e-3"; LR6["efopng"]="5e-3"
+LR6["fopng"]="5e-3"; LR6["ifopng"]="5e-3"
 
 declare -A LAM6
 LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="50"
 LAM6["fng"]="1e-3"; LAM6["ogd"]="0"; LAM6["ong"]="0"
-LAM6["fopng"]="1e-3"; LAM6["efopng"]="1e-3"
+LAM6["fopng"]="1e-3"; LAM6["ifopng"]="1e-3"
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
@@ -248,15 +248,15 @@ echo "=== CONFIG 8: SKIPPED — already complete (3 seeds) ==="
 # # ──────────────────────────────────────────────────────────────────────────────
 # # CONFIG 9 — Split-CIFAR10 Standard HN, NO normalization
 # # (Sub-RQ2 Condition 1 — negative control, expected to crash)
-# # eFOPNG only — 3 seeds sufficient to demonstrate the pathology
+# # iFOPNG only — 3 seeds sufficient to demonstrate the pathology
 # # ──────────────────────────────────────────────────────────────────────────────
 # echo "=== CONFIG 9: Split-CIFAR10 HN — No normalization (Sub-RQ2 Cond 1) ==="
 
 # for SEED in "${SEEDS_3[@]}"; do
-#     echo "--> C9 efopng seed=$SEED"
+#     echo "--> C9 ifopng seed=$SEED"
 #     python main.py \
 #         --task=split_cifar10 \
-#         --methods=efopng \
+#         --methods=ifopng \
 #         --regulizer \
 #         --hyper_hidden_dim=64 \
 #         --task_embedding_dim=32 \
@@ -278,10 +278,10 @@ echo "=== CONFIG 8: SKIPPED — already complete (3 seeds) ==="
 # echo "=== CONFIG 10: Split-CIFAR10 HN — Gradient-only normalization (Sub-RQ2 Cond 2) ==="
 
 # for SEED in "${SEEDS_3[@]}"; do
-#     echo "--> C10 efopng seed=$SEED"
+#     echo "--> C10 ifopng seed=$SEED"
 #     python main.py \
 #         --task=split_cifar10 \
-#         --methods=efopng \
+#         --methods=ifopng \
 #         --regulizer \
 #         --hyper_hidden_dim=64 \
 #         --task_embedding_dim=32 \
@@ -326,11 +326,11 @@ echo "=== CONFIG 8: SKIPPED — already complete (3 seeds) ==="
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 12 — Preliminary sweep: d_h=4  (Appendix — shows total failure)
-# eFOPNG + Adam only, 2 seeds sufficient
+# iFOPNG + Adam only, 2 seeds sufficient
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 12: Appendix sweep d_h=4 (total failure baseline) ==="
 
-for METHOD in "efopng" "adam"; do
+for METHOD in "ifopng" "adam"; do
     for SEED in 42 1234; do
         echo "--> C12 $METHOD seed=$SEED"
         python main.py \
@@ -354,11 +354,11 @@ done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 13 — Preliminary sweep: d_h=16  (Appendix — shows ceiling effect)
-# eFOPNG + Adam only, 2 seeds sufficient
+# iFOPNG + Adam only, 2 seeds sufficient
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 13: Appendix sweep d_h=16 (ceiling baseline) ==="
 
-for METHOD in "efopng" "adam"; do
+for METHOD in "ifopng" "adam"; do
     for SEED in 42 1234; do
         echo "--> C13 $METHOD seed=$SEED"
         python main.py \

@@ -17,7 +17,7 @@ ALL_SEEDS=(42 2137 1234 811 111)
 # ------------------------------------------------------------------------------
 # 1. Specialized Methods Suite (Completing to 5 seeds; skipping 42 and 2137)
 # ------------------------------------------------------------------------------
-SPECIAL_METHODS=("efopng" "ewc" "ogd" "ong" "fng" "fopng")
+SPECIAL_METHODS=("ifopng" "ewc" "ogd" "ong" "fng" "fopng")
 FRESH_SEEDS=(1234 811 111) # The 3 missing seeds needed to hit 5 runs total
 
 echo "=== PHASE 1: Launching Missing Seeds for Specialized Frameworks ==="

@@ -38,9 +38,9 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-# ("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+# ("adam" "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 DEVICE="gpu"
-ALL_METHODS=("ogd") #"efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+ALL_METHODS=("ogd") #"ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -48,12 +48,12 @@ SEEDS_5=(42 1234 2137 811 111)
 declare -A LR4
 LR4["adam"]="1e-3"; LR4["sgd"]="1e-2"; LR4["ewc"]="1e-3"
 LR4["fng"]="1e-2";  LR4["ogd"]="1e-4"; LR4["ong"]="1e-2"
-LR4["fopng"]="1e-2"; LR4["efopng"]="1e-2"
+LR4["fopng"]="1e-2"; LR4["ifopng"]="1e-2"
 
 declare -A LAM4
 LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50" # DOUBLE CHECK THE LAMBDA FOR EWC AND HYPERNETWORK. I SHOULD SWEEP IT SOMEHOW. ########################################################################
 LAM4["fng"]="1e-3"; LAM4["ogd"]="0"; LAM4["ong"]="0"
-LAM4["fopng"]="1e-3"; LAM4["efopng"]="1e-3"
+LAM4["fopng"]="1e-3"; LAM4["ifopng"]="1e-3"
 
 
 LRS=(0.005 0.001 0.0005)

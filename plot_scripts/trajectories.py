@@ -124,11 +124,11 @@ plt.rcParams.update({
 # Projection-based  → solid,   mid weight
 # Regularisation    → dashed,  subordinate
 # Naive baselines   → dotted,  subordinate
-# eFOPNG (ours)     → thick solid, always on top, distinct red
+# iFOPNG (ours)     → thick solid, always on top, distinct red
 # ══════════════════════════════════════════════════════════════════════════════
 METHOD_STYLES = {
     "EFOPNG":   {"color": "#B31B1B", "linestyle": "-",  "linewidth": 2.2,
-                 "fill_alpha": 0.18, "label": "eFOPNG (Ours)"},
+                 "fill_alpha": 0.18, "label": "iFOPNG (Ours)"},
     "FOPNG":    {"color": "#1F77B4", "linestyle": "-",  "linewidth": 1.4,
                  "fill_alpha": 0.07, "label": "FOPNG"},
     "PREFOPNG": {"color": "#FF7F0E", "linestyle": "-",  "linewidth": 1.4,
@@ -147,7 +147,7 @@ METHOD_STYLES = {
                  "fill_alpha": 0.05, "label": "SGD"},
 }
 
-# Baselines rendered first so eFOPNG always lands on top
+# Baselines rendered first so iFOPNG always lands on top
 DRAW_ORDER = [m for m in METHOD_STYLES if m != "EFOPNG"] + ["EFOPNG"]
 
 

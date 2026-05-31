@@ -15,11 +15,11 @@ cd ~/HyperFisher/
 conda activate venv
 
 # ==============================================================================
-# Permuted-MNIST — Replication of Garg et al. (2026) Table 1 + eFOPNG
+# Permuted-MNIST — Replication of Garg et al. (2026) Table 1 + iFOPNG
 # ==============================================================================
 # Architecture : MLP 784→100→100→10, single-head, no normalisation
 # Hyperparams  : Matched exactly to Table 1 (Permuted-MNIST column)
-# eFOPNG       : Same hyperparameters as FOPNG (novel contribution)
+# iFOPNG       : Same hyperparameters as FOPNG (novel contribution)
 # ONG          : Not in paper; uses OGD settings as closest reference
 # Seeds        : 3  (paper uses 5; reduce if time is short)
 #
@@ -31,7 +31,7 @@ conda activate venv
 #   FNG     1e-3    1e-3   80     full
 #   OGD     5e-3    —      80     —
 #   FOPNG   1e-4    1e-2   80     full
-#   eFOPNG  1e-4    1e-2   80     full   ← same as FOPNG
+#   iFOPNG  1e-4    1e-2   80     full   ← same as FOPNG
 # ==============================================================================
 
 TASK="permuted_mnist"
@@ -53,7 +53,7 @@ LR["fng"]="1e-3"
 LR["ogd"]="5e-3"
 LR["ong"]="5e-3"
 LR["fopng"]="1e-4"
-LR["efopng"]="1e-4"
+LR["ifopng"]="1e-4"
 
 # ── Per-method lambda (Table 1; 0 = flag omitted) ────────────────────────────
 declare -A LAM
@@ -64,12 +64,12 @@ LAM["fng"]="1e-3"
 LAM["ogd"]="0"
 LAM["ong"]="0"
 LAM["fopng"]="1e-2"
-LAM["efopng"]="1e-2"
+LAM["ifopng"]="1e-2"
 
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 
 echo "======================================================================"
-echo " Permuted-MNIST — FOPNG Table 1 replication + eFOPNG"
+echo " Permuted-MNIST — FOPNG Table 1 replication + iFOPNG"
 echo " Batch=$BATCH  Epochs=$EPOCHS  Fisher=full($FISHER)  Seeds=${SEEDS[*]}"
 echo "======================================================================"
 

@@ -38,10 +38,10 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-# "efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+# "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 DEVICE="gpu"
-PROJ_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc")
-ALL_METHODS=("efopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
+ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 
@@ -54,12 +54,12 @@ echo "=== CONFIG 2: Split-MNIST MH Standalone ==="
 declare -A LR2
 LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
 LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
-LR2["fopng"]="1e-5"; LR2["efopng"]="1e-5"
+LR2["fopng"]="1e-5"; LR2["ifopng"]="1e-5"
 
 declare -A LAM2
 LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
 LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
-LAM2["fopng"]="5e-4"; LAM2["efopng"]="5e-4"
+LAM2["fopng"]="5e-4"; LAM2["ifopng"]="5e-4"
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do
@@ -114,12 +114,12 @@ echo "=== CONFIG 4: Split-CIFAR10 MH Standalone (AdamW first task) ==="
 declare -A LR4
 LR4["adam"]="1e-3"; LR4["sgd"]="5e-2"; LR4["ewc"]="1e-2"
 LR4["fng"]="1e-2";  LR4["ogd"]="5e-2"; LR4["ong"]="5e-2"
-LR4["fopng"]="1e-3"; LR4["efopng"]="1e-3"
+LR4["fopng"]="1e-3"; LR4["ifopng"]="1e-3"
 
 declare -A LAM4
 LAM4["adam"]="0"; LAM4["sgd"]="0"; LAM4["ewc"]="50"
 LAM4["fng"]="1e-3"; LAM4["ogd"]="0"; LAM4["ong"]="0"
-LAM4["fopng"]="1e-3"; LAM4["efopng"]="1e-3"
+LAM4["fopng"]="1e-3"; LAM4["ifopng"]="1e-3"
 
 for METHOD in "${ALL_METHODS[@]}"; do
     for SEED in "${SEEDS_3[@]}"; do

@@ -15,13 +15,13 @@ cd ~/HyperFisher/
 conda activate venv
 
 # ==============================================================================
-# Split-CIFAR10 — Replication of Garg et al. (2026) Table 1 + eFOPNG
+# Split-CIFAR10 — Replication of Garg et al. (2026) Table 1 + iFOPNG
 # ==============================================================================
 # Architecture : MultiHeadCNN (Conv 3→32→32→64→64, FC 4096→256→256, Dropout 0.5)
 #                Multi-head, 2 outputs per task, labels remapped to {0,1}
 #                No data augmentation — ToTensor + Normalize only
 # Hyperparams  : Matched exactly to Table 1 (Split-CIFAR10 column)
-# eFOPNG       : Same hyperparameters as FOPNG (novel contribution)
+# iFOPNG       : Same hyperparameters as FOPNG (novel contribution)
 # ONG          : Not in paper; uses OGD settings as closest reference
 # Seeds        : 3  (paper uses 5; reduce if time is short)
 #
@@ -33,7 +33,7 @@ conda activate venv
 #   FNG     1e-2    1e-3   80     1024
 #   OGD     5e-2    —      80     —
 #   FOPNG   1e-3    1e-3   80     1024
-#   eFOPNG  1e-3    1e-3   80     1024   ← same as FOPNG
+#   iFOPNG  1e-3    1e-3   80     1024   ← same as FOPNG
 # ==============================================================================
 
 TASK="split_cifar10"
@@ -55,7 +55,7 @@ LR["fng"]="1e-2"
 LR["ogd"]="5e-2"
 LR["ong"]="5e-2"
 LR["fopng"]="1e-3"
-LR["efopng"]="1e-3"
+LR["ifopng"]="1e-3"
 
 # ── Per-method lambda (Table 1; 0 = flag omitted) ────────────────────────────
 declare -A LAM
@@ -66,12 +66,12 @@ LAM["fng"]="1e-3"
 LAM["ogd"]="0"
 LAM["ong"]="0"
 LAM["fopng"]="1e-3"
-LAM["efopng"]="1e-3"
+LAM["ifopng"]="1e-3"
 
 ALL_METHODS=("fopng" "ogd" "ong" "fng" "adam" "sgd")
 
 echo "======================================================================"
-echo " Split-CIFAR10 — FOPNG Table 1 replication + eFOPNG"
+echo " Split-CIFAR10 — FOPNG Table 1 replication + iFOPNG"
 echo " Batch=$BATCH  Epochs=$EPOCHS  Fisher=$FISHER  Seeds=${SEEDS[*]}"
 echo "======================================================================"
 

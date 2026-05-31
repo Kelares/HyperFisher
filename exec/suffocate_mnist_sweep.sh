@@ -16,16 +16,16 @@ cd ~/HyperFisher/
 conda activate venv
 
 DEVICE="gpu"
-ALL_METHODS=("efopng" "fopng" "efopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+ALL_METHODS=("ifopng" "fopng" "ifopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
 SEEDS_3=(42 1234 811)
 SEEDS_5=(42 1234 2137 811 111)
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 12 — Preliminary sweep: d_h=4  (Appendix — shows total failure)
-# eFOPNG + Adam only, 2 seeds sufficient
+# iFOPNG + Adam only, 2 seeds sufficient
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 12: Appendix sweep d_h=4 (total failure baseline) ==="
 
-for METHOD in "efopng" "adam"; do
+for METHOD in "ifopng" "adam"; do
     for SEED in 42 1234; do
         echo "--> C12 $METHOD seed=$SEED"
         python main.py \
@@ -49,11 +49,11 @@ done
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIG 13 — Preliminary sweep: d_h=16  (Appendix — shows ceiling effect)
-# eFOPNG + Adam only, 2 seeds sufficient
+# iFOPNG + Adam only, 2 seeds sufficient
 # ──────────────────────────────────────────────────────────────────────────────
 echo "=== CONFIG 13: Appendix sweep d_h=16 (ceiling baseline) ==="
 
-for METHOD in "efopng" "adam"; do
+for METHOD in "ifopng" "adam"; do
     for SEED in 42 1234; do
         echo "--> C13 $METHOD seed=$SEED"
         python main.py \

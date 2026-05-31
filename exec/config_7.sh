@@ -55,7 +55,7 @@ LR["fng"]="1e-3"
 LR["ogd"]="1e-3"
 LR["ong"]="1e-3"
 LR["fopng"]="1e-3"
-LR["efopng"]="1e-3"
+LR["ifopng"]="1e-3"
 
 # ── Per-method lambda (0 for unregularized baselines) ────────────────────────
 declare -A LAM
@@ -66,9 +66,9 @@ LAM["fng"]="1e-3"
 LAM["ogd"]="0"
 LAM["ong"]="0"
 LAM["fopng"]="1e-3"
-LAM["efopng"]="1e-3"
+LAM["ifopng"]="1e-3"
 
-ALL_METHODS=("adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "efopng")
+ALL_METHODS=("adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "ifopng")
 
 QUESTION='Primary Sub-RQ1 Panel (b) result on CIFAR-10. Also Sub-
 RQ2 Condition 3 (full normalization as proposed) and

@@ -38,7 +38,7 @@ conda activate venv
 # Hyperparameters for configs 1-6: Garg et al. (2026) Table 1 exactly.
 # Hyperparameters for configs 7-13: custom (justified in Methods section).
 # ==============================================================================
-# ("adam" "efopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+# ("adam" "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
 #           GRADIENT ONLY NORMALIZATION. DEMANDS A TWEAK      ############
 
 DEVICE="gpu"
@@ -52,10 +52,10 @@ SEEDS_3=(42 1234 811)
 echo "=== CONFIG 10: Split-CIFAR10 HN — Gradient-only normalization (Sub-RQ2 Cond 2) ==="
 
 for SEED in "${SEEDS_3[@]}"; do
-    echo "--> C10 efopng seed=$SEED"
+    echo "--> C10 ifopng seed=$SEED"
     python main.py \
         --task=split_cifar10 \
-        --methods=efopng \
+        --methods=ifopng \
         --regulizer \
         --hyper_hidden_dim=64 \
         --task_embedding_dim=32 \
