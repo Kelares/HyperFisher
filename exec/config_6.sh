@@ -74,9 +74,9 @@ for METHOD in "${LEFT_METHODS[@]}"; do
             --methods=$METHOD --no-regulizer
             --grads_per_task=80 --max_directions=800
             --fisher_samples=1024
-            --lr=${LR6[$METHOD]} --max_epochs=10 --batch_size=10
+            --lr=${LR6[$METHOD]} --max_epochs=100 --batch_size=10
             --first_task_opt=sgd --first_task_lr=1e-2
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=406
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=506
         )
         [ "${LAM6[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM6[$METHOD]})
         echo "--> C6 $METHOD seed=$SEED"

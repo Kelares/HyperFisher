@@ -39,7 +39,7 @@ CHUNK_EMBED=32
 CHUNK_SIZE=64
 
 # Training hyperparameters from perfect run
-SEEDS=(1) #42 1234 2137 811 111 ) 
+SEEDS=(1234) #42 1234 2137 811 111 ) 
 EPOCHS=15
 BATCH=64
 GRADS=100
@@ -68,7 +68,7 @@ LAM["ong"]="0"
 LAM["fopng"]="1e-3"
 LAM["ifopng"]="1e-3"
 
-ALL_METHODS=("adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "ifopng")
+ALL_METHODS=("ifopng" "adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "ifopng")
 
 QUESTION='Primary Sub-RQ1 Panel (b) result on CIFAR-10. Also Sub-
 RQ2 Condition 3 (full normalization as proposed) and
@@ -95,6 +95,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --chunk_size=$CHUNK_SIZE
             --regulizer
             --normalize
+            --first_task_opt=adam
             --device_mode=$DEVICE
             --max_directions=$MAX_DIRS
             --methods=$METHOD
