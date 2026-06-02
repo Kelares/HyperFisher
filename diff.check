@@ -1,149 +1,162 @@
-diff --git a/best_model.pt b/best_model.pt
-index d94524c..823f309 100644
-Binary files a/best_model.pt and b/best_model.pt differ
-diff --git a/exec/config_1.sh b/exec/config_1.sh
-old mode 100644
-new mode 100755
-diff --git a/exec/config_11.sh b/exec/config_11.sh
-old mode 100644
-new mode 100755
-index b41e521..7e55d77
---- a/exec/config_11.sh
-+++ b/exec/config_11.sh
-@@ -40,8 +40,7 @@ conda activate venv
- # ==============================================================================
- 
- DEVICE="gpu"
--PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
--ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
-+ALL_METHODS=("adam" "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
- SEEDS_3=(42 1234 811)
- SEEDS_5=(42 1234 2137 811 111)
- 
-@@ -66,10 +65,10 @@ for METHOD in "${ALL_METHODS[@]}"; do
-             --methods=$METHOD
-             --regulizer
-             --normalize
--            --hyper_hidden_dim=64
--            --task_embedding_dim=32
--            --chunk_embedding_dim=32
--            --chunk_size=256
-+            --hyper_hidden_dim=128
-+            --task_embedding_dim=64
-+            --chunk_embedding_dim=64
-+            --chunk_size=6000
-             --grads_per_task=80 --max_directions=400
-             --fisher_samples=1024
-             --lr=1e-3 --max_epochs=50 --batch_size=64
-@@ -80,4 +79,8 @@ for METHOD in "${ALL_METHODS[@]}"; do
-         echo "--> C11 $METHOD seed=$SEED"
-         python main.py "${ARGS[@]}"
-     done
--done
-\ No newline at end of file
-+done
-+
-+#            --hyper_hidden_dim=128 SUPER BIG CHANGES.
-+#           --task_embedding_dim=64
-+#           --chunk_embedding_dim=64
-\ No newline at end of file
-diff --git a/exec/exec_all.sh b/exec/exec_all.sh
-old mode 100644
-new mode 100755
-diff --git a/exec/split_cifar100.sh b/exec/split_cifar100.sh
-old mode 100644
-new mode 100755
-diff --git a/main.py b/main.py
-index 1258abf..0ed9b84 100644
---- a/main.py
-+++ b/main.py
-@@ -122,6 +122,7 @@ if __name__ == "__main__":
-     wandb.define_metric("task_completed")
-     # Model Initialization
-     print(config.task)
-+    print(config.model)
-     match config.model:
-         case "HyperNetwork":
-             target_network = target_network(Task.config.num_tasks, device)
-diff --git a/models/cnn.py b/models/cnn.py
-index d5e46a3..5178a20 100644
---- a/models/cnn.py
-+++ b/models/cnn.py
-@@ -38,9 +38,9 @@ class SimpleCIFARCNN(nn.Module):
-         2 dense layers with dropout
-     """
-     
--    def __init__(self, num_classes: int = 10, dropout: float = 0.5):
-+    def __init__(self, num_classes, device,  dropout: float = 0.5):
-         super().__init__()
--        self.features = _cifar_feature_extractor()
-+        self.features = _cifar_feature_extractor().to(device)
-         
-         self.classifier = nn.Sequential(
-             nn.Flatten(),
-@@ -51,7 +51,7 @@ class SimpleCIFARCNN(nn.Module):
-             nn.ReLU(inplace=True),
-             nn.Dropout(dropout),
-             nn.Linear(256, num_classes)
--        )
-+        ).to(device)
-     
-     def forward(self, x):
-         x = self.features(x)
-diff --git a/models/hyper_network.py b/models/hyper_network.py
-index e602026..05bb35f 100644
---- a/models/hyper_network.py
-+++ b/models/hyper_network.py
-@@ -119,8 +119,8 @@ class HyperNetwork(nn.Module):
-                 p.grad.div_(self.num_of_chunks)
- 
- class HyperRegulizer():
--    def __init__(self, regulizer_lam: float = 0.1):
--        self.regulizer_lam = regulizer_lam       
-+    def __init__(self, beta: float = 0.01):
-+        self.beta = beta       
-         self.old_weights = {}  
- 
-     def loss(self, model: nn.Module, current_task_id) -> torch.Tensor:
-@@ -142,7 +142,7 @@ class HyperRegulizer():
-         Returns a scalar tensor (zero if no tasks stored or reg_lambda == 0).
-         """
-         device = next(model.parameters()).device
--        if self.regulizer_lam == 0.0 or not self.old_weights:
-+        if self.beta == 0.0 or not self.old_weights:
-             return 0
-  
-         current_t = current_task_id.item() if hasattr(current_task_id, 'item') else int(current_task_id)
-@@ -165,6 +165,6 @@ class HyperRegulizer():
-         # The regularizer MSE is calculated on the FULL weight vector (sum of chunks)
-         # We must divide the resulting loss by chunks to nullify the accumulation in backward()
-         r_loss = total / len(old_task_ids) 
--        loss = self.regulizer_lam * r_loss
-+        loss = self.beta * r_loss
- 
-         return loss
-\ No newline at end of file
-diff --git a/optimizers/vanilla.py b/optimizers/vanilla.py
-index fd62c8f..7885180 100644
---- a/optimizers/vanilla.py
-+++ b/optimizers/vanilla.py
-@@ -97,9 +97,18 @@ def train_vanilla(
-                     best_loss = avg_loss
-                     loss_repeat = 0
-                     best_parameters = model.state_dict()
-+                    lr_patience_counter = 0
-+
-                 else:
-                     loss_repeat += 1
--                
-+                    lr_patience_counter += 1
-+
-+                if lr_patience_counter == 3:
-+                    for g in opt.param_groups:
-+                        g['lr'] = get_magnitude_decay_lr(g['lr'])
-+                    lr_patience_counter = 0
-+                    if verbose: print(f"    [Scheduler] Lowering LR to {opt.param_groups[0]['lr']}")
-+                    
-                 epoch += 1
- 
-             model.load_state_dict(best_parameters)
+diff --git a/diff.check b/diff.check
+index 5a251c3..e69de29 100644
+--- a/diff.check
++++ b/diff.check
+@@ -1,149 +0,0 @@
+-diff --git a/best_model.pt b/best_model.pt
+-index d94524c..823f309 100644
+-Binary files a/best_model.pt and b/best_model.pt differ
+-diff --git a/exec/config_1.sh b/exec/config_1.sh
+-old mode 100644
+-new mode 100755
+-diff --git a/exec/config_11.sh b/exec/config_11.sh
+-old mode 100644
+-new mode 100755
+-index b41e521..7e55d77
+---- a/exec/config_11.sh
+-+++ b/exec/config_11.sh
+-@@ -40,8 +40,7 @@ conda activate venv
+- # ==============================================================================
+- 
+- DEVICE="gpu"
+--PROJ_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc")
+--ALL_METHODS=("ifopng" "fopng" "ogd" "ong" "fng" "ewc" "adam" "sgd")
+-+ALL_METHODS=("adam" "ifopng" "fopng" "ogd" "ong" "fng" "ewc" "sgd")
+- SEEDS_3=(42 1234 811)
+- SEEDS_5=(42 1234 2137 811 111)
+- 
+-@@ -66,10 +65,10 @@ for METHOD in "${ALL_METHODS[@]}"; do
+-             --methods=$METHOD
+-             --regulizer
+-             --normalize
+--            --hyper_hidden_dim=64
+--            --task_embedding_dim=32
+--            --chunk_embedding_dim=32
+--            --chunk_size=256
+-+            --hyper_hidden_dim=128
+-+            --task_embedding_dim=64
+-+            --chunk_embedding_dim=64
+-+            --chunk_size=6000
+-             --grads_per_task=80 --max_directions=400
+-             --fisher_samples=1024
+-             --lr=1e-3 --max_epochs=50 --batch_size=64
+-@@ -80,4 +79,8 @@ for METHOD in "${ALL_METHODS[@]}"; do
+-         echo "--> C11 $METHOD seed=$SEED"
+-         python main.py "${ARGS[@]}"
+-     done
+--done
+-\ No newline at end of file
+-+done
+-+
+-+#            --hyper_hidden_dim=128 SUPER BIG CHANGES.
+-+#           --task_embedding_dim=64
+-+#           --chunk_embedding_dim=64
+-\ No newline at end of file
+-diff --git a/exec/exec_all.sh b/exec/exec_all.sh
+-old mode 100644
+-new mode 100755
+-diff --git a/exec/split_cifar100.sh b/exec/split_cifar100.sh
+-old mode 100644
+-new mode 100755
+-diff --git a/main.py b/main.py
+-index 1258abf..0ed9b84 100644
+---- a/main.py
+-+++ b/main.py
+-@@ -122,6 +122,7 @@ if __name__ == "__main__":
+-     wandb.define_metric("task_completed")
+-     # Model Initialization
+-     print(config.task)
+-+    print(config.model)
+-     match config.model:
+-         case "HyperNetwork":
+-             target_network = target_network(Task.config.num_tasks, device)
+-diff --git a/models/cnn.py b/models/cnn.py
+-index d5e46a3..5178a20 100644
+---- a/models/cnn.py
+-+++ b/models/cnn.py
+-@@ -38,9 +38,9 @@ class SimpleCIFARCNN(nn.Module):
+-         2 dense layers with dropout
+-     """
+-     
+--    def __init__(self, num_classes: int = 10, dropout: float = 0.5):
+-+    def __init__(self, num_classes, device,  dropout: float = 0.5):
+-         super().__init__()
+--        self.features = _cifar_feature_extractor()
+-+        self.features = _cifar_feature_extractor().to(device)
+-         
+-         self.classifier = nn.Sequential(
+-             nn.Flatten(),
+-@@ -51,7 +51,7 @@ class SimpleCIFARCNN(nn.Module):
+-             nn.ReLU(inplace=True),
+-             nn.Dropout(dropout),
+-             nn.Linear(256, num_classes)
+--        )
+-+        ).to(device)
+-     
+-     def forward(self, x):
+-         x = self.features(x)
+-diff --git a/models/hyper_network.py b/models/hyper_network.py
+-index e602026..05bb35f 100644
+---- a/models/hyper_network.py
+-+++ b/models/hyper_network.py
+-@@ -119,8 +119,8 @@ class HyperNetwork(nn.Module):
+-                 p.grad.div_(self.num_of_chunks)
+- 
+- class HyperRegulizer():
+--    def __init__(self, regulizer_lam: float = 0.1):
+--        self.regulizer_lam = regulizer_lam       
+-+    def __init__(self, beta: float = 0.01):
+-+        self.beta = beta       
+-         self.old_weights = {}  
+- 
+-     def loss(self, model: nn.Module, current_task_id) -> torch.Tensor:
+-@@ -142,7 +142,7 @@ class HyperRegulizer():
+-         Returns a scalar tensor (zero if no tasks stored or reg_lambda == 0).
+-         """
+-         device = next(model.parameters()).device
+--        if self.regulizer_lam == 0.0 or not self.old_weights:
+-+        if self.beta == 0.0 or not self.old_weights:
+-             return 0
+-  
+-         current_t = current_task_id.item() if hasattr(current_task_id, 'item') else int(current_task_id)
+-@@ -165,6 +165,6 @@ class HyperRegulizer():
+-         # The regularizer MSE is calculated on the FULL weight vector (sum of chunks)
+-         # We must divide the resulting loss by chunks to nullify the accumulation in backward()
+-         r_loss = total / len(old_task_ids) 
+--        loss = self.regulizer_lam * r_loss
+-+        loss = self.beta * r_loss
+- 
+-         return loss
+-\ No newline at end of file
+-diff --git a/optimizers/vanilla.py b/optimizers/vanilla.py
+-index fd62c8f..7885180 100644
+---- a/optimizers/vanilla.py
+-+++ b/optimizers/vanilla.py
+-@@ -97,9 +97,18 @@ def train_vanilla(
+-                     best_loss = avg_loss
+-                     loss_repeat = 0
+-                     best_parameters = model.state_dict()
+-+                    lr_patience_counter = 0
+-+
+-                 else:
+-                     loss_repeat += 1
+--                
+-+                    lr_patience_counter += 1
+-+
+-+                if lr_patience_counter == 3:
+-+                    for g in opt.param_groups:
+-+                        g['lr'] = get_magnitude_decay_lr(g['lr'])
+-+                    lr_patience_counter = 0
+-+                    if verbose: print(f"    [Scheduler] Lowering LR to {opt.param_groups[0]['lr']}")
+-+                    
+-                 epoch += 1
+- 
+-             model.load_state_dict(best_parameters)
+diff --git a/split_cifar10_accuracy_trajectory.pdf b/split_cifar10_accuracy_trajectory.pdf
+deleted file mode 100644
+index bdca1d9..0000000
+Binary files a/split_cifar10_accuracy_trajectory.pdf and /dev/null differ
+diff --git a/split_cifar10_accuracy_trajectory.png b/split_cifar10_accuracy_trajectory.png
+deleted file mode 100644
+index 2fd69c4..0000000
+Binary files a/split_cifar10_accuracy_trajectory.png and /dev/null differ

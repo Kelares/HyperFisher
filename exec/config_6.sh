@@ -67,8 +67,8 @@ LAM6["adam"]="0"; LAM6["sgd"]="0"; LAM6["ewc"]="10"
 LAM6["fng"]="1e-3"; LAM6["ogd"]="0"; LAM6["ong"]="0"
 LAM6["fopng"]="1e-3"; LAM6["ifopng"]="1e-3"
 
-for METHOD in "${LEFT_METHODS[@]}"; do
-    for SEED in "${SEEDS_3[@]}"; do
+for METHOD in "${ALL_METHODS[@]}"; do
+    for SEED in "${SEEDS_5[@]}"; do
         ARGS=(
             --task=split_cifar100 --model=TargetNetwork
             --methods=$METHOD --no-regulizer
