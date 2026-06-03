@@ -76,7 +76,7 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --fisher_samples=1024
             --lr=${LR6[$METHOD]} --max_epochs=100 --batch_size=10
             --first_task_opt=sgd --first_task_lr=1e-2
-            --device_mode=$DEVICE --seed=$SEED --experiment_id=506
+            --device_mode=$DEVICE --seed=$SEED --experiment_id=406
         )
         [ "${LAM6[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM6[$METHOD]})
         echo "--> C6 $METHOD seed=$SEED"

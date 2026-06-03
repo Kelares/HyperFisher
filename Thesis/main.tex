@@ -1,0 +1,127 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[nochapters]{classicthesis}
+\usepackage[margin=42mm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{geometry}    % Required to adjust page margins
+\usepackage{xltabular}   % Replaces ltablex for robust multi-page tabularx
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{changepage}
+
+\usepackage{amssymb}
+\usepackage{makecell}
+
+%   \usepackage{xltabular}   % Replaces ltablex for robust multi-page tabularx
+%   \usepackage{booktabs}
+%   \usepackage{array}
+% ─────────────────────────────────────
+
+% \usepackage{tabularx}
+% \usepackage{xcolor}    % for \rowcolor
+% \usepackage{array}     % for >{\centering\arraybackslash}
+% \usepackage{longtable}
+% \usepackage{calc}      % needed for \dimexpr arithmetic
+
+% \usepackage{ltablex}
+% \keepXColumns
+
+\usepackage{amsthm}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}
+
+% ... in your document ...
+% Define theorem-like environments
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+
+
+
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks=true,citecolor=darkblue,
+            linkcolor=darkblue, urlcolor=darkblue}
+
+\def\thesistitle{Gradient Projection Methods for Continual Learning in Hypernetworks}
+\def\subtitle{Overcoming Chunk-Induced Gradient Pathologies via Projection Normalization, and the Introduction of iFOPNG}
+\def\yourname{Jakub Michałowski}
+\def\yourprogramme{Cognitive Science \& Artificial Intelligence}
+\def\yourstudentnumber{u253954}
+\def\finalmonth{May}
+\def\finalyear{2026}
+\def\supervisor{dr. Giacomo Spiegler}
+\def\committee{dr. The Second Reader}
+\def\acknowledgments{The author thanks dr.\ Giacomo Spiegler for supervision and feedback throughout this project.}
+\def\wordcount{$\approx$7800}
+
+\hypersetup{pdfauthor   = \yourname,
+            pdftitle    = \thesistitle\ \subtitle,
+            pdfsubject  = \yourprogramme\ Bachelor Thesis
+}
+
+
+\usepackage[natbibapa]{apacite}
+\bibliographystyle{apacite}
+
+\begin{document}
+\input{frontmatter.tex}
+
+\input{sections/abstract.tex}
+
+\input{sections/ethics_statement.tex}
+
+\input{sections/introduction.tex}
+
+\input{sections/related_work.tex}
+
+\input{sections/methods.tex}
+
+\input{sections/experiment_design.tex}
+
+\input{sections/results.tex}
+
+\input{sections/discussion.tex}
+
+\input{sections/conclusions.tex}
+
+
+\section*{Acknowledgements}
+The author thanks dr.\ Giacomo Spiegler for supervision and valuable feedback throughout this project.
+\newpage
+\bibliography{references}
+
+\clearpage
+\section{Appendix}
+\input{appendix/proof_ifopng.tex}
+
+\input{appendix/standalone_targetnetwork.tex}
+
+\input{appendix/additional_experiments.tex}
+
+\input{appendix/full_benchmark.tex}
+
+\input{appendix/hyper_parameters.tex}
+
+
+% REMEMBER TO ADD OSWALD COMING UP WITH HIS REGULIZER AFTER UNDERSTANDING EWC. HYPERREGULIZER = EWC FOR META CHUNKING
+
+% ALSO FIGURE OUT THE DROPOUT REMOVAL. MAYBE ITS GOOD RN
+
+% EMPHASIZE THE COMPRESSION OF HYPERNETWORKS AND HOW IMPRESIVE IT IS. THERE IS A PLOT HYPERNETWORK-TRAJECTORY...
+\end{document}

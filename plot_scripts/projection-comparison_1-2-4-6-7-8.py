@@ -2,90 +2,266 @@
 projection-comparison_1-2-4-6-7-8.py
 ──────────────────────────────────────
 iFOPNG vs FOPNG cross-benchmark summary. Sub-RQ3 main figure.
-Single panel: grouped bars per benchmark.
+Grouped bars per benchmark with paired t-test significance annotations
+and per-benchmark seed counts.
+
+Statistical note
+  Equal n  → paired t-test on per-seed differences (same seeds assumed).
+  Unequal n → Welch's independent t-test.
+  All tests two-sided. Cohen's d: paired = mean(Δ)/std(Δ);
+  independent = (μ₁−μ₂)/pooled σ.
+  df=2 (n=3) tests are low-powered; treat "ns" with caution there.
+
 Output: plots/projection-comparison_1-2-4-6-7-8.png
 """
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from scipy import stats
+
 from utils import STYLE, load_exp, skip_exp6, skip_exp7, COLORS
 
 RESULTS = "results/"
 OUT     = "plots/"
 
+# ── data loading ──────────────────────────────────────────────────────────────
 
 def _load_pair(fname, skip_fn=None):
     data = load_exp(fname, min_seeds=2, skip_fn=skip_fn)
-    out  = {}
-    for m in ("ifopng", "fopng"):
-        if m in data:
-            out[m] = data[m]
-    return out
+    return {m: data[m] for m in ("ifopng", "fopng") if m in data}
 
+
+# ── statistics ────────────────────────────────────────────────────────────────
+
+def compute_stats(accs_if, accs_fp):
+    """
+    Paired t-test when both groups have equal n >= 2 (same seeds assumed).
+    Welch's independent t-test when n differs.
+    Returns dict with keys: t, p, d, n_if, n_fp, test_type.
+    Returns None when either group has fewer than 2 observations.
+    """
+    a = np.array(accs_if, dtype=float)
+    b = np.array(accs_fp, dtype=float)
+    n1, n2 = len(a), len(b)
+
+    if n1 < 2 or n2 < 2:
+        return None
+
+    if n1 == n2:                               # paired
+        t, p = stats.ttest_rel(a, b)
+        diffs = a - b
+        sd    = diffs.std(ddof=1)
+        d     = float(diffs.mean() / sd) if sd > 0 else 0.0
+        test_type = "paired"
+    else:                                      # Welch independent
+        t, p = stats.ttest_ind(a, b, equal_var=False)
+        pooled = np.sqrt(((n1 - 1) * a.std(ddof=1)**2 +
+                          (n2 - 1) * b.std(ddof=1)**2) / (n1 + n2 - 2))
+        d = float((a.mean() - b.mean()) / pooled) if pooled > 0 else 0.0
+        test_type = "independent"
+
+    return dict(t=float(t), p=float(p), d=d,
+                n_if=n1, n_fp=n2, test_type=test_type)
+
+
+def sig_stars(p, n_min):
+    """Significance label; appends † when n < 4 to flag low power."""
+    if   p < 0.001: label = "***"
+    elif p < 0.01:  label = "**"
+    elif p < 0.05:  label = "*"
+    else:           label = "ns"
+    if n_min < 4:
+        label += "†"
+    return label
+
+
+# ── plot helpers ──────────────────────────────────────────────────────────────
+
+def _bar_ceil(data, key, pad=0.0):
+    """Top of error bar (mean + std) for a method, or 0 if missing."""
+    if key not in data:
+        return 0.0
+    return data[key]["acc_mean"] + data[key]["acc_std"] + pad
+
+
+def annotate_sig(ax, x_left, x_right, y_base, result):
+    """
+    Draw a significance bracket between two bars.
+    y_base   – bottom of the bracket (top of the taller error bar + padding)
+    """
+    if result is None:
+        return
+
+    stars = sig_stars(result["p"], min(result["n_if"], result["n_fp"]))
+    tick  = 0.018           # vertical tick height
+    gap   = 0.008           # gap between bracket top and label
+
+    y0 = y_base
+    y1 = y0 + tick
+
+    ax.plot([x_left,  x_left,  x_right, x_right],
+            [y0,      y1,      y1,      y0],
+            lw=0.8, color="#333", clip_on=False)
+
+    color  = "#111" if stars not in ("ns", "ns†") else "#999"
+    weight = "bold" if stars not in ("ns", "ns†") else "normal"
+    ax.text((x_left + x_right) / 2, y1 + gap, stars,
+            ha="center", va="bottom", fontsize=8.5,
+            color=color, fontweight=weight, clip_on=False)
+
+
+def _n_label(data):
+    """Return 'n=X' or 'n=X/Y' (iFOPNG/FOPNG) for a benchmark data dict."""
+    n_if = len(data["ifopng"]["accs"]) if "ifopng" in data else 0
+    n_fp = len(data["fopng"]["accs"])  if "fopng"  in data else 0
+    if n_if == n_fp and n_if > 0:
+        return f"n = {n_if}"
+    parts = []
+    if n_if: parts.append(f"iF={n_if}")
+    if n_fp: parts.append(f"FP={n_fp}")
+    return "n: " + "/".join(parts) if parts else ""
+
+
+# ── main ──────────────────────────────────────────────────────────────────────
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     plt.rcParams.update(STYLE)
 
     benchmarks = [
-        ("Perm-MNIST\n(Exp 1)",  _load_pair(RESULTS + "401.csv"), "standalone"),
-        ("MNIST MH\n(Exp 2)",    _load_pair(RESULTS + "402.csv"), "standalone"),
-        ("CIFAR10 MH\n(Exp 4)",  _load_pair(RESULTS + "404.csv"), "standalone"),
-        ("CIFAR100 MH\n(Exp 6)", _load_pair(RESULTS + "406.csv", skip_fn=skip_exp6), "standalone"),
-        ("MNIST HN\n(Exp 7)",    _load_pair(RESULTS + "407.csv", skip_fn=skip_exp7), "HN"),
-        ("CIFAR10 HN\n(Exp 8)",  _load_pair(RESULTS + "408.csv"), "HN"),
+        ("Perm-MNIST",    _load_pair(RESULTS + "401.csv"),                    "standalone"),
+        ("MNIST MH",      _load_pair(RESULTS + "402.csv"),                    "standalone"),
+        ("CIFAR-10 MH",   _load_pair(RESULTS + "404.csv"),                    "standalone"),
+        ("CIFAR-100 MH",  _load_pair(RESULTS + "406.csv", skip_fn=skip_exp6), "standalone"),
+        ("MNIST HN",      _load_pair(RESULTS + "407.csv", skip_fn=skip_exp7), "HN"),
+        ("CIFAR-10 HN",   _load_pair(RESULTS + "408.csv"),                    "HN"),
     ]
-
-    fig, ax = plt.subplots(1, 1, figsize=(9, 5))
-    fig.suptitle(
-        "Sub-RQ3: iFOPNG vs FOPNG — Does parameter inertia improve retention?\n"
-        "Standalone benchmarks (left of divider) vs HN benchmarks (right)",
-        fontsize=10, fontweight="bold",
-    )
 
     COL_IF = COLORS["ifopng"]
     COL_FP = COLORS["fopng"]
     WIDTH  = 0.32
     x      = np.arange(len(benchmarks))
 
+    # ── compute stats first so we know how much y headroom we need ────────
+    stat_results = []
+    for _, data, _ in benchmarks:
+        if "ifopng" in data and "fopng" in data:
+            stat_results.append(
+                compute_stats(data["ifopng"]["accs"], data["fopng"]["accs"])
+            )
+        else:
+            stat_results.append(None)
+
+    # ── figure ────────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(1, 1, figsize=(9, 5.2))
+    fig.suptitle(
+        "Sub-RQ3: iFOPNG vs FOPNG — Does parameter inertia improve retention?\n"
+        "Standalone benchmarks (left of divider) vs HN benchmarks (right)",
+        fontsize=10, fontweight="bold",
+    )
+
+    bracket_tops = []
+
     for xi, (label, data, btype) in enumerate(benchmarks):
+        group_top = 0.0
         for offset, key, col in [(-WIDTH / 2, "ifopng", COL_IF),
                                   (+WIDTH / 2, "fopng",  COL_FP)]:
             if key not in data:
                 continue
             mean = data[key]["acc_mean"]
             std  = data[key]["acc_std"]
-            ax.bar(xi + offset, mean, width=WIDTH, color=col, yerr=std,
-                   capsize=3, zorder=3, alpha=0.88,
+            ax.bar(xi + offset, mean, width=WIDTH, color=col,
+                   yerr=std, capsize=3, zorder=3, alpha=0.88,
                    error_kw={"linewidth": 0.8, "ecolor": "#333", "capthick": 0.8})
             pts = data[key]["accs"]
             jit = np.linspace(-0.05, 0.05, len(pts))
             for j, v in zip(jit, pts):
-                ax.scatter(xi + offset + j, v, color="white", s=10, zorder=4,
-                           edgecolors="#333", linewidths=0.5)
+                ax.scatter(xi + offset + j, v, color="white", s=10,
+                           zorder=4, edgecolors="#333", linewidths=0.5)
+            group_top = max(group_top, mean + std)
+        bracket_tops.append(group_top)
 
-    # Divider between standalone and HN benchmarks
+    # ── significance brackets ─────────────────────────────────────────────
+    for xi, result in enumerate(stat_results):
+        if result is None:
+            continue
+        annotate_sig(ax,
+                     xi - WIDTH / 2,
+                     xi + WIDTH / 2,
+                     bracket_tops[xi] + 0.015,
+                     result)
+
+    # ── x-tick labels with n= ─────────────────────────────────────────────
+    tick_labels = []
+    for label, data, _ in benchmarks:
+        tick_labels.append(f"{label}\n{_n_label(data)}")
+
     ax.axvline(3.5, color="#999", lw=1.0, ls="--", alpha=0.6)
-    ax.text(3.6, 1.0, "HN ->", fontsize=7.5, color="#666", va="top",
+    ax.text(3.6, 1.0, "HN →", fontsize=7.5, color="#666", va="top",
             transform=ax.get_xaxis_transform())
 
     ax.set_xticks(x)
-    ax.set_xticklabels([b[0] for b in benchmarks], fontsize=8.5)
+    ax.set_xticklabels(tick_labels, fontsize=8.5)
     ax.set_ylabel("Avg. Accuracy", fontsize=10)
-    ax.set_ylim(0.0, 1.05)
+
+    # dynamic y limit: tallest bracket top + bracket height + label + margin
+    y_ceil = max(bracket_tops) + 0.015 + 0.018 + 0.008 + 0.04
+    ax.set_ylim(0.0, max(y_ceil, 1.08))
+
     ax.set_title("iFOPNG vs FOPNG per benchmark", fontsize=10,
                  fontweight="bold", pad=6)
     ax.legend(handles=[
-        mpatches.Patch(color=COL_IF, label=r"iFOPNG  ($F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$)"),
-        mpatches.Patch(color=COL_FP, label=r"FOPNG   ($\hat{F}_\mathrm{new}$ only)"),
+        mpatches.Patch(color=COL_IF,
+                       label=r"iFOPNG  ($F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$)"),
+        mpatches.Patch(color=COL_FP,
+                       label=r"FOPNG   ($\hat{F}_\mathrm{new}$ only)"),
     ], fontsize=8.5, loc="lower left")
 
+    # significance key footnote
+    ax.text(0.99, 0.01,
+            "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05  "
+            "† df=2 (n=3), low power\n"
+            "Paired t-test (equal n); Welch independent (unequal n); "
+            "two-sided",
+            transform=ax.transAxes, fontsize=6.5,
+            ha="right", va="bottom", color="#666")
+
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "projection-comparison_1-2-4-6-7-8.png", dpi=150,
-                bbox_inches="tight")
+    out_path = OUT + "projection-comparison_1-2-4-6-7-8.png"
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print("Saved projection-comparison_1-2-4-6-7-8.png")
+    print(f"Saved {out_path}")
+
+    # ── console summary ───────────────────────────────────────────────────
+    col = f"{'Benchmark':<14} {'iFOPNG':>7} {'FOPNG':>7} {'Δ':>7}  " \
+          f"{'t':>6}  {'p':>7}  {'d':>6}  {'sig':>5}  {'test':>11}  n"
+    print(f"\n{col}")
+    print("─" * len(col))
+
+    for (label, data, _), result in zip(benchmarks, stat_results):
+        if "ifopng" not in data or "fopng" not in data:
+            continue
+        m_if  = np.mean(data["ifopng"]["accs"]) * 100
+        m_fp  = np.mean(data["fopng"]["accs"])  * 100
+        delta = m_if - m_fp
+        name  = label.replace("\n", " ")
+
+        if result:
+            stars = sig_stars(result["p"], min(result["n_if"], result["n_fp"]))
+            n_str = (f"{result['n_if']}"
+                     if result["n_if"] == result["n_fp"]
+                     else f"{result['n_if']}/{result['n_fp']}")
+            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  "
+                  f"{delta:>+6.1f}pp  "
+                  f"{result['t']:>6.2f}  {result['p']:>7.4f}  "
+                  f"{result['d']:>6.2f}  {stars:>5}  "
+                  f"{result['test_type']:>11}  n={n_str}")
+        else:
+            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  "
+                  f"{delta:>+6.1f}pp  {'—':>6}  {'—':>7}  {'—':>6}  "
+                  f"{'—':>5}  {'—':>11}  (insufficient n)")
 
 
 if __name__ == "__main__":

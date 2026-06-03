@@ -1,0 +1,98 @@
+% ─────────────────────────────────────────────────────────────────────────────
+% Appendix B: Standalone Target-Network Results
+% ─────────────────────────────────────────────────────────────────────────────
+
+\section*{Appendix B: Standalone Target-Network Results}
+\label{app:standalone}
+
+This appendix presents the full method comparison on standalone target networks
+--- configurations where a conventional MLP is trained directly via gradient
+projection, without any hypernetwork wrapper or functional regularizer.
+These results establish the baseline behaviour of each projection method in
+its intended setting, prior to the hypernetwork integration examined in the
+main text.
+Four benchmark streams are reported: Permuted-MNIST (5 tasks) and
+Split-MNIST multi-head (5 tasks) in Figure~\ref{fig:standalone_mnist},
+Split-CIFAR10 multi-head (5 tasks) in Figure~\ref{fig:standalone_cifar10},
+and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}.
+Bars show mean accuracy over seeds; circles show individual seeds.
+
+% ── B.1  Permuted-MNIST + Split-MNIST MH ─────────────────────────────────────
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/standalone-mnist_1-2.png}
+    \caption{%
+        \textbf{Standalone target-network results --- Permuted-MNIST (5 tasks,
+        top row) and Split-MNIST multi-head (5 tasks, bottom row).}
+        Left column: average accuracy.
+        Right column: backward transfer.
+        Bars show mean over seeds; circles show individual seeds.
+        %
+        \emph{Permuted-MNIST.}
+        \texttt{iFOPNG} and \texttt{FOPNG} lead at $86.1\%$ and $85.8\%$
+        respectively with near-zero backward transfer, closely followed by
+        \texttt{SGD} ($84.9\%$) and \texttt{EWC} ($83.8\%$).
+        \texttt{Adam} ($68.2\%$) and \texttt{ONG} ($62.6\%$) exhibit
+        substantially negative BWT ($\approx{-0.36}$ and $\approx{-0.45}$),
+        reflecting severe catastrophic forgetting without a projection or
+        regularization mechanism.
+        %
+        \emph{Split-MNIST MH.}
+        Most methods cluster near the ceiling ($\geq 95\%$), reflecting the
+        low difficulty of the binary per-task splits.
+        \texttt{OGD}, \texttt{iFOPNG}, \texttt{SGD}, and \texttt{FOPNG}
+        lead ($96.1$--$95.6\%$); \texttt{ONG} and \texttt{FNG} are the
+        notable exceptions ($87\%$ and $86\%$) with strongly negative BWT,
+        indicating convergence instability on this stream.
+    }
+    \label{fig:standalone_mnist}
+\end{figure}
+
+% ── B.2  Split-CIFAR10 MH standalone ─────────────────────────────────────────
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/standalone-cifar10_4.png}
+    \caption{%
+        \textbf{Standalone target-network results --- Split-CIFAR10 multi-head
+        (5 tasks, 5 epochs per task, Adam first-task at $10^{-3}$).}
+        Left: average accuracy.  Right: backward transfer.
+        %
+        \texttt{EWC} leads at $81.9\%$ and \texttt{iFOPNG} is a close second
+        at $81.1\%$; both exhibit moderate forgetting
+        (BWT $\approx -0.09$).
+        The remaining methods fall to $67$--$71\%$ with substantially higher
+        seed variance and stronger forgetting.
+        \texttt{FOPNG} is the weakest projection method at $67.4\%$,
+        a $13.7$~pp gap below \texttt{iFOPNG} that motivates the Sub-RQ3
+        comparison.
+        \texttt{Adam} ($68.1\%$) performs comparably to the weaker projection
+        methods, confirming that the unconstrained baseline is not dominant
+        on harder standalone benchmarks.
+    }
+    \label{fig:standalone_cifar10}
+\end{figure}
+
+% ── B.3  Split-CIFAR100 MH standalone ────────────────────────────────────────
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/VERIFY_standalone-cifar100_6.png}
+    \caption{%
+        \textbf{Standalone target-network results --- Split-CIFAR100 multi-head
+        (10 tasks, 10 epochs per task, SGD first-task at $10^{-2}$).}
+        Left: average accuracy.  Right: backward transfer.
+        EWC was run with $\lambda = 10$; the $\lambda = 50$ configuration
+        produced collapsed runs and is excluded.
+        %
+        \texttt{OGD} leads at $49.2\%$, followed by \texttt{EWC}
+        ($\lambda{=}10$, $46.8\%$) and \texttt{SGD} ($45.4\%$).
+        \texttt{iFOPNG} reaches $42.7\%$, a $5.6$~pp advantage over
+        \texttt{FOPNG} ($37.1\%$), consistent with the Sub-RQ3 finding that
+        parameter inertia provides increasing benefit as task count and
+        Fisher overlap grow.
+        \texttt{ONG} has the lowest average accuracy ($32.3\%$) and the most
+        negative BWT ($\approx -0.41$), indicating near-complete forgetting
+        across the ten-task sequence.
+        Random-chance performance is $10\%$ (10-way classification per task).
+    }
+    \label{fig:standalone_cifar100}
+\end{figure}

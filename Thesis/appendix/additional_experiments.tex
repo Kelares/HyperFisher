@@ -1,0 +1,135 @@
+% ─────────────────────────────────────────────────────────────────────────────
+% Appendix C: Additional Experiment Figures
+% ─────────────────────────────────────────────────────────────────────────────
+
+\section*{Appendix C: Additional Experiment Figures}
+\label{app:additional}
+
+This appendix collects four figures that are referenced in the Results section
+but omitted from the main text for space.
+Figure~\ref{fig:heatmap_c8} provides the per-task accuracy matrix for the
+Split-CIFAR10 hypernetwork experiment.
+Figure~\ref{fig:hn_cifar100} shows the full method comparison on the
+ten-task Split-CIFAR100 hypernetwork benchmark.
+Figure~\ref{fig:sgd_threshold} documents the SGD first-task convergence
+diagnostic.
+Figure~\ref{fig:ema_vs_max} provides the per-seed paired comparison
+underlying the Sub-RQ4 statistical test.
+
+% ── C.1  Per-task accuracy matrix — Split-CIFAR10 HN ─────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf}
+    \caption{%
+        \textbf{Per-task accuracy matrix --- Split-CIFAR10 hypernetwork,
+        seed-averaged (Sub-RQ1).}
+        Each matrix shows the accuracy on task $j$ (column) after completing
+        training through task $i$ (row).
+        Only the lower triangle is populated; the diagonal gives the
+        just-trained task's accuracy and off-diagonal entries measure
+        retention of earlier tasks.
+        Four methods are shown: \texttt{iFOPNG}, \texttt{FOPNG},
+        \texttt{EWC}, and \texttt{Adam}.
+        %
+        The T1 column is the primary retention indicator.
+        \texttt{iFOPNG}, \texttt{FOPNG}, and \texttt{EWC} hold T1 accuracy
+        stable at $0.78$, $0.80$, and $0.79$ respectively across all five
+        task transitions.
+        \texttt{Adam} retains T1 at only $0.65$ --- $0.13$~pp lower ---
+        indicating that the unconstrained adaptive optimizer forgets more of
+        the first task than any of the projection or regularization methods.
+        However, \texttt{Adam} achieves the highest forward transfer on the
+        final task: the T5 diagonal entry is $0.79$, compared to $0.77$
+        (\texttt{iFOPNG}), $0.76$ (\texttt{FOPNG}), and $0.78$
+        (\texttt{EWC}).
+        The average accuracy gap between \texttt{Adam} and projection methods
+        in the main text therefore reflects weaker forward transfer to later
+        tasks, not stronger forgetting of earlier ones --- a distinction
+        visible directly in this matrix.
+    }
+    \label{fig:heatmap_c8}
+\end{figure}
+
+% ── C.2  Split-CIFAR100 HN ────────────────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-cifar100_11.png}
+    \caption{%
+        \textbf{Split-CIFAR100 hypernetwork --- 10 tasks, 50 epochs per task,
+        \texttt{AdamW} first-task initialisation at $10^{-3}$.}
+        Left: average accuracy.  Right: backward transfer.
+        Random-chance performance is $10\%$ (10-way classification per task).
+        %
+        \texttt{EWC} leads at $45.5\%$, with \texttt{Adam} second at $42.0\%$
+        and \texttt{iFOPNG} third at $37.8\%$ --- a rank ordering that inverts
+        the five-task Split-CIFAR10 pattern (where projection methods
+        outperform \texttt{EWC} and closely trail \texttt{Adam}).
+        This reversal is discussed in the main text; the ten-task sequence
+        length and the higher inter-task similarity of the CIFAR-100 stream
+        appear to favour the penalty-based approach at this horizon.
+        Seed-level variance is elevated across all methods; notably,
+        \texttt{Adam} contains one outlier seed at $\approx 14\%$, pulling
+        the mean below the median.
+        \texttt{SGD} ($18.7\%$) and \texttt{ONG} ($20.1\%$) barely exceed
+        random chance, indicating near-complete forgetting on this benchmark.
+    }
+    \label{fig:hn_cifar100}
+\end{figure}
+
+% ── C.3  SGD first-task convergence threshold ─────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figures/sgd_split_mnist_lr_threshold.png}
+    \caption{%
+        \textbf{SGD first-task convergence threshold --- Split-MNIST
+        (5 epochs, task-1 only).}
+        Top: task-1 accuracy after five epochs of SGD training as a function
+        of learning rate.
+        Bottom: corresponding final training loss.
+        The red dashed line at $\eta = 10^{-4}$ marks the empirical
+        convergence threshold: below it, accuracy is at or near random chance
+        ($50\%$) and loss remains above $1.5$; above it, the network
+        converges reliably to near-perfect task-1 accuracy.
+        %
+        The FOPNG paper specifies $\eta = 10^{-5}$ for first-task SGD
+        training, which this sweep shows yields only $\approx 21\%$
+        accuracy --- barely above random chance.
+        The convergence threshold lies between $5 \times 10^{-5}$ and
+        $10^{-4}$.
+        All standalone experiments in this thesis use $\eta = 10^{-3}$,
+        which achieves near-perfect first-task convergence and provides a
+        clean initial projection subspace.
+    }
+    \label{fig:sgd_threshold}
+\end{figure}
+
+% ── C.4  EMA vs MAX per-seed comparison ──────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/ema-vs-max-stat_14-15.png}
+    \caption{%
+        \textbf{EMA vs.\ MAX Fisher accumulation --- per-seed statistical
+        comparison, 20-task Permuted-MNIST, $n = 5$ seeds (Sub-RQ4).}
+        Left: paired slope plot.  Each line connects the final average
+        accuracy of one seed under EMA (left) and MAX (right); the annotated
+        $D$ values give the per-seed difference.
+        Right: mean $\pm$ std bar chart with the paired $t$-test significance
+        bracket.
+        %
+        Every seed shows a positive slope (MAX $>$ EMA), confirming that the
+        direction of the effect is consistent without exception.
+        The per-seed differences range from $+1.50$ to $+1.65$~pp.
+        Formal tests: paired $t(4) = 14.43$, $p < 0.001$; Wilcoxon signed-rank
+        $W = 15$, $p = 0.031$; Cohen's $d = 7.22$.
+        The null hypothesis that EMA performs at least as well as MAX is
+        rejected by both tests.
+        As discussed in the main text, the effect is statistically unambiguous
+        but practically negligible ($1.60$~pp mean difference on a benchmark
+        where both strategies lose more than $30$~pp over the full sequence).
+    }
+    \label{fig:ema_vs_max}
+\end{figure}

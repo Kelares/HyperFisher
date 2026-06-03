@@ -1,0 +1,197 @@
+\section{Discussion}
+\label{sec:discussion}
+
+This section interprets the empirical findings in light of the four
+sub-research questions and situates them within the existing literature.
+The overarching goal was to determine whether gradient projection methods
+can be fruitfully integrated into chunked hypernetworks for continual
+learning, and to identify the structural conditions under which this
+integration succeeds or fails.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ1: Constructive Synergy or Architectural Conflict?}
+
+Projection methods do not outperform a well-tuned regularized
+hypernetwork optimized via \texttt{Adam}.
+The gap of $4.5$~pp at task~5 in favor of \texttt{Adam} is consistent
+across seeds and widens substantially in the suffocated regime ($d_h = 8$,
+Split-MNIST SH), where it reaches $20$--$40$~pp.
+We attribute this to a fundamental architectural incompatibility.
+Projection methods operate by modifying the raw gradient before the
+optimizer state update, which means the first-order momentum estimate
+and the adaptive scaling factor maintained by Adam are effectively
+discarded at each projected step.
+In the highly nonlinear, compressed weight space of a hypernetwork
+meta-generator, momentum is not merely a convergence accelerant — it
+is a structural regularizer that prevents the optimizer from committing
+prematurely to poorly-conditioned gradient directions.
+Re-initializing the optimizer's internal state at each step destabilizes
+the generative manifold and reduces the quality of the generated weights,
+particularly under extreme bottleneck compression.
+This finding is consistent with \citet{hu_hidden_2026}, who demonstrate
+that gradient modification methods interact adversely with Adam's internal
+state under certain curvature regimes, and aligns with the broader
+observation that projection-based continual learning methods were
+originally designed for SGD-like updates.
+
+The ten-task Split-CIFAR100 result introduces a partial rank reversal
+that complicates the Sub-RQ1 conclusion: \texttt{EWC} unexpectedly leads
+at $45.5\%$, overtaking both \texttt{Adam} ($42.0\%$) and \texttt{iFOPNG}
+($37.8\%$).
+This inversion suggests that at higher task counts, soft functional
+regularization in output space may dominate hard gradient projection
+because the projection memory cannot hold sufficient historical directions
+within a fixed column budget.
+As the number of tasks grows, the gradient subspace spanned by $G$ becomes
+an increasingly coarse approximation to the full historical interference
+manifold, while the functional regularizer in output space grows more
+informative with each additional stored weight snapshot.
+Whether this effect persists at the twenty-task scale, and whether an
+expanded memory budget would recover the projection advantage, remains to
+be investigated.
+
+\paragraph{First-task initialization and gradient contamination.}
+The comparison between \texttt{AdamW} and \texttt{Adam} first-task
+initialization confirmed the contamination hypothesis for gradient
+projection methods in the hypernetwork setting.
+Standard \texttt{Adam} couples weight decay into the gradient estimate as
+an additive $\ell_2$ term, so both the gradient memory $G$ and the Fisher
+diagonal $\hat{F}$ collected at the end of task~1 inherit a component
+aligned with the weight magnitude vector rather than the task loss
+curvature.
+This contaminates the projection subspace: downstream tasks are projected
+away from directions spuriously marked as historical but actually reflecting
+optimizer regularization rather than task geometry.
+\texttt{AdamW} initialization, which applies weight decay as a decoupled
+parameter-shrinkage step, consistently produced lower first-task trajectory
+variance and a cleaner initial projection basis.
+This finding carries a practically important implication for any system
+bootstrapping a projection memory from first-task gradients: the
+decoupled optimizer should be preferred at that stage regardless of which
+optimizer is used in subsequent tasks.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ2: Projection-Scoped Normalization Resolves the Pathology}
+
+This result contributes a practical engineering solution that is
+necessary for any future work combining hard projection constraints with
+chunked meta-learners, regardless of which projection algebra is employed.
+The normalization is applied locally within the projection computation and
+does not alter the underlying optimization landscape: subspace membership
+is invariant to positive scalar rescaling of basis vectors, so neither
+operation changes the geometry of the projection.
+The fundamental problem is therefore purely numerical rather than
+conceptual: the intersection of chunked hypernetworks and gradient
+projection is geometrically coherent but arithmetically fragile without
+explicit local rescaling.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ3: Parameter Inertia via the Elastic Fisher Preconditioner}
+
+The \texttt{iFOPNG} advantage scales monotonically with benchmark difficulty
+across all six settings (Figure~\ref{fig:ifopng_comparison}): negligible where
+inter-task Fisher overlap is low, substantial on high-overlap benchmarks.
+$F_c$ inflates the effective curvature of historically important coordinates,
+suppressing over-aggressive natural gradient steps without any penalty term or
+stored reference point.
+
+This mechanism stands in direct contrast to EWC, which achieves a similar
+dampening effect via an explicit quadratic penalty pulling parameters toward
+a reference point.
+\texttt{iFOPNG} applies no such restoring force and maintains no reference:
+a parameter that mattered before is not pulled back, it is made harder to
+displace.
+The empirical advantage of \texttt{iFOPNG} over \texttt{FOPNG} on
+high-overlap benchmarks confirms that the rigidity of the pure projection
+boundary is a genuine limitation of FOPNG, and that lifting it via the
+combined metric $F_c$ is a principled and effective remedy.
+Nevertheless, \texttt{iFOPNG} does not close the gap to \texttt{Adam},
+confirming that the elastic preconditioner addresses rigidity but cannot
+recover the momentum mechanism that \texttt{Adam} leverages for efficient
+navigation of the generative manifold.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ4: Fisher Accumulation Operator}
+
+This null result is itself informative.
+The theoretical argument for EMA was that monotonic MAX growth would
+impose a steadily increasing effective mass on parameters that were
+important to any prior task, eventually over-constraining the natural
+gradient and harming plasticity on new tasks.
+The absence of this effect on Permuted-MNIST suggests that, under the
+normalization scheme applied here (which rescales both Fisher terms by the
+current maximum of $F_c$), the absolute scale of $F_\mathrm{old}$ does not
+enter the projection computation — only its relative distribution does.
+The max-normalized Fisher is therefore insensitive to whether the
+accumulation operator is decaying or non-decaying, as long as the
+distribution of importance across parameters is preserved.
+
+Two limitations of this finding should be noted.
+First, Permuted-MNIST is a structurally homogeneous benchmark in which
+all tasks share the same label space and architecture; inter-task Fisher
+overlap is low and approximately uniform across tasks.
+On benchmarks with heterogeneous task distributions and non-uniform
+overlap, the two operators may diverge as the historical Fisher accumulates
+disproportionate mass in task-specific parameter subspaces.
+Second, the experiment used a fixed EMA decay of $\alpha = 0.5$;
+an adaptive schedule that increases decay as the task sequence
+grows longer may produce a more favorable comparison for EMA under
+long-horizon retention.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Limitations}
+
+Several limitations should be acknowledged.
+
+First, the hypernetwork results presented here are restricted to
+Split-MNIST and Split-CIFAR10 with five tasks.
+Longer task sequences may produce different relative orderings:
+in particular, the advantage of hard projection constraints over soft
+functional regularization may grow with sequence length, as soft
+penalties are known to suffer from compounding output drift
+\citep{farquhar_towards_2019}, while the projection subspace scales with
+the gradient budget rather than the task count.
+The preliminary ten-task Split-CIFAR100 result, in which EWC overtakes both
+\texttt{Adam} and \texttt{iFOPNG}, is suggestive but insufficient to
+establish a trend; a systematic sweep over task count is warranted.
+
+Second, the hypernetwork architecture used in this study is intentionally
+shallow, with small hidden dimensions ($d_h \in \{8, 16\}$) and
+embedding dimensions of $32$.
+Larger hypernetworks, such as those used for language model weight
+generation \citep{chauhan_brief_2024}, may exhibit qualitatively different
+gradient accumulation dynamics — both in terms of the severity of the
+normalization pathology and in the relative contribution of momentum to
+meta-generator stability.
+The suffocated regime ($d_h = 8$) explored here provides an empirical
+lower bound on expressivity, but an upper bound in a high-capacity regime
+remains uncharted.
+
+Third, the proposed normalization scheme — QR orthonormalization of the
+gradient basis combined with absolute-maximum scaling of the metric tensor
+$F_c$ — is heuristic in nature.
+It discards the eigenvalue structure of the pullback metric and applies
+isotropic rather than curvature-aware rescaling to the chunk embedding
+directions.
+The principled alternative is the Riemannian gradient under the pullback
+metric $G_i = J_i^\top J_i$, where $J_i = \partial W_i / \partial c_i$
+is the Jacobian of the chunk-generating map:
+\begin{equation}
+    \Delta c_i = -\eta\,(J_i^\top J_i + \lambda I)^{-1}
+                 \nabla_{c_i}\mathcal{L}.
+\end{equation}
+This preconditioner was implemented using batched forward-mode automatic
+differentiation across all $K$ chunks simultaneously.
+When applied to the raw gradient \emph{prior} to the FOPNG projection
+step, however, it consistently degraded continual learning performance in
+preliminary evaluation: backward transfer worsened by approximately $0.33$
+units on Split-MNIST SH relative to the heuristic baseline.
+We attribute this to a metric mismatch: the FOPNG projection operator
+is calibrated for gradients in Euclidean parameter space, and
+preconditioning only the chunk embedding component before projection
+produces a geometrically inconsistent input to the kernel
+$G^\top \hat{F} G$.
+The principled resolution — applying the natural gradient to the
+projected update $v^*$ rather than the raw gradient, so that the
+projection sees Euclidean inputs and the Riemannian step follows — is left
+to future work.

@@ -1,0 +1,32 @@
+\begin{abstract}
+    This thesis addresses the fundamental incompatibility of applying gradient
+    projection-based continual learning (CL) methods to hypernetwork architectures,
+    establishing a novel framework for stable subspace optimization.  Traditional
+    projection methods collapse due to a structural–numerical pathology where the
+    architectural necessity of weight-chunking, required to avoid an output parameter
+    explosion, forces the model to be produced in hundreds or thousands of sequential
+    chunks before a single projection step can execute.  This repetitive chunk-generation
+    loop accumulates an exceptionally large gradient volume within the memory matrix,
+    blowing up the condition number of the projection correlation matrix to infinity
+    and causing catastrophic inversion failures that the standard regularization
+    parameter $\lambda$ cannot rescue.
+    
+    The primary research objective is to eliminate these numerical singularities and
+    systematically evaluate whether combining hard geometric projections on top of
+    task-conditioned hypernetworks and their output-scoped functional regularizers
+    yields a constructive synergy.  To achieve this, we introduce
+    \emph{projection-scoped normalization}: gradient columns stored in the memory
+    matrix $G$ are rescaled to unit $\ell_2$ norm, and the diagonal empirical Fisher
+    vector is rescaled by its absolute maximum, together stabilizing the metric tensor
+    within the local projection algebra.  We also introduce \texttt{iFOPNG}, an inertial
+    variant of Fisher-Orthogonal Projected Natural Gradient Descent \citep{garg_fisher-orthogonal_2026}
+    that replaces the current-task Fisher $F_{\text{new}}$ with the combined curvature
+    $F_c = F_{\text{new}}+F_{\text{old}}$, inspired by the parameter-inertia concept
+    of Elastic Weight Consolidation.  Methods are benchmarked on sequential Split and Permuted MNIST, Split-CIFAR10 and Split-CIFAR100.  The empirical findings reveal that projection normalization
+    completely resolves matrix inversion collapse, and that in the hypernetwork setting
+    all normalized projection methods outperform plain SGD, with \texttt{iFOPNG}
+    matching the best projection baseline.  However, a standalone hypernetwork optimized
+    with \texttt{Adam} and von Oswald's functional regularizer consistently surpasses
+    all projection variants, indicating that momentum, which projection methods forgo by
+    design, is the decisive factor in compressed generative weight spaces.
+\end{abstract}

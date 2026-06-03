@@ -1,0 +1,51 @@
+\section*{Appendix A: iFOPNG Theorem and Proof}
+\label{app:a}
+
+\subsection*{Notation}
+Throughout this proof, $g \in \mathbb{R}^p$ denotes the current gradient,
+$G \in \mathbb{R}^{p \times m}$ the memory matrix of $m$ historical gradient
+directions (each normalized to unit $\ell_2$ norm), $F_{\text{old}}$ and
+$F_{\text{new}}$ the accumulated and current-task diagonal empirical Fisher
+tensors, and $F_c = F_{\text{new}} + F_{\text{old}}$.  We treat diagonal Fisher
+matrices as vectors acting by element-wise multiplication; all matrix operations
+below are defined accordingly.
+
+\begin{assumption}[Regularity]
+\label{ass:regularity}
+$F_c$ is positive definite and the matrix $A = G^\top F_{\text{old}}\,F_c^{-1}\,F_{\text{old}}\,G$ is invertible.
+\end{assumption}
+
+\begin{theorem}[iFOPNG Update]
+\label{thm:ifopng}
+Under Assumption~\ref{ass:regularity}, the solution to
+\begin{equation}
+\begin{aligned}
+    \min_{u}\; &\| g - F_c^{-1} u \|_{F_c}^2 \\
+    \text{s.t.}\quad &F_{\text{old}}^{-1} u \in \operatorname{Col}(G), \\
+    &\|v\|_{F_c} = \eta,
+\end{aligned}
+\end{equation}
+with parameter update $v = c\,F_c^{-1}(g - u)$, is given by
+\eqref{eq:ifopng}, where
+$P = I - F_{\text{old}}\,G\,A^{-1}\,G^\top F_{\text{old}}$.
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1.}  The constraint $F_{\text{old}}^{-1} u \in \operatorname{Col}(G)$ implies $u = F_{\text{old}}\,G\,\alpha$ for some $\alpha \in \mathbb{R}^m$.
+
+\textbf{Step 2.}  Substituting and expanding using $\|w\|_{F_c}^2 = w^\top F_c\,w$:
+\begin{equation}
+    \| g - F_c^{-1} u \|_{F_c}^2 = g^\top F_c\,g - 2\,g^\top F_{\text{old}}\,G\,\alpha + \alpha^\top A\,\alpha.
+\end{equation}
+
+\textbf{Step 3.}  Setting the gradient with respect to $\alpha$ to zero yields
+$\alpha^* = A^{-1} G^\top F_{\text{old}}\,g$.
+
+\textbf{Step 4.}  Substituting back: $u^* = F_{\text{old}}\,G\,A^{-1}\,G^\top F_{\text{old}}\,g$, so
+$g - u^* = P g$.
+
+\textbf{Step 5.}  Applying the trust-region constraint $\|v\|_{F_c} = \eta$ to
+$v = c\,F_c^{-1} Pg$ gives
+$c = \eta / \sqrt{(Pg)^\top F_c^{-1} Pg}$,
+yielding the stated update.
+\end{proof}

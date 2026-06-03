@@ -1,0 +1,178 @@
+\section{Methods}
+\label{sec:methods}
+
+This section describes the experimental design, model architectures, projection
+optimizer variants, and the two primary engineering contributions of this work:
+projection-scoped normalization and the \texttt{iFOPNG} algorithm.
+
+\subsection{Benchmarks and Data}
+All experiments use two standard sequential classification benchmarks.
+\textbf{Split-MNIST} divides the 10-digit MNIST dataset
+($28{\times}28$ grayscale; $60{,}000$ training samples) into five binary
+classification tasks—digits $\{0,1\}$, $\{2,3\}$, $\{4,5\}$, $\{6,7\}$, and
+$\{8,9\}$—presented in sequence.  \textbf{Split-CIFAR10} divides the 10-class
+CIFAR-10 dataset ($32{\times}32$ RGB; $50{,}000$ training samples) into five
+binary tasks in the same fashion.  Both streams operate under the
+\emph{incremental task learning} protocol with known task identity at test time:
+each task receives a dedicated output head, and the model is evaluated on
+all previously seen tasks after each new task is trained.
+
+\subsection{Model Architectures}
+\paragraph{Standalone Multi-Head CNN.}
+As an unconstrained upper-bound reference, a vanilla multi-head convolutional
+network is trained directly on the target task stream.  This architecture
+serves as a ceiling against which hypernetwork-based approaches are compared.
+
+\paragraph{Chunked Hypernetwork.}
+The hypernetwork $h(\cdot;\,\phi)$ generates the complete weight vector
+$\theta_t = h(e_t;\,\phi)$ of a single-head target CNN conditioned on a
+task embedding $e_t \in \mathbb{R}^{d_t}$.  Because generating the full
+$\theta_t$ in a single forward pass would require an output layer of dimension
+$|\theta_t|$ (tens of thousands of scalars), the hypernetwork instead employs
+\emph{weight chunking}: a secondary chunk embedding
+$c_k \in \mathbb{R}^{d_c}$, $k=1,\ldots,K$, is concatenated to $e_t$, and the
+network produces a block of $C_s$ parameters per forward pass.  The complete
+target weight is assembled by iterating over all $K$ chunks.  The functional
+regularizer of \citet{oswald_continual_2022} is applied on the generated
+weights:
+\begin{equation}
+    L_{\text{total}} = L_t(\theta_t)
+    + \beta \sum_{s < t} \bigl\|h(e_s;\,\phi) - \theta_s^*\bigr\|_2^2.
+\end{equation}
+Unless stated otherwise, all hypernetwork experiments use the same shared
+architecture: hidden dimension 32, chunk size $C_s = 64$,
+$d_t = d_c = 32$, trained for up to 50 epochs per task.
+
+\subsection{Projection Optimizer Suite}
+Six projection optimizer variants are compared alongside the baselines.
+\textbf{OGD} \citep{farajtabar_orthogonal_2019} stores raw gradient directions
+and projects via Euclidean orthogonality.
+\textbf{FNG} uses the Fisher metric for preconditioning without an orthogonal
+projection constraint.
+\textbf{ONG} combines natural gradient descent with Euclidean orthogonal
+projection, analogously to FOPNG but without the Fisher inner product in the
+projection kernel.
+\textbf{FOPNG} \citep{garg_fisher-orthogonal_2026} executes the full
+Fisher-orthogonal projection:
+\begin{equation}
+    \Delta\theta = -\eta
+    \bigl(I - G(G^\top F G)^{-1} G^\top F\bigr)
+    F^{-1}\nabla_\theta L_t,
+\end{equation}
+where $G = [g_1 \mid \cdots \mid g_{t-1}]$ is the memory matrix of historical
+gradient directions and $F$ is the diagonal empirical Fisher.
+\textbf{iFOPNG} (ours) modifies the preconditioner; its derivation is presented
+in Section~\ref{sec:ifopng}.
+The two baselines are \textbf{Adam} (Adam with $L_2$ weight decay folded into
+the gradient) and \textbf{SGD} with momentum, both tuned with learning rate
+$\eta = 10^{-3}$; all projection optimizers use $\eta = 10^{-2}$, $K = 250$
+stored gradients per task, and up to 50 training epochs.  See Appendix~B for
+the complete hyperparameter table.
+
+\subsection{Projection-Scoped Normalization (Sub-RQ2)}
+\label{sec:normalization}
+
+The chunk-induced gradient pathology (Section~\ref{sec:related_work}) arises
+because the hypernetwork executes $K$ forward–backward passes before a single
+projection step, causing the gradient columns of $G$ and the diagonal Fisher
+$\hat{F}$ to accumulate to extreme magnitudes.  When these unnormalized vectors
+are used in the projection kernel $(G^\top F G)^{-1}$, the resulting condition
+number exceeds machine precision, causing inversion to fail catastrophically.
+
+We resolve this by applying two local rescaling operations \emph{within} the
+projection computation and nowhere else, ensuring the underlying optimization
+dynamics are not altered:
+
+\begin{enumerate}
+    \item \textbf{Gradient column normalization.}  Each new gradient vector
+    $g_t$ is rescaled to unit $\ell_2$ norm before insertion into $G$:
+    \begin{equation}
+        \tilde{g}_t = \frac{g_t}{\|g_t\|_2 + \varepsilon}, \quad \varepsilon = 10^{-8}.
+    \end{equation}
+    This ensures that all historical directions contribute equally to the span
+    of $G$, independent of the magnitude explosion induced by chunking.
+    Any SVD-based compression of $G$ is subsequently applied to these unit
+    vectors, so the subspace geometry is preserved exactly.
+
+    \item \textbf{Fisher absolute-maximum normalization.}  The diagonal
+    empirical Fisher $\hat{F}$ is rescaled by its own maximum entry:
+    \begin{equation}
+        \tilde{F} = \frac{\hat{F}}{\max_i |\hat{F}_i| + \varepsilon}.
+    \end{equation}
+    This keeps the Fisher entries in $[0, 1]$, ensuring that the inner-product
+    form $G^\top F G$ has a well-conditioned scale regardless of the
+    number of chunks.
+\end{enumerate}
+These two normalizations together prevent the condition number blow-up,
+completely resolving inversion failures in all experiments.
+
+\subsection{First-Task Initialization: AdamW versus Adam (Sub-RQ3)}
+\label{sec:adamw}
+
+Because the projection memory matrix $G$ is populated exclusively during the
+first task, the quality of the initial subspace is determined by the optimizer
+used at that stage.  Standard \texttt{Adam} with $L_2$ weight decay folds the
+decay term \emph{into the gradient estimate}, meaning the historical gradient
+vectors stored in $G$ are contaminated by a component proportional to the
+current weight magnitudes rather than the task loss curvature alone.  This
+contaminates the projection basis with a weight-magnitude artifact unrelated to
+task geometry.
+
+\texttt{AdamW} \citep{loshchilov_decoupled_2019} decouples weight decay from
+the gradient update, applying it as a direct parameter shrinkage step after the
+gradient-based update.  Consequently, the gradients stored in $G$ reflect only
+the task loss curvature, keeping the projection subspace geometrically clean.
+All projection optimizer runs in this work use \texttt{AdamW} for the first task
+and the respective projection algorithm for subsequent tasks.
+
+\subsection{iFOPNG: Elastic Fisher-Orthogonal Projected Natural Gradient}
+\label{sec:ifopng}
+
+Rigid FOPNG enforces a hard boundary defined by $F_{\text{new}}$, the
+Fisher information of the current task alone.  Parameters that were important
+in old tasks but carry low current-task Fisher mass are therefore free to drift
+once a few tasks have passed, which may erode the protection conferred by the
+functional regularizer.
+
+To address this, \texttt{iFOPNG} replaces $F_{\text{new}}$ with the combined
+curvature $F_c = F_{\text{new}} + F_{\text{old}}$, where $F_{\text{old}}$ is an
+accumulated diagonal Fisher across all prior tasks, maintained as the element-wise
+maximum of the historical per-task Fisher vectors.  The iFOPNG update solves the
+constrained optimization:
+\begin{align}
+    \min_{u \in \mathbb{R}^p} \quad
+        & \| g - F_c^{-1} u \|_{F_c}^2 \\
+    \text{s.t.} \quad
+        & F_{\text{old}}^{-1} u \in \operatorname{Col}(G),
+\end{align}
+yielding the closed-form parameter update:
+\begin{equation}
+    v^* = \eta\,
+        \frac{F_c^{-1} P g}{\sqrt{(Pg)^\top F_c^{-1} (Pg)}},
+    \qquad
+    P = I - F_{\text{old}}\,G\,A^{-1}\,G^\top F_{\text{old}},
+    \label{eq:ifopng}
+\end{equation}
+where $A = G^\top F_{\text{old}}\,F_c^{-1}\,F_{\text{old}}\,G$.  A formal
+derivation is provided in Appendix~A.  Intuitively, $F_c$ accumulates curvature
+from all tasks seen so far: parameters important to old tasks remain damped in
+the natural-gradient trust region even when $F_{\text{new}}$ alone would not
+penalize moving them, providing an EWC-style elastic inertia boundary without
+requiring an explicit regularization term.
+
+\subsection{Evaluation Metrics and Implementation}
+Model performance is quantified via two metrics computed at the end of each task:
+(i)~\textbf{Average accuracy} over all tasks trained so far, and
+(ii)~\textbf{Backward Transfer (BWT)}, defined as the mean accuracy change on
+previously trained tasks:
+\begin{equation}
+    \mathrm{BWT} = \frac{1}{T-1}\sum_{t=2}^{T}
+    \bigl(\text{acc}_{T,t} - \text{acc}_{t,t}\bigr),
+\end{equation}
+where $\text{acc}_{i,j}$ is the accuracy on task $j$ evaluated after training
+task $i$.  All experiments are run on CUDA-enabled hardware.  Large projection
+matrices and Fisher vectors are offloaded to CPU in a hybrid memory management
+scheme to support the high gradient budgets required ($K = 250$ gradients per
+task) within realistic VRAM constraints.
+
+% ─────────────────────────────────────────────────────────────────────────────

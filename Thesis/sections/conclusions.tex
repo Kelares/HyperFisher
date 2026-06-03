@@ -1,0 +1,98 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This thesis investigated the extent to which gradient projection methods
+can be successfully integrated into chunked hypernetwork architectures for
+continual learning, and identified the structural conditions under which
+that integration yields benefit or harm.
+The primary research question decomposed into four sub-questions addressing
+constructive synergy, gradient normalization, the elastic Fisher metric, and
+the Fisher accumulation operator.
+
+\paragraph{Sub-RQ1 — Partial synergy bounded by the momentum problem.}
+The integration is constructive but incomplete.
+No projection variant matches a standalone regularized hypernetwork
+optimized via \texttt{Adam}, which leads by approximately $4.5$~pp on
+Split-CIFAR10 and by $20$--$40$~pp in the extreme compression regime
+($d_h = 8$).
+The primary obstacle is structural: projection methods modify the raw
+gradient before the optimizer state update, effectively discarding the
+first-order momentum that stabilizes generative manifold navigation in
+compressed weight spaces.
+This interaction has been independently identified as problematic under
+certain curvature regimes \citep{hu_hidden_2026}, and resolving it will
+require projection-compatible adaptive optimizers rather than post-hoc
+gradient modification.
+
+\paragraph{Sub-RQ2 — Normalization is a necessary condition.}
+Without explicit local rescaling, projection methods fail catastrophically
+on chunked hypernetworks: the condition number of the projection kernel
+reached $10^{10.8}$, rendering matrix inversion numerically unreliable.
+QR orthonormalization of the gradient basis combined with absolute-maximum
+scaling of the metric tensor $F_c$ reduces the condition number by more
+than seven orders of magnitude — bounding it within
+$[10^{1.3},\,10^{3.3}]$ — and fully recovers projection performance
+across all three seeds on the Split-CIFAR10 hypernetwork.
+This normalization scheme is a necessary engineering precondition for any
+future combination of gradient projection with chunked meta-learners,
+regardless of which projection algebra is employed.
+
+\paragraph{Sub-RQ3 — Parameter inertia improves retention on high-overlap benchmarks.}
+Replacing \texttt{FOPNG}'s task-specific Fisher metric with the combined
+metric $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ consistently
+improves task retention when inter-task Fisher overlap is substantial.
+The advantage of \texttt{iFOPNG} over \texttt{FOPNG} grows monotonically
+with benchmark difficulty: negligible on Permuted-MNIST
+($+0.1$~pp), substantial on Split-CIFAR10 multi-head ($+14.1$~pp),
+and meaningful in the hypernetwork settings ($+9.8$~pp and $+8.6$~pp).
+\texttt{iFOPNG} thereby provides a principled and practically effective
+improvement over \texttt{FOPNG} at no additional hyperparameter cost.
+
+\paragraph{Sub-RQ4 — MAX accumulation is the clear practical choice.}
+On a twenty-task Permuted-MNIST sequence evaluated across five seeds, the
+element-wise maximum (MAX) and exponential moving average (EMA)
+accumulation strategies produced nearly parallel accuracy and backward
+transfer trajectories throughout the full sequence.
+A paired $t$-test confirms that MAX is the superior operator:
+$t(4) = 14.43$, $p < 0.001$, Cohen's $d = 7.22$, with MAX leading by a
+consistent $1.51$--$1.65$~pp across every seed pair.
+The effect is systematic and statistically unambiguous, though small in
+absolute terms: $1.60$~pp on a benchmark where both strategies decline by
+more than $30$~pp over the full sequence --- practically negligible in
+deployment terms.
+The MAX operator is therefore preferred as the simpler, marginally better,
+and hyperparameter-free alternative.
+
+\paragraph{Implications for the field.}
+The results establish a clear empirical boundary for the current generation
+of gradient projection methods: they can be made numerically stable in
+chunked hypernetwork settings via local rescaling, and their Fisher geometry
+can be improved via elastic accumulation, but the momentum incompatibility
+prevents them from reaching the performance frontier of adaptive
+unconstrained optimizers in generative parameter spaces.
+The normalization contribution is directly applicable to any method that
+maintains a gradient subspace memory alongside a chunked weight generator.
+The iFOPNG contribution extends naturally to any continual learning
+setting where Fisher overlap accumulates across tasks.
+Together, they narrow the gap between projection-based and
+regularization-based approaches, and provide a principled foundation for
+the next step: a projected adaptive optimizer that respects both the
+geometric constraints of the projection and the curvature structure that
+adaptive moment estimates capture.
+
+\paragraph{Future directions.}
+Three directions are most directly motivated by the findings of this thesis.
+First, a projected variant of Adam that maintains momentum across projected
+steps — rather than discarding it at each update — would address the
+primary mechanism identified in Sub-RQ1 and has been partially explored in
+concurrent work \citep{hu_hidden_2026}.
+Second, the natural gradient preconditioner for chunk embeddings under the
+pullback metric $G_i = J_i^\top J_i$ was implemented and found to interact
+destructively with the FOPNG projection when applied to the raw gradient;
+applying it to the projected update $v^*$ instead would resolve the metric
+mismatch and merits empirical evaluation.
+Third, extending the evaluation to longer task sequences and larger
+hypernetwork capacities would test whether the partial synergy identified
+here scales favourably as the projection subspace budget grows relative to
+the task manifold — the regime in which hard constraints are expected, by
+theory, to provide the greatest benefit over soft regularization.

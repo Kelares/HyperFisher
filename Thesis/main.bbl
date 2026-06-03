@@ -1,0 +1,465 @@
+\begin{thebibliography}{}
+
+\bibitem [\protect \citeauthoryear {%
+Amari%
+}{%
+Amari%
+}{%
+{\protect \APACyear {{\protect \bibnodate {}}}}%
+}]{%
+amari_natural_1998}
+\APACinsertmetastar {%
+amari_natural_1998}%
+\begin{APACrefauthors}%
+Amari, S\BHBI i.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{{\protect \bibnodate {}}}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {Natural Gradient Works Efficiently in Learning} {Natural gradient works efficiently in learning}.{\BBCQ}
+\newblock
+\APACjournalVolNumPages{}{10}{2}{251--276}.
+\newblock
+\begin{APACrefURL} [{2026-05-31}]\url{https://ieeexplore.ieee.org/document/6790500} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.1162/089976698300017746} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Bennani%
+, Doan%
+\BCBL {}\ \BBA {} Sugiyama%
+}{%
+Bennani%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2020}}%
+}]{%
+bennani_generalisation_2020}
+\APACinsertmetastar {%
+bennani_generalisation_2020}%
+\begin{APACrefauthors}%
+Bennani, M\BPBI A.%
+, Doan, T.%
+\BCBL {}\ \BBA {} Sugiyama, M.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2020}{}{}.
+\newblock
+\APACrefbtitle {Generalisation Guarantees for Continual Learning with Orthogonal Gradient Descent} {Generalisation guarantees for continual learning with orthogonal gradient descent}\ (\BNUM\ {arXiv}:2006.11942).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-04-22}]\url{http://arxiv.org/abs/2006.11942} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2006.11942} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Chauhan%
+, Zhou%
+, Lu%
+, Molaei%
+\BCBL {}\ \BBA {} Clifton%
+}{%
+Chauhan%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2024}}%
+}]{%
+chauhan_brief_2024}
+\APACinsertmetastar {%
+chauhan_brief_2024}%
+\begin{APACrefauthors}%
+Chauhan, V\BPBI K.%
+, Zhou, J.%
+, Lu, P.%
+, Molaei, S.%
+\BCBL {}\ \BBA {} Clifton, D\BPBI A.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2024}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {A Brief Review of Hypernetworks in Deep Learning} {A brief review of hypernetworks in deep learning}.{\BBCQ}
+\newblock
+\APACjournalVolNumPages{}{57}{9}{250}.
+\newblock
+\begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/2306.06955} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.1007/s10462-024-10862-8} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+De~Lange%
+\ \protect \BOthers {.}}{%
+De~Lange%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2022}}%
+}]{%
+de_lange_continual_2022}
+\APACinsertmetastar {%
+de_lange_continual_2022}%
+\begin{APACrefauthors}%
+De~Lange, M.%
+, Aljundi, R.%
+, Masana, M.%
+, Parisot, S.%
+, Jia, X.%
+, Leonardis, A.%
+\BDBL {}Tuytelaars, T.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2022}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {A Continual Learning Survey: Defying Forgetting in Classification Tasks} {A continual learning survey: Defying forgetting in classification tasks}.{\BBCQ}
+\newblock
+\APACjournalVolNumPages{}{44}{7}{3366--3385}.
+\newblock
+\begin{APACrefURL} [{2026-05-16}]\url{https://ieeexplore.ieee.org/document/9349197/} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.1109/TPAMI.2021.3057446} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Farajtabar%
+, Azizan%
+, Mott%
+\BCBL {}\ \BBA {} Li%
+}{%
+Farajtabar%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2020}}%
+}]{%
+farajtabar_orthogonal_2019}
+\APACinsertmetastar {%
+farajtabar_orthogonal_2019}%
+\begin{APACrefauthors}%
+Farajtabar, M.%
+, Azizan, N.%
+, Mott, A.%
+\BCBL {}\ \BBA {} Li, A.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2020}{}{}.
+\newblock
+\APACrefbtitle {Orthogonal Gradient Descent for Continual Learning} {Orthogonal gradient descent for continual learning}\ (\BNUM\ {arXiv}:1910.07104).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-23}]\url{http://arxiv.org/abs/1910.07104} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1910.07104} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Farquhar%
+\ \BBA {} Gal%
+}{%
+Farquhar%
+\ \BBA {} Gal%
+}{%
+{\protect \APACyear {2018}}%
+}]{%
+farquhar_towards_2019}
+\APACinsertmetastar {%
+farquhar_towards_2019}%
+\begin{APACrefauthors}%
+Farquhar, S.%
+\BCBT {}\ \BBA {} Gal, Y.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2018}{}{}.
+\newblock
+\APACrefbtitle {Towards Robust Evaluations of Continual Learning} {Towards robust evaluations of continual learning}\ (\BNUM\ {arXiv}:1805.09733).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-04-05}]\url{http://arxiv.org/abs/1805.09733} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1805.09733} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Fuente%
+\ \protect \BOthers {.}}{%
+Fuente%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2025}}%
+}]{%
+fuente_prototype_2025}
+\APACinsertmetastar {%
+fuente_prototype_2025}%
+\begin{APACrefauthors}%
+Fuente, N\BPBI D\BPBI L.%
+, Pilligua, M.%
+, Vidal, D.%
+, Soutiff, A.%
+, Curreli, C.%
+, Cremers, D.%
+\BCBL {}\ \BBA {} Barsky, A.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2025}{}{}.
+\newblock
+\APACrefbtitle {Prototype Augmented Hypernetworks for Continual Learning} {Prototype augmented hypernetworks for continual learning}\ (\BNUM\ {arXiv}:2505.07450).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-28}]\url{http://arxiv.org/abs/2505.07450} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2505.07450} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Garg%
+, Kolhe%
+, Peng%
+\BCBL {}\ \BBA {} Gopalam%
+}{%
+Garg%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2026}}%
+}]{%
+garg_fisher-orthogonal_2026}
+\APACinsertmetastar {%
+garg_fisher-orthogonal_2026}%
+\begin{APACrefauthors}%
+Garg, I.%
+, Kolhe, N.%
+, Peng, A.%
+\BCBL {}\ \BBA {} Gopalam, R.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2026}{}{}.
+\newblock
+\APACrefbtitle {Fisher-Orthogonal Projected Natural Gradient Descent for Continual Learning} {Fisher-orthogonal projected natural gradient descent for continual learning}\ (\BNUM\ {arXiv}:2601.12816).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/2601.12816} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2601.12816} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Grossberg%
+}{%
+Grossberg%
+}{%
+{\protect \APACyear {1980}}%
+}]{%
+grossberg_how_1980}
+\APACinsertmetastar {%
+grossberg_how_1980}%
+\begin{APACrefauthors}%
+Grossberg, S.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{1980}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {How does a brain build a cognitive code?} {How does a brain build a cognitive code?}{\BBCQ}
+\newblock
+\APACjournalVolNumPages{}{87}{1}{1--51}.
+\newblock
+\APACrefnote{Place: {US} Publisher: American Psychological Association}
+\newblock
+\begin{APACrefDOI} \doi{10.1037/0033-295X.87.1.1} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Ha%
+, Dai%
+\BCBL {}\ \BBA {} Le%
+}{%
+Ha%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2016}}%
+}]{%
+ha_hypernetworks_2016}
+\APACinsertmetastar {%
+ha_hypernetworks_2016}%
+\begin{APACrefauthors}%
+Ha, D.%
+, Dai, A.%
+\BCBL {}\ \BBA {} Le, Q\BPBI V.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2016}{}{}.
+\newblock
+\APACrefbtitle {{HyperNetworks}} {{HyperNetworks}}\ (\BNUM\ {arXiv}:1609.09106).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1609.09106} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1609.09106} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Hemati%
+, Lomonaco%
+, Bacciu%
+\BCBL {}\ \BBA {} Borth%
+}{%
+Hemati%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2023}}%
+}]{%
+hemati_partial_2023}
+\APACinsertmetastar {%
+hemati_partial_2023}%
+\begin{APACrefauthors}%
+Hemati, H.%
+, Lomonaco, V.%
+, Bacciu, D.%
+\BCBL {}\ \BBA {} Borth, D.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2023}{}{}.
+\newblock
+\APACrefbtitle {Partial Hypernetworks for Continual Learning} {Partial hypernetworks for continual learning}\ (\BNUM\ {arXiv}:2306.10724).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-28}]\url{http://arxiv.org/abs/2306.10724} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2306.10724} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Hu%
+, Yu%
+, Cheng%
+, Liu%
+\BCBL {}\ \BBA {} Song%
+}{%
+Hu%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2026}}%
+}]{%
+hu_hidden_2026}
+\APACinsertmetastar {%
+hu_hidden_2026}%
+\begin{APACrefauthors}%
+Hu, Y.%
+, Yu, Z.%
+, Cheng, Z.%
+, Liu, W.%
+\BCBL {}\ \BBA {} Song, L.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2026}{}{}.
+\newblock
+\APACrefbtitle {Hidden Failure Modes of Gradient Modification under Adam in Continual Learning, and Adaptive Decoupled Moment Routing as a Repair} {Hidden failure modes of gradient modification under adam in continual learning, and adaptive decoupled moment routing as a repair}\ (\BNUM\ {arXiv}:2604.22407).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-05-16}]\url{http://arxiv.org/abs/2604.22407} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2604.22407} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Kirkpatrick%
+\ \protect \BOthers {.}}{%
+Kirkpatrick%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2017}}%
+}]{%
+kirkpatrick_overcoming_2017}
+\APACinsertmetastar {%
+kirkpatrick_overcoming_2017}%
+\begin{APACrefauthors}%
+Kirkpatrick, J.%
+, Pascanu, R.%
+, Rabinowitz, N.%
+, Veness, J.%
+, Desjardins, G.%
+, Rusu, A\BPBI A.%
+\BDBL {}Hadsell, R.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2017}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {Overcoming catastrophic forgetting in neural networks} {Overcoming catastrophic forgetting in neural networks}.{\BBCQ}
+\newblock
+\APACjournalVolNumPages{}{114}{13}{3521--3526}.
+\newblock
+\begin{APACrefURL} [{2026-02-23}]\url{http://arxiv.org/abs/1612.00796} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.1073/pnas.1611835114} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+McCloskey%
+\ \BBA {} Cohen%
+}{%
+McCloskey%
+\ \BBA {} Cohen%
+}{%
+{\protect \APACyear {1989}}%
+}]{%
+mccloskey_catastrophic_1989}
+\APACinsertmetastar {%
+mccloskey_catastrophic_1989}%
+\begin{APACrefauthors}%
+McCloskey, M.%
+\BCBT {}\ \BBA {} Cohen, N\BPBI J.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{1989}{}{}.
+\newblock
+\APACrefbtitle {Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem} {Catastrophic interference in connectionist networks: The sequential learning problem}\ (\BVOL~24).
+\newblock
+\APACaddressPublisher{}{Academic Press}.
+\newblock
+\begin{APACrefURL} \url{https://www.sciencedirect.com/science/article/pii/S0079742108605368} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{https://doi.org/10.1016/S0079-7421(08)60536-8} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Oswald%
+, Henning%
+, Grewe%
+\BCBL {}\ \BBA {} Sacramento%
+}{%
+Oswald%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2020}}%
+}]{%
+oswald_continual_2022}
+\APACinsertmetastar {%
+oswald_continual_2022}%
+\begin{APACrefauthors}%
+Oswald, J\BPBI v.%
+, Henning, C.%
+, Grewe, B\BPBI F.%
+\BCBL {}\ \BBA {} Sacramento, J.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2020}{}{}.
+\newblock
+\APACrefbtitle {Continual learning with hypernetworks} {Continual learning with hypernetworks}\ (\BNUM\ {arXiv}:1906.00695).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1906.00695} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1906.00695} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\end{thebibliography}

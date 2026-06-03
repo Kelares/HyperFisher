@@ -1,0 +1,145 @@
+% ─────────────────────────────────────────────────────────────────────────────
+% Appendix D: Full Benchmark Method Comparison
+% ─────────────────────────────────────────────────────────────────────────────
+
+\section*{Appendix D: Full Benchmark Method Comparison}
+\label{app:full_comparison}
+
+This appendix provides a complete accuracy reference for all eight methods
+across every benchmark evaluated in this thesis.
+Figures~\ref{fig:traj_cifar10} and~\ref{fig:traj_mnist} present side-by-side
+grouped bar charts contrasting standalone and hypernetwork performance on
+Split-CIFAR10 and Split-MNIST respectively, allowing direct reading of each
+method's accuracy and BWT under both settings.
+Table~\ref{tab:full_summary} collects mean average accuracy across all seven
+benchmarks in a single table for quick cross-benchmark reference.
+Following standard practice in the continual learning literature, results are
+reported as mean $\pm$ standard deviation over seeds without formal pairwise
+significance tests; formal statistical comparison is reserved for the targeted
+iFOPNG vs.\ FOPNG analysis in Sub-RQ3 (Section~\ref{sec:results_rq3}) and the
+EMA vs.\ MAX analysis in Sub-RQ4 (Section~\ref{sec:results_rq4}).
+
+% ── D.1  Split-CIFAR10: standalone vs HN, all methods ────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-trajectory_4-8-bars.pdf}
+    \caption{%
+        \textbf{Split-CIFAR10 --- all methods, standalone MH CNN
+        (left) vs.\ standard hypernetwork (right).}
+        Bars show mean final average accuracy after all five tasks; BWT
+        is annotated on each bar.
+        The left panel corresponds to the standalone benchmark
+        in Appendix~B (Figure~\ref{fig:standalone_cifar10}); the right panel
+        corresponds to the main-text hypernetwork experiment
+        (Figure~\ref{fig:hn_cifar10}).
+        %
+        On the standalone benchmark \texttt{EWC} and \texttt{iFOPNG} lead
+        (81.9\% and 81.1\%), while \texttt{FOPNG} is the weakest projection
+        method (67.4\%).
+        In the hypernetwork setting the ranking partially reorders:
+        \texttt{Adam} extends its lead (90.1\%) and \texttt{iFOPNG} remains
+        the best projection method (85.6\%), but \texttt{ONG} drops
+        substantially relative to its standalone position.
+        The BWT annotations confirm that the hypernetwork's functional
+        regularizer suppresses forgetting across all methods relative to
+        their standalone counterparts.
+    }
+    \label{fig:traj_cifar10}
+\end{figure}
+
+% ── D.2  Split-MNIST: standalone vs HN (suffocated), all methods ──────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-trajectory_2-7-bars.pdf}
+    \caption{%
+        \textbf{Split-MNIST --- all methods, standalone MH CNN
+        (left) vs.\ suffocated hypernetwork at $d_h = 8$ (right).}
+        Bars show mean final average accuracy after all five tasks; BWT
+        is annotated on each bar.
+        The left panel corresponds to Appendix~B
+        (Figure~\ref{fig:standalone_mnist}, bottom row); the right panel
+        corresponds to the main-text suffocated-regime experiment
+        (Figure~\ref{fig:hn_suffocated}).
+        %
+        On the standalone benchmark most methods cluster near $96\%$, with
+        \texttt{ONG} and \texttt{FNG} as notable exceptions.
+        Under extreme compression ($d_h = 8$) the ranking restructures
+        substantially: \texttt{Adam} maintains high accuracy (93.4\%) while
+        Fisher-based projection methods (\texttt{iFOPNG}, \texttt{FOPNG},
+        \texttt{FNG}) collapse to 55--70\% despite near-zero BWT, revealing
+        the plasticity failure described in the main text.
+        \texttt{OGD} is the most resilient projection method (86.6\%),
+        consistent with its Fisher-free projection mechanism.
+        Note that several methods completed fewer than three seeds in the
+        suffocated regime; bars with low seed counts should be interpreted
+        with caution.
+    }
+    \label{fig:traj_mnist}
+\end{figure}
+
+% ── D.3  Summary accuracy table ───────────────────────────────────────────────
+
+\begin{table}[H]
+\centering
+\caption{%
+    \textbf{Mean average accuracy (\%) across all benchmarks and methods.}
+    Values are seed-averaged final average accuracy after all tasks.
+    Standalone benchmarks use multi-head target networks; HN benchmarks use
+    the chunked hypernetwork architecture.
+    $^\dagger$MNIST HN is the suffocated regime ($d_h = 8$).
+    $^\ddagger$CIFAR-100 MH EWC used $\lambda = 10$; $\lambda = 50$
+    collapsed.
+    \textbf{Bold}: best per column.
+    \textbf{\textit{Bold italic}}: \texttt{iFOPNG}.
+    ---: insufficient seeds or unavailable.
+}
+\label{tab:full_summary}
+\resizebox{\linewidth}{!}{%
+\setlength{\tabcolsep}{6pt}%
+\begin{tabular}{lccccccc}
+\toprule
+& \multicolumn{4}{c}{\textit{Standalone}}
+& \multicolumn{3}{c}{\textit{Hypernetwork}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-8}
+Method
+  & \shortstack{Perm-\\MNIST}
+  & \shortstack{MNIST\\MH}
+  & \shortstack{CIFAR-10\\MH}
+  & \shortstack{CIFAR-100\\MH$^\ddagger$}
+  & \shortstack{MNIST HN\\($d_h{=}8$)$^\dagger$}
+  & \shortstack{CIFAR-10\\HN}
+  & \shortstack{CIFAR-100\\HN} \\
+\midrule
+\textbf{\textit{iFOPNG}} (ours)
+  & \textbf{\textit{86.1}} & 95.9 & 81.2 & 42.7
+  & 69.9 & 85.6 & 37.8 \\
+FOPNG
+  & 85.8 & 95.3 & 67.4 & 37.1
+  & 59.9 & 77.5 & 33.8 \\
+EWC
+  & 83.8 & 93.2 & \textbf{81.9} & 46.8
+  & 84.5 & 81.5 & \textbf{45.5} \\
+OGD
+  & 80.8 & \textbf{96.1} & 71.4 & \textbf{49.2}
+  & \textbf{86.6} & 78.3 & 32.3 \\
+FNG
+  & 69.2 & 86.1 & 70.0 & 37.5
+  & 54.8 & 80.9 & 32.5 \\
+ONG
+  & 63.0 & 87.1 & 68.8 & 32.3
+  & ---  & 67.2 & 20.1 \\
+SGD
+  & 84.9 & \textbf{96.1} & 68.9 & 45.4
+  & 79.8 & 84.1 & 18.7 \\
+Adam
+  & 68.2 & 95.1 & 68.1 & 40.5
+  & \textbf{93.4} & \textbf{90.1} & 42.0 \\
+\midrule
+Random chance
+  & 50.0 & 50.0 & 50.0 & 10.0
+  & 50.0 & 50.0 & 10.0 \\
+\bottomrule
+\end{tabular}}
+\end{table}

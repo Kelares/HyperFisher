@@ -1,0 +1,63 @@
+This is BibTeX, Version 0.99e (TeX Live 2026/Arch Linux)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: apacite.bst
+Reallocated glb_str_ptr (elt_size=8) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=8) to 20 items from 10.
+Reallocated singl_function (elt_size=8) to 100 items from 50.
+Reallocated wiz_functions (elt_size=8) to 6000 items from 3000.
+Reallocated singl_function (elt_size=8) to 100 items from 50.
+Reallocated singl_function (elt_size=8) to 100 items from 50.
+Reallocated wiz_functions (elt_size=8) to 9000 items from 6000.
+Reallocated singl_function (elt_size=8) to 100 items from 50.
+Database file #1: references.bib
+Warning--I didn't find a database entry for "Yadav_Mendoza_Korrapati_2025"
+apacite.bst [2013/07/21 v6.03 APA bibliography style]
+Warning--No journal in amari_natural_1998
+Warning--No journal in chauhan_brief_2024
+Warning--No journal in de_lange_continual_2022
+Warning--No journal in grossberg_how_1980
+Warning--No journal in kirkpatrick_overcoming_2017
+You've used 15 entries,
+            6951 wiz_defined-function locations,
+            1389 strings with 14487 characters,
+and the built_in function-call counts, 33633 in all, are:
+= -- 4027
+> -- 477
+< -- 1412
++ -- 1513
+- -- 30
+* -- 2146
+:= -- 5874
+add.period$ -- 68
+call.type$ -- 15
+change.case$ -- 242
+chr.to.int$ -- 0
+cite$ -- 35
+duplicate$ -- 1043
+empty$ -- 1340
+format.name$ -- 578
+if$ -- 6587
+int.to.chr$ -- 0
+int.to.str$ -- 45
+missing$ -- 0
+newline$ -- 465
+num.names$ -- 120
+pop$ -- 865
+preamble$ -- 1
+purify$ -- 59
+quote$ -- 0
+skip$ -- 1790
+stack$ -- 0
+substring$ -- 2089
+swap$ -- 602
+text.length$ -- 203
+text.prefix$ -- 0
+top$ -- 1
+type$ -- 1200
+warning$ -- 5
+while$ -- 202
+width$ -- 0
+write$ -- 599
+(There were 6 warnings)

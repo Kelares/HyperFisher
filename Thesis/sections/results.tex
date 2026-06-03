@@ -1,0 +1,312 @@
+% ─────────────────────────────────────────────────────────────────────────────
+% RESULTS SECTION — HyperFisher Thesis
+% Assumes figures live in a /figures subfolder in Overleaf.
+% Rename files as discussed; VERIFY_ prefix removed below.
+% ─────────────────────────────────────────────────────────────────────────────
+
+\section{Results}
+\label{sec:results}
+
+This section reports the empirical outcomes of the four sub-research questions
+in the order stated in the introduction.  For each, we describe the experimental
+scope, present the key quantitative findings, and highlight the most important
+patterns; detailed interpretation is reserved for the Discussion.
+\emph{Average accuracy} ($A_T$) is the primary evaluation metric, and
+\emph{backward transfer} (BWT) is reported as a secondary measure of forgetting.
+Standalone target-network results that establish the reference behaviour of
+projection methods in their original, non-hypernetwork setting are provided in
+Appendix~B (Figures~\ref{fig:standalone_mnist}--\ref{fig:standalone_cifar100}).
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ1: Constructive Synergy or Architectural Conflict?}
+\label{sec:results_rq1}
+
+This subsection examines whether combining gradient projection with the
+hypernetwork's functional regularizer yields better continual learning than
+either component alone.  Three hypernetwork regimes are evaluated: a
+standard-capacity Split-CIFAR10 network, an extremely compressed Split-MNIST
+network (suffocated regime, $d_h = 8$), and a ten-task Split-CIFAR100 network.
+
+\paragraph{Standard hypernetwork --- Split-CIFAR10.}
+Figure~\ref{fig:hn_cifar10} presents average accuracy and BWT for all eight
+methods on Split-CIFAR10 with a standard-capacity hypernetwork and full
+normalization enabled (see Section~\ref{sec:results_rq2}).
+Plain \texttt{SGD} at $84.1\%$ establishes the unconstrained lower reference
+point, and \texttt{Adam} at $90.1\%$ defines the upper frontier a standalone
+hypernetwork can reach without projection.  Every projection method surpasses
+SGD: \texttt{iFOPNG} leads at $85.6\%$, followed by \texttt{EWC} ($81.5\%$),
+\texttt{FNG} ($80.9\%$), \texttt{OGD} ($78.3\%$), \texttt{FOPNG} ($77.5\%$),
+and \texttt{ONG} ($67.2\%$), confirming a partial constructive synergy with the
+hypernetwork's regularizer.  However, none match \texttt{Adam}, which leads by
+$4.5$~pp over the best projection method.
+
+The BWT values reveal an instructive asymmetry: \texttt{Adam} has effectively
+zero backward transfer ($\mathrm{BWT} \approx 0.000$), while all projection
+methods exhibit small but nonzero forgetting (iFOPNG: $-0.013$; FOPNG:
+$-0.015$).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-cifar10_8.png}
+    \caption{%
+        \textbf{Split-CIFAR10 hypernetwork (5 tasks, 50 epochs
+        per task, AdamW first-task initialisation at $10^{-3}$).}
+        Left: average accuracy (bars show mean over seeds; circles show
+        individual seeds).  Right: backward transfer.  Methods are sorted by
+        average accuracy on the left panel.  \texttt{Adam} defines the
+        projection-free upper frontier; \texttt{SGD} defines the
+        unconstrained lower reference.  All projection methods trained with
+        full normalization (Section~\ref{sec:results_rq2}) exceed SGD but fall
+        short of Adam.
+    }
+    \label{fig:hn_cifar10}
+\end{figure}
+
+\paragraph{Suffocated regime --- Split-MNIST, $d_h = 8$.}
+The embedding dimension $d_h = 8$ was selected via a three-point sweep over
+$d_h \in \{4, 8, 16\}$, presented as an ablation
+in Figure~\ref{fig:dh_sweep}.
+That sweep shows the projection--\texttt{Adam} gap is largest at $d_h = 8$
+($23.5$~pp), falls to $14.0$~pp at $d_h = 4$ where seed variance becomes
+extreme and results near-random, and shrinks to $9.4$~pp at $d_h = 16$
+as the projection methods partially recover.
+$d_h = 8$ was retained as the most diagnostically informative level: the
+failure mode is severe and replicable, but the network has sufficient
+capacity for the projections to converge consistently.
+
+Figure~\ref{fig:hn_suffocated} presents the full method comparison at
+$d_h = 8$.
+\texttt{Adam} leads at $93.4\%$.
+The Fisher-free projection method \texttt{OGD} is the strongest projection
+baseline at $86.6\%$, followed by \texttt{EWC} at $84.5\%$ and
+\texttt{SGD} at $79.8\%$.
+The Fisher-based methods fall sharply below: \texttt{iFOPNG} at $69.9\%$,
+\texttt{FOPNG} at $59.9\%$, and \texttt{FNG} at $54.8\%$ --- gaps of
+$23$--$39$~pp against \texttt{Adam}.
+
+The BWT panel reveals the mechanism underlying this collapse.
+\texttt{iFOPNG}, \texttt{FOPNG}, and \texttt{FNG} all achieve near-zero
+backward transfer ($\mathrm{BWT} \approx 0.00$), while \texttt{Adam}
+has small negative BWT ($-0.015$) and \texttt{SGD} forgets more
+substantially ($-0.13$).
+The Fisher-based projection methods are not failing at retention --- they
+are failing at plasticity.
+In a $d_h = 8$ bottleneck, the curvature-weighted projection constraint
+exhausts the few available gradient directions protecting prior tasks,
+leaving negligible residual capacity for learning new ones.
+\texttt{OGD}'s relative resilience is consistent with this interpretation:
+as a Fisher-free method its subspace constraint is less aggressive, leaving
+more gradient budget for forward transfer.
+Seed-level variance is substantially elevated for all projection methods,
+and several methods completed fewer than three seeds at this compression
+level; confidence intervals should be interpreted cautiously.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/hypernetwork-suffocated_7.png}
+    \caption{%
+        \textbf{Split-MNIST SH hypernetwork, suffocated
+        regime ($d_h = 8$, 5 tasks, 15 epochs per task, \texttt{AdamW}
+        first-task initialisation).}
+        Left: average accuracy (bars show mean over seeds; circles show
+        individual seeds; note that several methods completed fewer than
+        three seeds).
+        Right: backward transfer.
+        The dotted line marks \texttt{Adam}'s mean accuracy ($93.4\%$).
+        Fisher-based projection methods (\texttt{iFOPNG}, \texttt{FOPNG},
+        \texttt{FNG}) achieve near-zero BWT but much lower accuracy than
+        \texttt{Adam}, revealing a plasticity failure rather than a
+        retention failure in the extreme compression regime.
+        The Fisher-free \texttt{OGD} is the best-performing projection
+        method at $86.6\%$.
+    }
+    \label{fig:hn_suffocated}
+\end{figure}
+
+\paragraph{Extended task count --- Split-CIFAR100.}
+At ten tasks on Split-CIFAR100 (Appendix~Figure~\ref{fig:hn_cifar100}),
+\texttt{EWC} unexpectedly leads at $45.5\%$, with \texttt{Adam} second at
+$42.0\%$ and \texttt{iFOPNG} third at $37.8\%$ (random baseline: $10.0\%$).
+This partial rank reversal, in which soft regularization overtakes both Adam
+and gradient projection, differs from the five-task CIFAR10 pattern and is
+addressed in the Discussion.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ2: Normalization Resolves the Gradient Pathology}
+\label{sec:results_rq2}
+
+This subsection reports the three-condition normalization ablation
+(Split-CIFAR10 hypernetwork; 197 chunks, $\approx$6000 output neurons;
+unnormalized conditions ran for 10 epochs per task with early stopping,
+full normalization for 50 epochs).
+Figure~\ref{fig:norm_conditioning} traces the $\log_{10}$ condition number of
+the projection kernel $G^\top \hat{F} G$ over training steps;
+Figure~\ref{fig:norm_ablation} shows the resulting average accuracy and BWT
+under each condition.
+
+\paragraph{Without normalization.}
+The right panel of Figure~\ref{fig:norm_conditioning} shows the condition
+number reaching $10^{10.8}$ at the T2$\to$T3 task transition for the
+most-affected seed, stabilizing near $10^{8.8}$--$10^{9.0}$ for two others.
+At this scale, numerical inversion of the projection kernel is unreliable,
+effectively zeroing the projected gradient so that the method operates as an
+unconstrained optimizer with unstable Fisher scaling.  The result is $72.2\%$
+average accuracy and $\mathrm{BWT} = -0.070$ --- worse than plain SGD ($84.1\%$)
+despite identical hyperparameters.  The pathology therefore not only eliminates
+the benefit of projection but actively degrades performance below the
+projection-free baseline.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/normalization-conditioning_8-9.png}
+    \caption{%
+        \textbf{Projection kernel condition number over training ---
+        \texttt{iFOPNG} on Split-CIFAR10 HN.}
+        Each line is one seed (legend shows final average accuracy).
+        Task boundaries are marked by vertical dashed lines; gaps indicate
+        early stopping.
+        Left (full normalization): $\log_{10}\kappa(G^\top \hat{F}G)$ remains bounded within $[10^{1.3},\,10^{3.3}]$ throughout.
+        Right (no normalization): condition number spikes to
+        $10^{10.8}$ at the T2$\to$T3 transition, causing projection failure.
+        Diamond markers indicate end-of-task condition number values.
+    }
+    \label{fig:norm_conditioning}
+\end{figure}
+
+\paragraph{Gradient-only normalization.}
+Applying unit-$\ell_2$ column normalization to $G$ alone, without rescaling
+$\hat{F}$, fails to resolve the pathology.  Average accuracy falls further to
+$68.9\%$ ($\mathrm{BWT} = -0.060$) and variance across seeds remains high
+(Figure~\ref{fig:norm_ablation}).  As the left panel of
+Figure~\ref{fig:norm_conditioning} illustrates, the raw Fisher magnitudes from
+the chunked backward passes still span several orders of magnitude, preserving
+the ill-conditioning of $G^\top\hat{F}G$ even when $G$ itself is normalized.
+Partial normalization is therefore insufficient.
+
+\paragraph{Full normalization.}
+Combining column-wise $\ell_2$ normalization of $G$ with absolute-maximum
+scaling of $\hat{F}$ fully resolves the pathology.  The left panel of
+Figure~\ref{fig:norm_conditioning} shows $\log_{10}\kappa(G^\top\hat{F}G)$
+bounded within $[10^{1.3},\,10^{3.3}]$ across all seeds and task transitions
+--- a reduction of more than seven orders of magnitude.  Figure~\ref{fig:norm_ablation}
+shows the result: average accuracy recovers to $85.8\%$ and BWT improves to
+$-0.013$, a 5.7~pp reduction in forgetting relative to no normalization.
+The improvement is consistent across all three seeds.  Full normalization is
+adopted for all hypernetwork experiments in this thesis.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/normalization-ablation_8-9-10.png}
+    \caption{%
+        \textbf{Normalization ablation --- \texttt{iFOPNG} on Split-CIFAR10 HN
+        (Sub-RQ2).}
+        Three conditions: no normalization, gradient-only
+        normalization, and full normalization.
+        Left: average accuracy with mean annotated on each bar.
+        Right: backward transfer.  Circles show individual seeds; bars show
+        the mean.  The dotted line on the left panel marks random-chance
+        performance ($50\%$ for binary per-task classification).
+    }
+    \label{fig:norm_ablation}
+\end{figure}
+
+\paragraph{Diagnostic: SGD first-task convergence threshold.}
+A diagnostic experiment (Appendix~Figure~\ref{fig:sgd_threshold})
+identifies an inconsistency in the FOPNG paper's stated first-task protocol.
+At FOPNG's learning rate of $\eta = 10^{-5}$ on Split-MNIST, five epochs of
+SGD training yield only $\approx 21\%$ accuracy --- barely above the $50\%$
+random baseline.  The empirical convergence threshold lies between
+$5\times10^{-5}$ and $10^{-4}$.  All standalone experiments in this thesis
+use $\eta = 10^{-3}$ for first-task SGD, deviating from but empirically
+improving upon the original protocol.
+
+
+% ───ADD T TEST HERE. SPLIT MNIST LOW SEED COUNT FOR FOPNG─────────────────────────────────────────────────────
+\subsection{Sub-RQ3: Parameter Inertia via the Combined Fisher Metric}
+\label{sec:results_rq3}
+
+This subsection evaluates whether replacing FOPNG's task-specific natural
+gradient metric $\hat{F}_\mathrm{new}$ with the combined metric
+$F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ systematically improves
+task retention across benchmarks.  Figure~\ref{fig:ifopng_comparison} presents mean
+average accuracy for both methods across all six benchmarks.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/projection-comparison_1-2-4-6-7-8.png}
+    \caption{%
+        \textbf{iFOPNG vs.\ FOPNG across six benchmarks (Sub-RQ3).}
+        Grouped bars show mean average accuracy; circles show individual seeds;
+        error bars show $\pm 1$ standard deviation.  The dashed vertical line
+        separates standalone (left) from hypernetwork (right) settings.
+        \texttt{iFOPNG} uses the combined metric
+        $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$;
+        \texttt{FOPNG} uses only $\hat{F}_\mathrm{new}$.
+    }
+    \label{fig:ifopng_comparison}
+\end{figure}
+
+On the two simplest benchmarks --- Permuted-MNIST and
+Split-MNIST multi-head --- the two methods are nearly
+indistinguishable ($86.0\%$ vs.\ $85.9\%$ and $95.6\%$ vs.\ $95.2\%$
+respectively).  Both tasks are low-dimensional with limited inter-task Fisher
+overlap, so $\hat{F}_\mathrm{old}$ contributes little additional mass beyond
+what $\hat{F}_\mathrm{new}$ already captures; parameter inertia has no
+accumulated weight to draw on.
+
+A clear separation emerges on harder benchmarks.  On Split-CIFAR10 multi-head,
+\texttt{iFOPNG} reaches $81.1\%$ versus FOPNG's $67.4\%$, a
+gap of $14.1$~pp.  On Split-CIFAR100 multi-head the advantage
+is $5.6$~pp ($42.7\%$ vs.\ $37.1\%$).
+
+The advantage carries over into the hypernetwork settings: $9.8$~pp on
+Split-MNIST HN ($70.0\%$ vs.\ $60.0\%$) and $8.6$~pp on
+Split-CIFAR10 HN ($85.6\%$ vs.\ $77.5\%$).  Across all six
+benchmarks the advantage of \texttt{iFOPNG} grows with task difficulty and
+cumulative Fisher overlap.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Sub-RQ4: Fisher Accumulation Operator}
+\label{sec:results_rq4}
+
+This subsection compares two strategies for accumulating $F_\mathrm{old}$
+across tasks under the iFOPNG combined Fisher metric: the element-wise maximum
+operator (MAX) and an exponential moving average (EMA).  Both are evaluated on
+a twenty-task Permuted-MNIST sequence with five random seeds.
+Figure~\ref{fig:ema_trajectory} presents the average accuracy and backward
+transfer trajectories over all twenty tasks; the per-seed statistical
+comparison is provided in Appendix~Figure~\ref{fig:ema_vs_max}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/ema-vs-max-trajectory_14-15.png}
+    \caption{%
+        \textbf{EMA vs.\ MAX Fisher accumulation trajectories on 20-task
+        Permuted-MNIST (Sub-RQ4), $n = 5$ seeds.}
+        Thick lines show the seed-averaged trajectory; thin lines show
+        individual seeds.
+        Left: average accuracy over tasks seen so far, evaluated after each
+        task is trained.
+        Right: backward transfer over the same sequence.
+        MAX leads EMA by a consistent margin across all five seeds; both
+        strategies produce closely tracking trajectories throughout the
+        full twenty-task sequence.
+    }
+    \label{fig:ema_trajectory}
+\end{figure}
+
+A paired $t$-test on final average accuracy establishes MAX as the superior
+operator: $t(4) = 14.43$, $p < 0.001$, Cohen's $d = 7.22$, with MAX leading
+by a consistent $1.51$--$1.65$~pp across every seed pair without exception
+(Appendix~Figure~\ref{fig:ema_vs_max}).  The result is statistically
+unambiguous and replicates across all five seeds.  In absolute terms the
+margin is practically negligible --- $1.60$~pp on a benchmark where both
+variants decline by more than $30$~pp over the full sequence --- but the
+direction is consistent and the effect size large, leaving no ambiguity about
+which operator to prefer.
+
+The MAX operator is therefore preferred as the
+simpler, marginally better, and hyperparameter-free alternative.
