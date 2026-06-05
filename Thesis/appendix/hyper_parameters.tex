@@ -1,8 +1,8 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% Appendix E: Hyperparameter Tables
+% Appendix F: Hyperparameter Tables
 % ─────────────────────────────────────────────────────────────────────────────
 
-\section*{Appendix E: Hyperparameter Tables}
+\section*{Appendix F: Hyperparameter Tables}
 \label{app:hyperparameters}
 
 All values are sourced directly from the W\&B run configs (CSV logs) unless
@@ -14,7 +14,7 @@ Values that are constant across all experiments in a group are stated in the
 relevant caption rather than repeated in every row.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.1 \quad Standalone Target-Network Experiments}
+\subsection*{F.1 \quad Standalone Target-Network Experiments}
 \label{app:hyperparameters_standalone}
 
 \begin{table}[H]
@@ -67,7 +67,7 @@ Split-CIFAR100 MH & $10^\ddagger$ & Confirmed; $\lambda=50$ excluded \\
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.2 \quad Hypernetwork Experiments}
+\subsection*{F.2 \quad Hypernetwork Experiments}
 \label{app:hyperparameters_hn}
 
 All HN experiments: \texttt{model = HyperNetwork}, \texttt{regulizer = True},
@@ -79,7 +79,7 @@ $\beta = 0.001$ (\texttt{lam = 0.001}), $\eta = 10^{-3}$, $n = 5$ seeds.
     \textbf{Hypernetwork architecture and training parameters.}
     \texttt{c\_emb} = chunk embedding dim; \texttt{t\_emb} = task embedding dim.
     $^\dagger$Exp~407: \texttt{first\_task\_opt = None} in logs;
-    likely AdamW by code default (see E.6).
+    likely AdamW by code default (see F.6).
     $^\dagger$Exp~411: extracted from the 35 completed runs at
     chunk\,=\,6\,000, $d_h$\,=\,32, \texttt{normalize\,=\,True}.
 }
@@ -103,7 +103,7 @@ dh sweep $d_h = 16$             & 5  & 10 & 15 & AdamW & 16 & 64 & 32 & 32 & 80 
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.3 \quad Normalization Ablation}
+\subsection*{F.3 \quad Normalization Ablation}
 \label{app:hyperparameters_norm}
 
 All three conditions share the same architecture:
@@ -135,7 +135,7 @@ Full normalization & \texttt{True}  & \checkmark & \checkmark & 3 & 85.8\% & $-0
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.4 \quad Sub-RQ4: Fisher Accumulation Operators}
+\subsection*{F.4 \quad Sub-RQ4: Fisher Accumulation Operators}
 \label{app:hyperparameters_rq4}
 
 Both conditions: 20-task Permuted-MNIST, \texttt{TargetNetwork},
@@ -161,7 +161,7 @@ EMA (\texttt{iFOPNG\_ema}, $\alpha=0.5$) & 20 & 10 & 5 & $10^{-4}$ & 60\,000 \\
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.5 \quad SGD Convergence Threshold Diagnostic}
+\subsection*{F.5 \quad SGD Convergence Threshold Diagnostic}
 \label{app:dh_sweep}
 
 The SGD threshold diagnostic (Figure~\ref{fig:sgd_threshold}) sweeps
@@ -172,7 +172,7 @@ Convergence threshold: $\eta = 10^{-4}$.
 All standalone experiments in this thesis use $\eta = 10^{-3}$.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{E.6 \quad Notes on Confounds and Uncertainties}
+\subsection*{F.6 \quad Notes on Confounds and Uncertainties}
 \label{sec:notes_confounds}
 
 \paragraph{Exp~407 \texttt{first\_task\_opt = None}.}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  3 JUN 2026 12:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  5 JUN 2026 03:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -784,7 +784,7 @@ Package epstopdf Info: Source file: <logo.eps>
 (epstopdf)             Command: <repstopdf --outfile=logo-eps-converted-to.pdf logo.eps>
 (epstopdf)             \includegraphics on input line 12.
 Package epstopdf Info: Output file is already uptodate.
-<logo-eps-converted-to.pdf, id=192, 339.2675pt x 86.3225pt>
+<logo-eps-converted-to.pdf, id=196, 339.2675pt x 86.3225pt>
 File: logo-eps-converted-to.pdf Graphic file (type pdf)
 <use logo-eps-converted-to.pdf>
 Package pdftex.def Info: logo-eps-converted-to.pdf  used on input line 12.
@@ -900,164 +900,149 @@ LaTeX Font Info:    Font shape `T1/fvm/m/n' will be
 Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/pplj/m/sc/10'.
 (microtype)             Ignoring protrusion settings for this character.
- [2] [3]) (./sections/related_work.tex [4] [5] [6]
+ [2] [3]) [4] (./sections/related_work.tex [5] [6] [7] [8]) (./sections/methods.tex [9]
 
-Package natbib Warning: Citation `Yadav_Mendoza_Korrapati_2025' on page 7 undefined on input line 139.
+Package natbib Warning: Citation `kingma_adam_2014' on page 10 undefined on input line 100.
 
-[7] [8]) (./sections/methods.tex [9] [10]
-LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 98.
+[10]
+LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 128.
  (/usr/share/texmf-dist/tex/latex/psnfss/ufplmbb.fd
 File: ufplmbb.fd 2003/10/30 Fontinst v1.914 font definitions for U/fplmbb.
-) [11] [12] [13]
-Overfull \hbox (4.47778pt too wide) in paragraph at lines 267--279
+) [11] [12]
+Overfull \hbox (4.47778pt too wide) in paragraph at lines 257--268
 \T1/pplj/m/n/10.95 (-20) get net-work in all hy-per-net-work con-fig-u-ra-tions: \T1/fvm/m/n/10.95 PyTorch\T1/pplj/m/n/10.95 (-20) 's \T1/fvm/m/n/10.95 functional_call
  []
 
-[14]) (./sections/experiment_design.tex [15]
-
-Package natbib Warning: Citation `Yadav_Mendoza_Korrapati_2025' on page 16 undefined on input line 40.
-
-[16]
-Overfull \hbox (8.88057pt too wide) in paragraph at lines 78--87
-[] []\T1/pplj/m/sc/10.95/80ls (-20) uni-form learn-ing rate for hy-per-net-work ex-per-i-ments.[] \T1/pplj/m/n/10.95 (-20) Rather
- []
-
-[17] [18]
-LaTeX Font Info:    Font shape `T1/fvm/m/it' in size <10.95> not available
-(Font)              Font shape `T1/fvm/m/sl' tried instead on input line 177.
-LaTeX Font Info:    Font shape `T1/fvm/m/sl' will be
-(Font)              scaled to size 9.30756pt on input line 177.
-
-Overfull \hbox (14.18117pt too wide) in paragraph at lines 203--210
+[13]) (./sections/experiment_design.tex [14] [15] [16]
+Overfull \hbox (14.18117pt too wide) in paragraph at lines 121--128
 []\T1/pplj/m/n/10.95 (-20) Incoming
  []
 
-[19]
-Overfull \hbox (12.36153pt too wide) in paragraph at lines 211--215
+
+Overfull \hbox (12.36153pt too wide) in paragraph at lines 129--133
 []\T1/pplj/m/n/10.95 (-20) Each in-com-
  []
 
 
-Overfull \hbox (7.64449pt too wide) in paragraph at lines 216--220
+Overfull \hbox (7.64449pt too wide) in paragraph at lines 134--138
 []\T1/pplj/m/n/10.95 (-20) Gradient batches
  []
 
-
-Overfull \hbox (16.07373pt too wide) in paragraph at lines 244--249
-\T1/pplj/m/n/10.95 (-20) task Fisher over-lap. Tests long-horizon re-ten-tion un-der input-distribution
- []
-
-
-Overfull \hbox (5.08456pt too wide) in paragraph at lines 250--253
-[]\T1/pplj/m/n/10.95 (-20) Canonical multi-head
- []
-
-[20]
-Overfull \hbox (7.60118pt too wide) in paragraph at lines 260--265
-[]\T1/pplj/m/n/10.95 (-20) The most dis-crim-
- []
-
-) [21] (./sections/results.tex
-<figures/hypernetwork-cifar10_8.png, id=493, 709.33005pt x 319.4334pt>
+[17]) (./sections/results.tex [18]
+<figures/hypernetwork-cifar10_8.png, id=479, 709.33005pt x 319.4334pt>
 File: figures/hypernetwork-cifar10_8.png Graphic file (type png)
 <use figures/hypernetwork-cifar10_8.png>
 Package pdftex.def Info: figures/hypernetwork-cifar10_8.png  used on input line 51.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
- [22]
-
-LaTeX Warning: Reference `fig:dh_sweep' on page 23 undefined on input line 69.
-
-[23 <./figures/hypernetwork-cifar10_8.png>]
-<figures/hypernetwork-suffocated_7.png, id=514, 709.33005pt x 319.4334pt>
+ [19]
+<figures/hypernetwork-suffocated_7.png, id=492, 709.33005pt x 319.4334pt>
 File: figures/hypernetwork-suffocated_7.png Graphic file (type png)
 <use figures/hypernetwork-suffocated_7.png>
 Package pdftex.def Info: figures/hypernetwork-suffocated_7.png  used on input line 107.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
 LaTeX Font Info:    Font shape `T1/fvm/b/n' will be
 (Font)              scaled to size 8.50006pt on input line 123.
- [24 <./figures/hypernetwork-suffocated_7.png>]
-<figures/normalization-conditioning_8-9.png, id=528, 779.7933pt x 376.16534pt>
+ [20 <./figures/hypernetwork-cifar10_8.png>] [21 <./figures/hypernetwork-suffocated_7.png>]
+<figures/normalization-conditioning_8-9.png, id=515, 779.7933pt x 376.16534pt>
 File: figures/normalization-conditioning_8-9.png Graphic file (type png)
 <use figures/normalization-conditioning_8-9.png>
 Package pdftex.def Info: figures/normalization-conditioning_8-9.png  used on input line 163.
 (pdftex.def)             Requested size: 358.50473pt x 172.94057pt.
- [25 <./figures/normalization-conditioning_8-9.png>]
-<figures/normalization-ablation_8-9-10.png, id=541, 637.06004pt x 318.7107pt>
+<figures/normalization-ablation_8-9-10.png, id=520, 637.06004pt x 318.7107pt>
 File: figures/normalization-ablation_8-9-10.png Graphic file (type png)
 <use figures/normalization-ablation_8-9-10.png>
 Package pdftex.def Info: figures/normalization-ablation_8-9-10.png  used on input line 201.
 (pdftex.def)             Requested size: 268.87854pt x 134.51895pt.
-<figures/projection-comparison_1-2-4-6-7-8.png, id=544, 637.4214pt x 354.6048pt>
+ [22 <./figures/normalization-conditioning_8-9.png>]
+<figures/projection-comparison_1-2-4-6-7-8.png, id=530, 637.4214pt x 354.6048pt>
 File: figures/projection-comparison_1-2-4-6-7-8.png Graphic file (type png)
 <use figures/projection-comparison_1-2-4-6-7-8.png>
 Package pdftex.def Info: figures/projection-comparison_1-2-4-6-7-8.png  used on input line 238.
 (pdftex.def)             Requested size: 358.50473pt x 199.44305pt.
- [26 <./figures/normalization-ablation_8-9-10.png>]
-<figures/ema-vs-max-trajectory_14-15.png, id=557, 1001.4213pt x 381.3447pt>
+ [23 <./figures/normalization-ablation_8-9-10.png>]
+<figures/ema-vs-max-trajectory_14-15.png, id=543, 1001.4213pt x 381.3447pt>
 File: figures/ema-vs-max-trajectory_14-15.png Graphic file (type png)
 <use figures/ema-vs-max-trajectory_14-15.png>
-Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.png  used on input line 285.
+Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.png  used on input line 289.
 (pdftex.def)             Requested size: 358.50473pt x 136.51588pt.
- [27 <./figures/projection-comparison_1-2-4-6-7-8.png>]) (./sections/discussion.tex [28 <./figures/ema-vs-max-trajectory_14-15.png>] [29] [30] [31]) (./sections/conclusions.tex [32] [33]) [34] (./main.bbl
+ [24 <./figures/projection-comparison_1-2-4-6-7-8.png>]) (./sections/discussion.tex [25 <./figures/ema-vs-max-trajectory_14-15.png>] [26] [27] [28]) (./sections/conclusions.tex [29] [30]) [31] (./main.bbl
 Underfull \hbox (badness 1303) in paragraph at lines 232--249
 []\T1/pplj/m/n/10.95 (+20) Garg, I., Kolhe, N., Peng, A., & Gopalam, R.  (2026).  \T1/pplj/m/it/10.95 (+20) Fisher-
  []
 
-[35]) [36] (./appendix/proof_ifopng.tex
+[32]) [33] (./appendix/proof_ifopng.tex
 Overfull \hbox (34.86212pt too wide) in paragraph at lines 15--16
 [][]\T1/pplj/b/n/10.95 (-20) Assumption 1 \T1/pplj/m/n/10.95 (-20) (Reg-u-lar-ity)\T1/pplj/b/n/10.95 (-20) . []$\OML/zplm/m/it/10.95 F[]$ \T1/pplj/m/it/10.95 (-20) is pos-i-tive def-i-nite and the ma-trix $\OML/zplm/m/it/10.95 A \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 G[]F[] F[] F[] G$
  []
 
-) (./appendix/standalone_targetnetwork.tex [37
+) (./appendix/standalone_targetnetwork.tex [34
 
 ]
-<figures/standalone-mnist_1-2.png, id=660, 709.33005pt x 511.6716pt>
+<figures/standalone-mnist_1-2.png, id=648, 709.33005pt x 511.6716pt>
 File: figures/standalone-mnist_1-2.png Graphic file (type png)
 <use figures/standalone-mnist_1-2.png>
 Package pdftex.def Info: figures/standalone-mnist_1-2.png  used on input line 23.
 (pdftex.def)             Requested size: 358.50473pt x 258.60681pt.
-<figures/standalone-cifar10_4.png, id=661, 709.33005pt x 319.4334pt>
+<figures/standalone-cifar10_4.png, id=649, 709.33005pt x 319.4334pt>
 File: figures/standalone-cifar10_4.png Graphic file (type png)
 <use figures/standalone-cifar10_4.png>
 Package pdftex.def Info: figures/standalone-cifar10_4.png  used on input line 54.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
- [38 <./figures/standalone-mnist_1-2.png>]
-<figures/VERIFY_standalone-cifar100_6.png, id=668, 709.33005pt x 319.4334pt>
+ [35 <./figures/standalone-mnist_1-2.png>]
+<figures/VERIFY_standalone-cifar100_6.png, id=656, 709.33005pt x 319.4334pt>
 File: figures/VERIFY_standalone-cifar100_6.png Graphic file (type png)
 <use figures/VERIFY_standalone-cifar100_6.png>
 Package pdftex.def Info: figures/VERIFY_standalone-cifar100_6.png  used on input line 78.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
-) (./appendix/additional_experiments.tex [39 <./figures/standalone-cifar10_4.png> <./figures/VERIFY_standalone-cifar100_6.png>]
-<figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf, id=679, 1079.92044pt x 270.09308pt>
+) (./appendix/hn_ablation.tex [36 <./figures/standalone-cifar10_4.png> <./figures/VERIFY_standalone-cifar100_6.png>]
+<figures/dh-sweep_7-12-13.png, id=666, 637.06004pt x 318.7107pt>
+File: figures/dh-sweep_7-12-13.png Graphic file (type png)
+<use figures/dh-sweep_7-12-13.png>
+Package pdftex.def Info: figures/dh-sweep_7-12-13.png  used on input line 23.
+(pdftex.def)             Requested size: 358.50473pt x 179.35698pt.
+<figures/beta-chunk-sweep_16-17-18.png, id=667, 997.326pt x 314.8563pt>
+File: figures/beta-chunk-sweep_16-17-18.png Graphic file (type png)
+<use figures/beta-chunk-sweep_16-17-18.png>
+Package pdftex.def Info: figures/beta-chunk-sweep_16-17-18.png  used on input line 65.
+(pdftex.def)             Requested size: 358.50473pt x 113.18002pt.
+ [37 <./figures/dh-sweep_7-12-13.png>]
+<figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf, id=675, 787.2612pt x 331.02733pt>
+File: figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf Graphic file (type pdf)
+<use figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf>
+Package pdftex.def Info: figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf  used on input line 113.
+(pdftex.def)             Requested size: 358.50473pt x 150.74394pt.
+) [38 <./figures/beta-chunk-sweep_16-17-18.png>] (./appendix/additional_experiments.tex
+<figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf, id=687, 1079.92044pt x 270.09308pt>
 File: figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf Graphic file (type pdf)
 <use figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf>
 Package pdftex.def Info: figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf  used on input line 23.
 (pdftex.def)             Requested size: 358.50473pt x 89.66263pt.
-<figures/hypernetwork-cifar100_11.png, id=680, 709.33005pt x 319.4334pt>
+ [39 <./figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf>]
+<figures/hypernetwork-cifar100_11.png, id=756, 709.33005pt x 319.4334pt>
 File: figures/hypernetwork-cifar100_11.png Graphic file (type png)
 <use figures/hypernetwork-cifar100_11.png>
 Package pdftex.def Info: figures/hypernetwork-cifar100_11.png  used on input line 58.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
  [40 <./figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf>]
-<figures/sgd_split_mnist_lr_threshold.png, id=752, 450.7239pt x 439.1607pt>
+<figures/sgd_split_mnist_lr_threshold.png, id=827, 450.7239pt x 439.1607pt>
 File: figures/sgd_split_mnist_lr_threshold.png Graphic file (type png)
 <use figures/sgd_split_mnist_lr_threshold.png>
 Package pdftex.def Info: figures/sgd_split_mnist_lr_threshold.png  used on input line 85.
 (pdftex.def)             Requested size: 258.12384pt x 251.50357pt.
  [41 <./figures/hypernetwork-cifar100_11.png>]
-<figures/ema-vs-max-stat_14-15.png, id=759, 709.33005pt x 318.7107pt>
+<figures/ema-vs-max-stat_14-15.png, id=834, 709.33005pt x 318.7107pt>
 File: figures/ema-vs-max-stat_14-15.png Graphic file (type png)
 <use figures/ema-vs-max-stat_14-15.png>
 Package pdftex.def Info: figures/ema-vs-max-stat_14-15.png  used on input line 113.
 (pdftex.def)             Requested size: 358.50473pt x 161.08136pt.
 ) [42 <./figures/sgd_split_mnist_lr_threshold.png>] (./appendix/full_benchmark.tex
-<figures/hypernetwork-trajectory_4-8-bars.pdf, id=770, 706.0779pt x 308.5929pt>
+<figures/hypernetwork-trajectory_4-8-bars.pdf, id=845, 706.0779pt x 308.5929pt>
 File: figures/hypernetwork-trajectory_4-8-bars.pdf Graphic file (type pdf)
 <use figures/hypernetwork-trajectory_4-8-bars.pdf>
 Package pdftex.def Info: figures/hypernetwork-trajectory_4-8-bars.pdf  used on input line 26.
 (pdftex.def)             Requested size: 358.50473pt x 156.6881pt.
  [43 <./figures/ema-vs-max-stat_14-15.png>]
-<figures/hypernetwork-trajectory_2-7-bars.pdf, id=782, 706.0779pt x 308.5929pt>
+<figures/hypernetwork-trajectory_2-7-bars.pdf, id=857, 706.0779pt x 308.5929pt>
 File: figures/hypernetwork-trajectory_2-7-bars.pdf Graphic file (type pdf)
 <use figures/hypernetwork-trajectory_2-7-bars.pdf>
 Package pdftex.def Info: figures/hypernetwork-trajectory_2-7-bars.pdf  used on input line 55.
@@ -1073,7 +1058,7 @@ LaTeX Font Info:    Trying to load font information for TS1+pplj on input line 1
 File: ts1pplj.fd 2004/09/06 font definitions for TS1/pplj.
 )
 Overfull \hbox (15.80386pt too wide) in paragraph at lines 167--173
-\T1/pplj/m/n/10.95 (-20) The SGD thresh-old di-ag-nos-tic (Fig-ure [][]12[][]) sweeps $\OML/zplm/m/it/10.95 ^^Q \OMS/zplm/m/n/10.95 2 f\OT1/pplx/m/n/10.95 10[],  5  \OMS/zplm/m/n/10.95 ^^B  \OT1/pplx/m/n/10.95 10[],  10[],  2  \OMS/zplm/m/n/10.95 ^^B
+\T1/pplj/m/n/10.95 (-20) The SGD thresh-old di-ag-nos-tic (Fig-ure [][]15[][]) sweeps $\OML/zplm/m/it/10.95 ^^Q \OMS/zplm/m/n/10.95 2 f\OT1/pplx/m/n/10.95 10[],  5  \OMS/zplm/m/n/10.95 ^^B  \OT1/pplx/m/n/10.95 10[],  10[],  2  \OMS/zplm/m/n/10.95 ^^B
  []
 
 [47]
@@ -1099,25 +1084,22 @@ L3 programming layer <2026-01-19>
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-
-LaTeX Warning: There were undefined references.
-
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 77E17067AFB6CCC2850222E8F74769D4;11154.
+(rerunfilecheck)             Checksum: 510DE2953968E21E9B5C7426B75EB52F;11377.
  ) 
 Here is how much of TeX's memory you used:
- 22087 strings out of 469515
- 376200 string characters out of 5470808
- 877285 words of memory out of 5000000
- 49064 multiletter control sequences out of 15000+600000
- 831046 words of font info for 971 fonts, out of 8000000 for 9000
+ 22129 strings out of 469515
+ 377491 string characters out of 5470808
+ 885715 words of memory out of 5000000
+ 49091 multiletter control sequences out of 15000+600000
+ 831206 words of font info for 985 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 123i,23n,121p,1512b,676s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbij8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbj8a.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrij8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmb8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmr8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmro8a.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (50 pages, 2441263 bytes).
+ 123i,23n,121p,2171b,676s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbij8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbj8a.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrij8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmb8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmr8a.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
+Output written on main.pdf (50 pages, 2817956 bytes).
 PDF statistics:
- 1021 PDF objects out of 1200 (max. 8388607)
- 803 compressed objects within 9 object streams
- 203 named destinations out of 1000 (max. 500000)
- 202697 words of extra memory for PDF output out of 221844 (max. 10000000)
+ 1092 PDF objects out of 1200 (max. 8388607)
+ 812 compressed objects within 9 object streams
+ 197 named destinations out of 1000 (max. 500000)
+ 202208 words of extra memory for PDF output out of 221844 (max. 10000000)
 

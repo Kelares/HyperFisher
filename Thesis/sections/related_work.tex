@@ -25,11 +25,12 @@ regularization and projection methods, to hypernetwork architectures and the
 structural gap at their intersection.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection{Continual Learning: Taxonomy and the Stability-Plasticity Dilemma}
+\subsection{Continual Learning and the Stability-Plasticity Dilemma}
 
-Modern machine learning systems are predominantly trained on static, i.i.d.\ 
-datasets --- a condition that rarely holds in deployment, where agents must
-adapt to non-stationary data streams while retaining prior knowledge.
+Modern machine learning systems are predominantly trained on fixed datasets
+drawn from a single stationary distribution --- a condition that rarely holds
+in deployment, where agents must adapt to non-stationary data streams while
+retaining prior knowledge.
 The fundamental tension between these two objectives is formalized as the
 \emph{stability-plasticity dilemma} \citep{grossberg_how_1980}: an agent must
 remain plastic enough to absorb novel distributions yet stable enough to resist
@@ -57,24 +58,32 @@ most tractable.
 Within the task-incremental setting, two evaluation protocols govern how the
 network's output layer is organized.
 In the \emph{multi-head} protocol, each task is assigned a dedicated output
-head; at test time the correct head is selected using the known task identity.
-This eliminates output-level interference between tasks but requires that task
-identity be available at inference time, a condition that may be unrealistic
-in deployment.
+head selected at test time using the known task identity, eliminating
+output-level interference between tasks.
 In the \emph{single-head} protocol, all tasks share one output layer,
 requiring the backbone alone to resolve inter-task interference --- a
 substantially harder problem.
-
 \citet{farquhar_towards_2019} demonstrated that multi-head evaluations
-systematically inflate apparent method performance by removing a major source
-of forgetting, and argued that single-head evaluation is the more rigorous
-protocol for assessing continual learning efficacy.
-This distinction has direct implications for how gradient projection methods
-and hypernetworks are evaluated: projection methods were predominantly
-developed and benchmarked in multi-head settings, while hypernetworks
-implement an implicit form of task separation through their generative
-structure.
+systematically inflate apparent method performance by removing a major
+source of forgetting, and argued that single-head evaluation is the more
+rigorous protocol.
 
+This thesis uses multi-head benchmarks for all Split-CIFAR experiments to
+match the evaluation conditions of \citet{garg_fisher-orthogonal_2026} and
+enable direct numerical comparison.
+For Split-MNIST, both protocols are evaluated: the multi-head variant
+replicates \citeauthor{garg_fisher-orthogonal_2026}'s conditions, while the
+single-head variant follows \citet{farquhar_towards_2019}'s recommendation.
+
+It should be noted that \citet{garg_fisher-orthogonal_2026} label their
+Split-MNIST evaluation as single-head; however, replication of their stated
+first-task protocol --- SGD at $\eta = 10^{-5}$ for 5 epochs --- yields
+approximately $21\%$ first-task accuracy, barely above the random baseline,
+making their reported results unattainable under the stated conditions.
+We therefore suspect the original evaluation used multi-head design or a
+different first-task hyperparameter, and report both protocols to provide
+the most informative comparison regardless of which interpretation is
+correct.
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Regularization-Based Approaches}
 
@@ -96,18 +105,10 @@ measured.
 Its principal limitation is that soft penalties permit bounded parameter
 drift: cumulative updates across a long task sequence gradually erode the
 protection of earlier task spaces, a failure mode that becomes increasingly
-pronounced as $T$ grows \citep{farquhar_towards_2019}.
-
-A related limitation concerns baseline comparisons.
-The superiority of complex regularization schemes over vanilla optimizers
-is frequently overstated when those baselines are under-tuned.
-When SGD and Adam baselines are tuned to their optimal hyperparameter regime,
-they often present a competitive threshold that challenges
-or matches more sophisticated approaches --- an empirical reality that our
-baseline evaluations directly address.
+pronounced as $T$ grows \citep{de_lange_continual_2022}.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection{Gradient Projection Methods}
+\subsection{Gradient Projection Methods}  
 
 To enforce strict, non-negotiable protection for prior knowledge rather than
 relying on penalties that can be overcome by sufficiently large gradients,
@@ -136,7 +137,7 @@ projection in the Riemannian geometry defined by the Fisher metric, so that
 the orthogonality constraint respects the curvature of the loss surface.
 The related Fisher Natural Gradient (FNG) \citep{garg_fisher-orthogonal_2026}
 applies the natural gradient without projection, and Orthogonal Natural
-Gradient (ONG) \citep{Yadav_Mendoza_Korrapati_2025} combines natural gradient
+Gradient (ONG) \citep{yadav_ong_2025} combines natural gradient
 preconditioning with Euclidean projection --- sitting structurally between OGD
 and FOPNG.
 
@@ -145,8 +146,8 @@ and FOPNG.
 An orthogonal architectural response to catastrophic forgetting replaces the
 multi-head output design entirely with a \emph{hypernetwork}
 \citep{ha_hypernetworks_2016}: a meta-model
-$\mathcal{H}(\cdot;\Theta_h)$ trained to synthesize the complete weight
-vector $\theta_t = \mathcal{H}(e_t;\Theta_h)$ of a target network,
+$\mathcal{H}(\cdot;\phi)$ trained to synthesize the complete weight
+vector $\theta_t = \mathcal{H}(e_t;\phi)$ of a target network,
 conditioned on a task embedding $e_t$.
 Each task receives a unique weight configuration generated on demand, rather
 than a dedicated output head, achieving implicit task separation through the
@@ -163,7 +164,7 @@ space of the generator:
 \begin{equation}
     \mathcal{L}_{\mathrm{reg}}
     = \beta \sum_{s=1}^{t-1}
-      \bigl\|\mathcal{H}(\Theta_h,e_s) - \theta_s^*\bigr\|_2^2,
+      \bigl\|\mathcal{H}(\phi,e_s) - \theta_s^*\bigr\|_2^2,
 \end{equation}
 where $\theta_s^*$ denotes the weight snapshot saved after task $s$.
 This penalty can be interpreted as EWC applied at the meta level: rather than
@@ -176,74 +177,30 @@ full weight generation, and Prototype Augmented Hypernetworks
 \citep{fuente_prototype_2025} augment task embeddings with prototype
 representations to further stabilize sequential learning.
 
-% ─────────────────────────────────────────────────────────────────────────────
+% ──────────────────
 \subsection{Identified Gaps and Motivating Pathologies}
 
-Oswald's finding raises a critical and unanswered question: if EWC-style
-\emph{soft parameter penalties} are insufficient for hypernetwork continual
-learning, do the \emph{hard geometric constraints} of gradient projection
-methods — which operate through a fundamentally different mechanism — fare
-differently?
-Projection methods do not penalize the hypernetwork's parameter values; they
-constrain the \emph{direction} of the generator's updates.
-Whether this directional constraint is compatible with the hypernetwork's
-generative structure, or introduces its own failure modes, has not been
-investigated.
-This intersection is the primary research contribution of this thesis.
-We identify four specific structural pathologies that arise at this
-intersection and that the experiments are designed to address.
+Whether hard geometric projection constraints are compatible with the
+soft functional regularization already employed by hypernetworks, or
+whether layering both simultaneously over-constrains the generator's
+plasticity, has not been investigated (Sub-RQ1).
 
-\paragraph{1.\ Functional-Parametric Interface Conflict (Sub-RQ1).}
-Layering hard parameter-space projections onto a hypernetwork that already
-employs soft output-space regularization creates a potential structural
-conflict: the projection constraint strips momentum from the generator's
-updates, while the functional regularizer simultaneously pulls them toward
-prior weight configurations.
-Whether this joint constraint regime yields a constructive synergy or
-over-constrains the generator's plasticity remains an open empirical question.
-A secondary structural dimension of this conflict concerns the seeding of the
-projection subspace.
-The gradient memory $G$ and Fisher estimate $\hat{F}$ are collected entirely
-from first-task training; standard \texttt{Adam} folds $L_2$ weight decay
-into the gradient estimate, contaminating both $G$ and $\hat{F}$ with a
-weight-magnitude component unrelated to task-loss curvature
-\citep{hu_hidden_2026}.
-\texttt{AdamW}'s decoupled weight decay preserves gradient geometric purity,
-and whether this yields a measurably cleaner initial projection basis is
-examined as a secondary diagnostic within Sub-RQ1.
+The architectural necessity of weight-chunking introduces a
+gradient accumulation pathology --- inflated condition numbers in
+the projection kernel --- that is unique to the hypernetwork and projection methods combination
+and has no prior treatment in the literature (Sub-RQ2).
 
-\paragraph{2.\ Chunk-Induced Gradient Accumulation Pathology (Sub-RQ2).}
-The architectural necessity of spawning hundreds or thousands of sequential
-weight-chunks before a single projection step executes causes gradient
-vectors and Fisher estimates to accumulate to extreme magnitudes,
-inflating the condition number of the projection kernel $G^\top\hat{F}G$
-and causing matrix inversion failures that standard regularization
-parameters cannot mitigate.
-This pathology is unique to the hypernetwork setting and has no analogue
-in standalone network experiments.
+Existing projection methods enforce a rigid subspace boundary on
+historical gradient directions; whether replacing this boundary with a
+combined Fisher metric encoding both old and new task curvature yields
+consistent retention improvements across benchmarks has not been
+examined (Sub-RQ3).
 
-\paragraph{3.\ Projection Rigidity and Elastic Parameter Inertia (Sub-RQ3).}
-Rigid projection baselines enforce an absolute boundary that completely locks
-historical gradient directions, stripping the optimizer of degrees of freedom
-that may be needed for efficient new-task learning.
-We address this rigidity through \texttt{iFOPNG}, an elastic variant of FOPNG
-introduced in this thesis, which replaces the hard projection boundary with a
-combined Fisher preconditioner $F_c = \hat{F}_{\mathrm{new}} +
-\hat{F}_{\mathrm{old}}$.
-Rather than imposing a hard constraint, $F_c$ damps movement in directions
-important to \emph{any} prior task via the metric geometry, providing an
-EWC-style elastic inertia boundary without a penalty term.
+The historical Fisher estimate underlying Fisher-based projection
+depends on a choice of accumulation operator; whether a monotonic
+maximum or a decaying exponential moving average better preserves
+long-horizon retention has not been directly compared (Sub-RQ4).
 
-\paragraph{4.\ Fisher Accumulation Operator and Long-Horizon Plasticity (Sub-RQ4).}
-The historical Fisher $\hat{F}_{\mathrm{old}}$ underlying the \texttt{iFOPNG}
-elastic boundary is maintained via a non-decaying maximum operator:
-$\hat{F}_{\mathrm{old}} \leftarrow \max(\hat{F}_{\mathrm{old}},
-\hat{F}_{\mathrm{new}})$.
-This operator guarantees that any parameter ever deemed important retains that
-importance permanently, providing strong protection for early-task knowledge.
-Whether this monotonic accumulation imposes a measurable plasticity cost over
-long task sequences --- relative to a decaying exponential moving average ---
-and whether the two operators trade off forgetting against new-task learning
-differently across sequence lengths, is the subject of Sub-RQ4.
-
-% ─────────────────────────────────────────────────────────────────────────────
+These four gaps jointly motivate the sub-research questions stated in
+Section~\ref{sec:introduction} and the experimental programme
+described in Section~\ref{sec:experimental_design}.

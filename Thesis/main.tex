@@ -68,7 +68,7 @@
 \def\supervisor{dr. Giacomo Spiegler}
 \def\committee{dr. The Second Reader}
 \def\acknowledgments{The author thanks dr.\ Giacomo Spiegler for supervision and feedback throughout this project.}
-\def\wordcount{$\approx$7800}
+\def\wordcount{$\approx$8500}
 
 \hypersetup{pdfauthor   = \yourname,
             pdftitle    = \thesistitle\ \subtitle,
@@ -108,20 +108,16 @@ The author thanks dr.\ Giacomo Spiegler for supervision and valuable feedback th
 
 \clearpage
 \section{Appendix}
-\input{appendix/proof_ifopng.tex}
+\input{appendix/proof_ifopng.tex} % A
 
-\input{appendix/standalone_targetnetwork.tex}
+\input{appendix/standalone_targetnetwork.tex} % B
 
-\input{appendix/additional_experiments.tex}
+\input{appendix/hn_ablation.tex}       % new Appendix C
 
-\input{appendix/full_benchmark.tex}
+\input{appendix/additional_experiments.tex} % D
 
-\input{appendix/hyper_parameters.tex}
+\input{appendix/full_benchmark.tex} % E
 
+\input{appendix/hyper_parameters.tex} % F
 
-% REMEMBER TO ADD OSWALD COMING UP WITH HIS REGULIZER AFTER UNDERSTANDING EWC. HYPERREGULIZER = EWC FOR META CHUNKING
-
-% ALSO FIGURE OUT THE DROPOUT REMOVAL. MAYBE ITS GOOD RN
-
-% EMPHASIZE THE COMPRESSION OF HYPERNETWORKS AND HOW IMPRESIVE IT IS. THERE IS A PLOT HYPERNETWORK-TRAJECTORY...
 \end{document}

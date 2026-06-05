@@ -5,7 +5,7 @@ Amari%
 }{%
 Amari%
 }{%
-{\protect \APACyear {{\protect \bibnodate {}}}}%
+{\protect \APACyear {1998}}%
 }]{%
 amari_natural_1998}
 \APACinsertmetastar {%
@@ -15,7 +15,7 @@ Amari, S\BHBI i.%
 \end{APACrefauthors}%
 \unskip\
 \newblock
-\APACrefYearMonthDay{{\protect \bibnodate {}}}{}{}.
+\APACrefYearMonthDay{1998}{}{}.
 \newblock
 {\BBOQ}\APACrefatitle {Natural Gradient Works Efficiently in Learning} {Natural gradient works efficiently in learning}.{\BBCQ}
 \newblock
@@ -460,6 +460,36 @@ Oswald, J\BPBI v.%
 \begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1906.00695} \end{APACrefURL}
 \newblock
 \begin{APACrefDOI} \doi{10.48550/arXiv.1906.00695} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Yadav%
+, Mendoza%
+\BCBL {}\ \BBA {} Korrapati%
+}{%
+Yadav%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2025}}%
+}]{%
+yadav_ong_2025}
+\APACinsertmetastar {%
+yadav_ong_2025}%
+\begin{APACrefauthors}%
+Yadav, Y.%
+, Mendoza, P.%
+\BCBL {}\ \BBA {} Korrapati, J.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2025}{}{}.
+\newblock
+\APACrefbtitle {{ONG}: Orthogonal Natural Gradient Descent} {{ONG}: Orthogonal natural gradient descent}\ (\BNUM\ {arXiv}:2508.17169).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-06-04}]\url{http://arxiv.org/abs/2508.17169} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.2508.17169} \end{APACrefDOI}
 \PrintBackRefs{\CurrentBib}
 
 \end{thebibliography}

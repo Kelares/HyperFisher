@@ -16,7 +16,16 @@ hypernetwork optimized via \texttt{Adam}.
 The gap of $4.5$~pp at task~5 in favor of \texttt{Adam} is consistent
 across seeds and widens substantially in the suffocated regime ($d_h = 8$,
 Split-MNIST SH), where it reaches $20$--$40$~pp.
-We attribute this to a fundamental architectural incompatibility.
+Critically, the BWT data reveal that in the suffocated regime this is a
+\emph{plasticity} failure, not a \emph{retention} failure: Fisher-based
+projection methods achieve near-zero backward transfer alongside collapsed
+accuracy, meaning the curvature-weighted constraint exhausts the available
+gradient budget for new task learning rather than permitting forgetting of
+prior ones.
+\texttt{OGD}'s relative resilience at $d_h = 8$ is consistent with this
+reading: without Fisher weighting its subspace constraint is less aggressive,
+leaving more gradient capacity for forward transfer.
+We attribute the broader gap to a fundamental architectural incompatibility.
 Projection methods operate by modifying the raw gradient before the
 optimizer state update, which means the first-order momentum estimate
 and the adaptive scaling factor maintained by Adam are effectively

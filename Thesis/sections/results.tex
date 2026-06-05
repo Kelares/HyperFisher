@@ -90,17 +90,17 @@ The BWT panel reveals the mechanism underlying this collapse.
 backward transfer ($\mathrm{BWT} \approx 0.00$), while \texttt{Adam}
 has small negative BWT ($-0.015$) and \texttt{SGD} forgets more
 substantially ($-0.13$).
-The Fisher-based projection methods are not failing at retention --- they
-are failing at plasticity.
-In a $d_h = 8$ bottleneck, the curvature-weighted projection constraint
-exhausts the few available gradient directions protecting prior tasks,
-leaving negligible residual capacity for learning new ones.
-\texttt{OGD}'s relative resilience is consistent with this interpretation:
-as a Fisher-free method its subspace constraint is less aggressive, leaving
-more gradient budget for forward transfer.
-Seed-level variance is substantially elevated for all projection methods,
-and several methods completed fewer than three seeds at this compression
-level; confidence intervals should be interpreted cautiously.
+% The Fisher-based projection methods are not failing at retention --- they
+% are failing at plasticity.
+% In a $d_h = 8$ bottleneck, the curvature-weighted projection constraint
+% exhausts the few available gradient directions protecting prior tasks,
+% leaving negligible residual capacity for learning new ones.
+% \texttt{OGD}'s relative resilience is consistent with this interpretation:
+% as a Fisher-free method its subspace constraint is less aggressive, leaving
+% more gradient budget for forward transfer.
+% Seed-level variance is substantially elevated for all projection methods,
+% and several methods completed fewer than three seeds at this compression
+% level; confidence intervals should be interpreted cautiously.
 
 \begin{figure}[H]
     \centering
@@ -251,22 +251,26 @@ average accuracy for both methods across all six benchmarks.
 On the two simplest benchmarks --- Permuted-MNIST and
 Split-MNIST multi-head --- the two methods are nearly
 indistinguishable ($86.0\%$ vs.\ $85.9\%$ and $95.6\%$ vs.\ $95.2\%$
-respectively).  Both tasks are low-dimensional with limited inter-task Fisher
-overlap, so $\hat{F}_\mathrm{old}$ contributes little additional mass beyond
-what $\hat{F}_\mathrm{new}$ already captures; parameter inertia has no
-accumulated weight to draw on.
+respectively).  
 
-A clear separation emerges on harder benchmarks.  On Split-CIFAR10 multi-head,
+Both tasks are low-dimensional with limited inter-task Fisher
+overlap.
+
+% , so $\hat{F}_\mathrm{old}$ contributes little additional mass beyond
+% what $\hat{F}_\mathrm{new}$ already captures; parameter inertia has no
+% accumulated weight to draw on.
+A clear separation emerges on harder benchmarks. On Split-CIFAR10 multi-head,
 \texttt{iFOPNG} reaches $81.1\%$ versus FOPNG's $67.4\%$, a
 gap of $14.1$~pp.  On Split-CIFAR100 multi-head the advantage
-is $5.6$~pp ($42.7\%$ vs.\ $37.1\%$).
+is $5.6$~pp ($42.7\%$ vs.\ $37.1\%$). Detailed per-task trajectories for 
+these standalone references are provided in Appendix~B 
+(Figures~\ref{fig:standalone_cifar10} and~\ref{fig:standalone_cifar100}).
 
 The advantage carries over into the hypernetwork settings: $9.8$~pp on
 Split-MNIST HN ($70.0\%$ vs.\ $60.0\%$) and $8.6$~pp on
 Split-CIFAR10 HN ($85.6\%$ vs.\ $77.5\%$).  Across all six
-benchmarks the advantage of \texttt{iFOPNG} grows with task difficulty and
-cumulative Fisher overlap.
-
+benchmarks, the retention advantage of \texttt{iFOPNG} scales robustly 
+with task complexity and cumulative Fisher overlap.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Sub-RQ4: Fisher Accumulation Operator}

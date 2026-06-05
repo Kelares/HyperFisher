@@ -20,23 +20,25 @@ have emerged as an elegant paradigm. Hypernetworks circumvent parameter-space
 conflicts by utilizing a centralized, lightweight meta-model to generate the
 target network's complete parameter weights conditioned on task embeddings, as
 formalized by \citet{oswald_continual_2022}. Concurrently, within the field of
-geometric optimization, gradient projection methods---exemplified by the
+geometric optimization, gradient projection methods, exemplified by the
 recently proposed Fisher-Orthogonal Projected Natural Gradient Descent (FOPNG)
-\citep{garg_fisher-orthogonal_2026}---explicitly constrain subsequent updates to
-the null-space of historical parameter spaces.
+\citep{garg_fisher-orthogonal_2026}, explicitly constrain subsequent updates to 
+lie orthogonal to the subspace of parameter directions critical for previous tasks, 
+with the geometry of orthogonality ranging from Euclidean (OGD) to Fisher-Riemannian (FOPNG).
 
 Despite the mathematical elegance of both hypernetworks and gradient projection
 methods, their structural intersection uncovers a critical and previously
-unexamined optimization pathology. To prevent a catastrophic parameter explosion
-within the meta-model, a hypernetwork must use sequential weight-chunking.
-Depending on the dimensional footprint of the target architecture, this
-constraint forces the target model to be produced in hundreds or thousands of
-individual sub-blocks. Executing this spawning mechanism prior to a single
-backward pass accumulates gradients additively, resulting in parameter gradients
-of exceptionally high magnitude. This explosion numerically erases the stabilizing
-effect of $\lambda$ during matrix inversion, inflating the condition number of
-the projection kernel to extreme scales (e.g., exceeding $10^{10}$) and inducing
-catastrophic projection failures.
+unexamined optimization pathology. Generating a target network's full weight 
+vector in a single forward pass would require an output layer whose width equals 
+the total number of target network parameters, which is computationally prohibitive for any non-trivial
+architecture; Because every sub-pass executes before any gradient
+update, their contributions accumulate additively in the shared meta-model
+parameters, inflating the gradient magnitude proportionally to $K$. This
+gradient inflation propagates into the projection algebra: both the gradient
+columns stored in memory matrix $G$ and the diagonal Fisher estimate $\hat{F}$
+grow in scale with $K$, rendering the regularization term $\lambda I$ negligible
+relative to the inflated projection matrix $G^\top \hat{F} G$. The condition
+number of this matrix exceeds $10^{10}$, causing catastrophic inversion failures.
 
 \subsection*{Research Objectives and Algorithmic Framework}
 
@@ -45,51 +47,72 @@ linear-algebraic collapse, map the initialization mechanics of meta-projection
 pipelines, and evaluate whether the integration of hard geometric constraints on
 top of soft functional regularizers yields an optimized sequential learning system.
 
-To achieve this, we introduce projection-scoped normalization (column-wise
-$\ell_2$ orthonormalization of $G$ combined with absolute-maximum scaling of
-$\hat{F}$), an \texttt{AdamW} first-task initialization protocol, and
-\texttt{iFOPNG}---an inertial FOPNG variant using the combined metric
-$F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$.  These contributions
-enable stable gradient projection in chunked hypernetworks, with direct
-applicability to on-device sequential learning where retaining adaptive momentum
-is critical.
+To achieve this, we introduce \emph{projection-scoped normalization}
+(column-wise $\ell_2$ orthonormalization of $G$ combined with
+absolute-maximum scaling of $\hat{F}$) and \texttt{iFOPNG}, an
+inertial FOPNG variant using the combined metric
+$F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$.
+These contributions enable stable gradient projection in chunked
+hypernetworks, with direct applicability to on-device sequential
+learning where retaining adaptive momentum is critical.
 
 \subsection*{Research Questions}
 
 To systematically navigate these boundaries, this thesis addresses the following
 primary research question:
+
 \begin{quote}
-\emph{To what extent can gradient projection methods be successfully integrated
-into chunked hypernetwork architectures for continual learning, and how do their
-structural pathologies, initialization protocols, and inertial variants impact
-optimization efficiency?}
+    \emph{What numerical pathologies arise when gradient projection methods
+    are applied to chunked hypernetwork architectures, and do modifications
+    to the Fisher metric construction---specifically an inertial combined
+    metric and a monotonic accumulation operator---yield principled
+    improvements over standard projection baselines in continual learning?}
 \end{quote}
+
 This is decomposed into four sub-research questions (Sub-RQs):
 \begin{itemize}
-    \item[\textbf{Sub-RQ1}] \textbf{(Synergy vs.\ Conflict):} Does the joint integration
-    of gradient projection frameworks and soft output-scoped functional
-    regularization yield a constructive synergy, or does a standalone regularized
-    hypernetwork offer a more efficient optimization frontier?
-    \item[\textbf{Sub-RQ2}] \textbf{(Gradient Pathology):} How does the architectural
-    necessity of spawning thousands of sequential weight-chunks impact gradient
-    magnitudes, and to what extent can local projection-scoped normalization
-    prevent the resulting explosion from collapsing the matrix inversion?
-    \item[\textbf{Sub-RQ3}] \textbf{(Parameter Inertia):} To what degree does
-    evaluating the natural gradient projection under a joint Riemannian metric
-    ($F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$), rather than the task-specific
-    metric ($\hat{F}_{\mathrm{new}}$) used in standard FOPNG, influence task retention?
-    \item[\textbf{Sub-RQ4}] \textbf{(Fisher Accumulation):} How should the historical
-    component $\hat{F}_{\mathrm{old}}$ be accumulated across tasks? Specifically, does
-    a non-decaying maximum operator preserve early-task knowledge more
-    effectively than an exponential moving average (EMA)?
+    \item[\textbf{Sub-RQ1}] \textbf{(Synergy vs.\ Conflict):} Does the joint
+    integration of hard gradient projection with the hypernetwork's soft
+    functional regularizer yield a constructive
+    synergy, or does a standalone regularized hypernetwork offer a more
+    efficient optimization frontier?
+
+    \item[\textbf{Sub-RQ2}] \textbf{(Gradient Pathology):} How does the
+    architectural necessity of spawning $K$ sequential weight-chunks inflate
+    the gradient and Fisher magnitudes accumulated before a single projection
+    step, and does rescaling both components independently within the
+    projection algebra suffice to prevent matrix inversion collapse?
+
+    \item[\textbf{Sub-RQ3}] \textbf{(Parameter Inertia):} Does replacing
+    \texttt{FOPNG}'s task-specific metric $\hat{F}_{\mathrm{new}}$ with the
+    combined inertial metric $F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$
+    yield consistent retention improvements across benchmarks, and does the
+    magnitude of any advantage scale with inter-task Fisher overlap?
+
+    \item[\textbf{Sub-RQ4}] \textbf{(Fisher Accumulation):} Does accumulating
+    $\hat{F}_{\mathrm{old}}$ via a non-decaying element-wise maximum operator
+    maintain long-horizon retention more effectively than an exponential moving
+    average, and does the monotonic growth of the maximum operator impose a
+    measurable plasticity cost over extended task sequences?
 \end{itemize}
 
 \subsection*{Summary of Empirical Findings}
 
-Projection-scoped normalization completely resolves the matrix inversion
-collapse; \texttt{iFOPNG} consistently outperforms \texttt{FOPNG} wherever
-inter-task Fisher overlap is substantial; and the MAX accumulation operator is
-the preferred hyperparameter-free default.  Critically, normalized projection
-methods nonetheless fail to match a hypernetwork optimized via \texttt{Adam}:
-the loss of adaptive momentum proves to be the binding constraint in compressed
-generative weight spaces.
+Projection-scoped normalization fully resolves the matrix inversion
+pathology, recovering stable projection performance across all seeds.
+The inertial combined metric $F_c = \hat{F}_{\mathrm{new}} +
+\hat{F}_{\mathrm{old}}$ consistently improves retention over
+\texttt{FOPNG}, with the advantage scaling monotonically with
+inter-task Fisher overlap.
+The MAX accumulation operator outperforms EMA on long task sequences
+and requires no additional hyperparameters.
+In the standard-capacity hypernetwork setting, \texttt{iFOPNG} surpasses
+plain \texttt{SGD} but falls short of \texttt{Adam}; under extreme
+compression the gap to \texttt{Adam} widens to $20$--$40$~pp and most
+projection methods drop below \texttt{SGD} entirely.
+Two structural limitations bound the current approach: the loss of
+adaptive momentum at each projection step, which cannot be recovered
+without projection-compatible optimizers; and the heuristic nature of
+the normalization scheme, which stabilises the projection algebra by
+discarding the curvature structure that a geometrically principled
+rescaling would preserve.
