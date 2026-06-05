@@ -25,7 +25,7 @@ DEVICE="gpu"
 
 # For Sub-RQ5, we only need to test iFOPNG
 LR="1e-4"
-LAM="1e-2"
+LAM="1e-3"
 
 # Assuming you will add this flag to your argparse in main.py
 ACCUMULATION_TYPES=("ema" "max")

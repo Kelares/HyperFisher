@@ -33,10 +33,10 @@ press output-level interference?'
 declare -A LR2
 LR2["adam"]="1e-5"; LR2["sgd"]="5e-4"; LR2["ewc"]="5e-4"
 LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
-LR2["fopng"]="1e-3"; LR2["ifopng"]="1e-3"
+LR2["fopng"]="1e-5"; LR2["ifopng"]="1e-5"
 
 declare -A LAM2
-LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="10000"
+LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="10"
 LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
 LAM2["fopng"]="5e-4"; LAM2["ifopng"]="5e-4"
  

@@ -53,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--fisher_samples", type=int, default=1024)
     parser.add_argument("--fisher_clipping", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--normalize", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--compression", type=str, default="svd", choices=["svd", "fifo", "stop"])
 
     parser.add_argument("--grads_per_task", type=int, default=40)
     parser.add_argument("--max_directions", type=int, default=80)

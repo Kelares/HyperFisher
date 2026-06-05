@@ -3,7 +3,7 @@ from torch import nn
 from torch.utils.data import DataLoader, Subset
 import numpy as np
 import random
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Literal
 from abc import ABC, abstractmethod
 from tqdm import tqdm
 from utils import get_grad_vector
@@ -22,7 +22,7 @@ def set_grad_vector(model: nn.Module, grad_vector: torch.Tensor):
         idx += numel
 
 class GradientMemory:
-    def __init__(self, mode: str = 'raw', max_directions: int = 2000, normalization: bool = False):
+    def __init__(self, mode: str = 'raw', max_directions: int = 2000, normalization: bool = False, compression: Literal["svd", "fifo", "stop"] = "svd"):
         self.mode = mode
         self.max_directions = max_directions
         # Store all directions as columns in a single 2D tensor [D, K]
@@ -30,6 +30,7 @@ class GradientMemory:
         self.basis: Optional[torch.Tensor] = None 
         self.debug = True
         self.normalization = normalization
+        self.compression = compression
 
     @torch.no_grad()
     def add(self, v: Union[torch.Tensor, List[torch.Tensor]]):
@@ -37,6 +38,12 @@ class GradientMemory:
         Adds direction(s) to memory and ensures they are stored as matrix columns.
         Handles both a single vector [D] and a list of vectors [[D], [D], ...].
         """
+        if self.compression == "stop":
+            if self.basis.size(1) >= self.max_directions:
+                if self.debug:
+                    print(f"  [DEBUG compress] STOP — truncated to first {self.max_directions} cols, new directions discarded")
+                return None
+            
         # 1. Convert input to a 2D column block [D, K_new]
         if isinstance(v, list):
             new_vecs = torch.stack([vec.detach().view(-1) for vec in v], dim=1)
@@ -70,7 +77,7 @@ class GradientMemory:
 
          # 🔍 DEBUG: Print norms of newly added vectors
         if self.debug:
-            print(f" [DEBUG add] Added vectors are unit length: {new_vecs.norm(dim=0).mean():.4f}")
+            print(f" [DEBUG add] Added vectors are length: {new_vecs.norm(dim=0).mean():.4f}")
             print(f"  [DEBUG add] New vec: min={new_vecs.min():.3f}, max={new_vecs.max():.3f}")
     
 
@@ -78,27 +85,36 @@ class GradientMemory:
     def compress(self):
         """Reduces the matrix to max_directions using SVD (Orthonormal Basis)."""
         if self.basis is None: return
-        print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via SVD")
-        
-        # full_matrices=False ensures U is [DEBUG add] Added vectors are unit length: 1.0000 [D, K]
-        # weighted_G = F_old.view(-1, 1) * self.basis
-        U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
-        if self.basis.size(1) > self.max_directions:
-            if self.normalization:
-                U = U[:, :self.max_directions]
-                S = S[:self.max_directions]
-        
-        if self.normalization:
-            self.basis = U
-        else:
-            self.basis = U @ torch.diag(S)
 
-        # 🔍 DEBUG: Verify U columns are unit-norm
-        if self.debug:
-            U_norms = self.basis.norm(dim=0)
-            print(f"  [DEBUG compress] Post-SVD column norms: min={U_norms.min():.6f}, max={U_norms.max():.6f}")
-            # Should be ~1.000000 for all columns
+        match self.compression:
+            case "svd":
+                print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via SVD")
+                
+                # full_matrices=False ensures U is [DEBUG add] Added vectors are unit length: 1.0000 [D, K]
+                # weighted_G = F_old.view(-1, 1) * self.basis
+                U, S, _ = torch.linalg.svd(self.basis , full_matrices=False)
+                if self.basis.size(1) > self.max_directions:
+                    if self.normalization:
+                        U = U[:, :self.max_directions]
+                        S = S[:self.max_directions]
+                
+                if self.normalization:
+                    self.basis = U
+                else:
+                    self.basis = U @ torch.diag(S)
 
+                # DEBUG: Verify U columns are unit-norm
+                if self.debug:
+                    U_norms = self.basis.norm(dim=0)
+                    print(f"  [DEBUG compress] Post-SVD column norms: min={U_norms.min():.6f}, max={U_norms.max():.6f}")
+
+            case "fifo":
+                print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via FIFO")
+                self.basis = self.basis[:, -self.max_directions:]
+                if self.debug:
+                    print(f"  [DEBUG compress] FIFO kept cols {self.basis.size(1) - self.max_directions}:{self.basis.size(1)}")
+  
+  
     @property
     def matrix(self) -> Optional[torch.Tensor]:
         """Returns the single Tensor object representing the subspace."""

@@ -35,6 +35,7 @@ class OP(ABC):
             device_mode: Literal["cpu", "gpu", "hybrid"] = "hybrid",
             fisher_clipping: bool = False,
             normalize: bool = False,
+            compression: Literal["svd", "fifo", "stop"] = "svd",
         ):
         self.lr            = lr
         self.lam           = lam
@@ -69,7 +70,7 @@ class OP(ABC):
             clipping = fisher_clipping,
             normalization = normalize
         )
-        self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions, normalization=normalize)
+        self.gradient_memory = GradientMemory(mode="raw", max_directions=max_directions, normalization=normalize, compression=compression)
         self.GradientCollector = GTLCollector(grads_per_task)
         self.T = 1
 
@@ -999,15 +1000,16 @@ def run_continual_method(
     # We filter/pass relevant config args to the constructor
     optimizer = METHOD_MAP[method_key](
         num_tasks=len(train_loaders),
-        lr=config.get("lr", 1e-3),
-        lam=config.get("lam", 1e-3),
-        alpha=config.get("alpha", 0.5),
-        grads_per_task=config.get("grads_per_task", 80),
-        max_directions=config.get("max_directions", 400),
-        fisher_samples=config.get("fisher_samples", 1024),
-        device_mode=config.get("device_mode", "hybrid"),
-        fisher_clipping=config.get("fisher_clipping", False),
-        normalize=config.get("normalize", False),
+        lr = config.get("lr", 1e-3),
+        lam = config.get("lam", 1e-3),
+        alpha = config.get("alpha", 0.5),
+        grads_per_task = config.get("grads_per_task", 80),
+        max_directions = config.get("max_directions", 400),
+        fisher_samples = config.get("fisher_samples", 1024),
+        device_mode = config.get("device_mode", "hybrid"),
+        fisher_clipping = config.get("fisher_clipping", False),
+        normalize = config.get("normalize", False),
+        compression = config.get("compression", "svd")
         
     )                    
 
