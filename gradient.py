@@ -39,7 +39,7 @@ class GradientMemory:
         Handles both a single vector [D] and a list of vectors [[D], [D], ...].
         """
         if self.compression == "stop":
-            if self.basis and self.basis.size(1) >= self.max_directions:
+            if self.basis is not None and self.basis.size(1) >= self.max_directions:
                 if self.debug:
                     print(f"  [DEBUG compress] STOP — truncated to first {self.max_directions} cols, new directions discarded")
                 return None
