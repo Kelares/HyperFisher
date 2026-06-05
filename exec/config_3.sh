@@ -36,7 +36,7 @@ LR2["fng"]="1e-3";  LR2["ogd"]="5e-4"; LR2["ong"]="5e-4"
 LR2["fopng"]="1e-5"; LR2["ifopng"]="1e-5"
 
 declare -A LAM2
-LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="10"
+LAM2["adam"]="0"; LAM2["sgd"]="0"; LAM2["ewc"]="400"
 LAM2["fng"]="1e-3"; LAM2["ogd"]="0"; LAM2["ong"]="0"
 LAM2["fopng"]="5e-4"; LAM2["ifopng"]="5e-4"
  
@@ -50,8 +50,8 @@ for METHOD in "${ALL_METHODS[@]}"; do
             --methods=$METHOD --no-regulizer
             --grads_per_task=80 --max_directions=400
             --fisher_samples=12000
-            --lr=${LR2[$METHOD]} --max_epochs=20 --batch_size=10
-            --first_task_opt=sgd --first_task_lr=1e-4        # CHANGED THE INITIALIZATION AS SGD FAILS FOR SH
+            --lr=${LR2[$METHOD]} --max_epochs=5 --batch_size=10
+            --first_task_opt=sgd --first_task_lr=1e-3        # CHANGED THE INITIALIZATION AS SGD FAILS FOR SH
             --device_mode=$DEVICE --seed=$SEED --experiment_id=403
         )
         [ "${LAM2[$METHOD]}" != "0" ] && ARGS+=(--lam=${LAM2[$METHOD]})

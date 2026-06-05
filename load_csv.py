@@ -7,7 +7,7 @@ IDS.append(702)
 IDS.append(703)
 
 # Project is specified by <entity/project-name>
-runs = api.runs("michalowski-jb-tilburg-university/HyperFisher", filters={"config.experiment_id": {"$in": IDS}})
+runs = api.runs("michalowski-jb-tilburg-university/HyperFisher", filters={"config.experiment_id": {"$in": [403]}})
 print(f"Found {len(runs)} runs.")
 
 d = {}

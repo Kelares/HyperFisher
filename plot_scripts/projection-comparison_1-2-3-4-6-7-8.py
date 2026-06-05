@@ -1,7 +1,8 @@
 """
-projection-comparison_1-2-4-6-7-8.py
+projection-comparison_1-2-3-4-6-7-8.py
 ──────────────────────────────────────
 iFOPNG vs FOPNG cross-benchmark summary. Sub-RQ3 main figure.
+Seven benchmarks: five standalone + two HN.
 Grouped bars per benchmark with paired t-test significance annotations
 and per-benchmark seed counts.
 
@@ -12,7 +13,7 @@ Statistical note
   independent = (μ₁−μ₂)/pooled σ.
   df=2 (n=3) tests are low-powered; treat "ns" with caution there.
 
-Output: plots/projection-comparison_1-2-4-6-7-8.png
+Output: plots/projection-comparison_1-2-3-4-6-7-8.png
 """
 
 import os
@@ -36,38 +37,28 @@ def _load_pair(fname, skip_fn=None):
 # ── statistics ────────────────────────────────────────────────────────────────
 
 def compute_stats(accs_if, accs_fp):
-    """
-    Paired t-test when both groups have equal n >= 2 (same seeds assumed).
-    Welch's independent t-test when n differs.
-    Returns dict with keys: t, p, d, n_if, n_fp, test_type.
-    Returns None when either group has fewer than 2 observations.
-    """
     a = np.array(accs_if, dtype=float)
     b = np.array(accs_fp, dtype=float)
     n1, n2 = len(a), len(b)
-
     if n1 < 2 or n2 < 2:
         return None
-
-    if n1 == n2:                               # paired
+    if n1 == n2:
         t, p = stats.ttest_rel(a, b)
         diffs = a - b
         sd    = diffs.std(ddof=1)
         d     = float(diffs.mean() / sd) if sd > 0 else 0.0
         test_type = "paired"
-    else:                                      # Welch independent
+    else:
         t, p = stats.ttest_ind(a, b, equal_var=False)
-        pooled = np.sqrt(((n1 - 1) * a.std(ddof=1)**2 +
-                          (n2 - 1) * b.std(ddof=1)**2) / (n1 + n2 - 2))
-        d = float((a.mean() - b.mean()) / pooled) if pooled > 0 else 0.0
+        pooled = np.sqrt(((n1-1)*a.std(ddof=1)**2 +
+                          (n2-1)*b.std(ddof=1)**2) / (n1+n2-2))
+        d = float((a.mean()-b.mean()) / pooled) if pooled > 0 else 0.0
         test_type = "independent"
-
     return dict(t=float(t), p=float(p), d=d,
                 n_if=n1, n_fp=n2, test_type=test_type)
 
 
 def sig_stars(p, n_min):
-    """Significance label; appends † when n < 4 to flag low power."""
     if   p < 0.001: label = "***"
     elif p < 0.01:  label = "**"
     elif p < 0.05:  label = "*"
@@ -79,41 +70,23 @@ def sig_stars(p, n_min):
 
 # ── plot helpers ──────────────────────────────────────────────────────────────
 
-def _bar_ceil(data, key, pad=0.0):
-    """Top of error bar (mean + std) for a method, or 0 if missing."""
-    if key not in data:
-        return 0.0
-    return data[key]["acc_mean"] + data[key]["acc_std"] + pad
-
-
 def annotate_sig(ax, x_left, x_right, y_base, result):
-    """
-    Draw a significance bracket between two bars.
-    y_base   – bottom of the bracket (top of the taller error bar + padding)
-    """
     if result is None:
         return
-
     stars = sig_stars(result["p"], min(result["n_if"], result["n_fp"]))
-    tick  = 0.018           # vertical tick height
-    gap   = 0.008           # gap between bracket top and label
-
-    y0 = y_base
-    y1 = y0 + tick
-
-    ax.plot([x_left,  x_left,  x_right, x_right],
-            [y0,      y1,      y1,      y0],
+    tick, gap = 0.018, 0.008
+    y0, y1 = y_base, y_base + tick
+    ax.plot([x_left, x_left, x_right, x_right],
+            [y0,     y1,     y1,      y0],
             lw=0.8, color="#333", clip_on=False)
-
     color  = "#111" if stars not in ("ns", "ns†") else "#999"
     weight = "bold" if stars not in ("ns", "ns†") else "normal"
-    ax.text((x_left + x_right) / 2, y1 + gap, stars,
+    ax.text((x_left+x_right)/2, y1+gap, stars,
             ha="center", va="bottom", fontsize=8.5,
             color=color, fontweight=weight, clip_on=False)
 
 
 def _n_label(data):
-    """Return 'n=X' or 'n=X/Y' (iFOPNG/FOPNG) for a benchmark data dict."""
     n_if = len(data["ifopng"]["accs"]) if "ifopng" in data else 0
     n_fp = len(data["fopng"]["accs"])  if "fopng"  in data else 0
     if n_if == n_fp and n_if > 0:
@@ -133,6 +106,7 @@ def main():
     benchmarks = [
         ("Perm-MNIST",    _load_pair(RESULTS + "401.csv"),                    "standalone"),
         ("MNIST MH",      _load_pair(RESULTS + "402.csv"),                    "standalone"),
+        ("MNIST SH",      _load_pair(RESULTS + "403.csv"),                    "standalone"),  # ← NEW
         ("CIFAR-10 MH",   _load_pair(RESULTS + "404.csv"),                    "standalone"),
         ("CIFAR-100 MH",  _load_pair(RESULTS + "406.csv", skip_fn=skip_exp6), "standalone"),
         ("MNIST HN",      _load_pair(RESULTS + "407.csv", skip_fn=skip_exp7), "HN"),
@@ -142,9 +116,9 @@ def main():
     COL_IF = COLORS["ifopng"]
     COL_FP = COLORS["fopng"]
     WIDTH  = 0.32
-    x      = np.arange(len(benchmarks))
+    x      = np.arange(len(benchmarks))   # 0..6
 
-    # ── compute stats first so we know how much y headroom we need ────────
+    # ── stats ─────────────────────────────────────────────────────────────
     stat_results = []
     for _, data, _ in benchmarks:
         if "ifopng" in data and "fopng" in data:
@@ -155,7 +129,7 @@ def main():
             stat_results.append(None)
 
     # ── figure ────────────────────────────────────────────────────────────
-    fig, ax = plt.subplots(1, 1, figsize=(9, 5.2))
+    fig, ax = plt.subplots(1, 1, figsize=(10.5, 5.2))   # wider for 7 benchmarks
     fig.suptitle(
         "Sub-RQ3: iFOPNG vs FOPNG — Does parameter inertia improve retention?\n"
         "Standalone benchmarks (left of divider) vs HN benchmarks (right)",
@@ -166,8 +140,8 @@ def main():
 
     for xi, (label, data, btype) in enumerate(benchmarks):
         group_top = 0.0
-        for offset, key, col in [(-WIDTH / 2, "ifopng", COL_IF),
-                                  (+WIDTH / 2, "fopng",  COL_FP)]:
+        for offset, key, col in [(-WIDTH/2, "ifopng", COL_IF),
+                                  (+WIDTH/2, "fopng",  COL_FP)]:
             if key not in data:
                 continue
             mean = data[key]["acc_mean"]
@@ -188,30 +162,28 @@ def main():
         if result is None:
             continue
         annotate_sig(ax,
-                     xi - WIDTH / 2,
-                     xi + WIDTH / 2,
+                     xi - WIDTH/2,
+                     xi + WIDTH/2,
                      bracket_tops[xi] + 0.015,
                      result)
 
-    # ── x-tick labels with n= ─────────────────────────────────────────────
-    tick_labels = []
-    for label, data, _ in benchmarks:
-        tick_labels.append(f"{label}\n{_n_label(data)}")
-
-    ax.axvline(3.5, color="#999", lw=1.0, ls="--", alpha=0.6)
-    ax.text(3.6, 1.0, "HN →", fontsize=7.5, color="#666", va="top",
+    # ── divider — 5 standalone | 2 HN ────────────────────────────────────
+    ax.axvline(4.5, color="#999", lw=1.0, ls="--", alpha=0.6)
+    ax.text(4.6, 1.0, "HN →", fontsize=7.5, color="#666", va="top",
             transform=ax.get_xaxis_transform())
 
+    # ── x-tick labels ─────────────────────────────────────────────────────
+    tick_labels = [f"{label}\n{_n_label(data)}"
+                   for label, data, _ in benchmarks]
     ax.set_xticks(x)
     ax.set_xticklabels(tick_labels, fontsize=8.5)
     ax.set_ylabel("Avg. Accuracy", fontsize=10)
 
-    # dynamic y limit: tallest bracket top + bracket height + label + margin
     y_ceil = max(bracket_tops) + 0.015 + 0.018 + 0.008 + 0.04
     ax.set_ylim(0.0, max(y_ceil, 1.08))
-
     ax.set_title("iFOPNG vs FOPNG per benchmark", fontsize=10,
                  fontweight="bold", pad=6)
+
     ax.legend(handles=[
         mpatches.Patch(color=COL_IF,
                        label=r"iFOPNG  ($F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$)"),
@@ -219,27 +191,24 @@ def main():
                        label=r"FOPNG   ($\hat{F}_\mathrm{new}$ only)"),
     ], fontsize=8.5, loc="lower left")
 
-    # significance key footnote
     ax.text(0.99, 0.01,
             "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05  "
             "† df=2 (n=3), low power\n"
-            "Paired t-test (equal n); Welch independent (unequal n); "
-            "two-sided",
+            "Paired t-test (equal n); Welch independent (unequal n); two-sided",
             transform=ax.transAxes, fontsize=6.5,
             ha="right", va="bottom", color="#666")
 
     plt.tight_layout(pad=1.5)
-    out_path = OUT + "projection-comparison_1-2-4-6-7-8.png"
+    out_path = OUT + "projection-comparison_1-2-3-4-6-7-8.png"
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"Saved {out_path}")
 
     # ── console summary ───────────────────────────────────────────────────
-    col = f"{'Benchmark':<14} {'iFOPNG':>7} {'FOPNG':>7} {'Δ':>7}  " \
-          f"{'t':>6}  {'p':>7}  {'d':>6}  {'sig':>5}  {'test':>11}  n"
+    col = (f"{'Benchmark':<14} {'iFOPNG':>7} {'FOPNG':>7} {'Δ':>7}  "
+           f"{'t':>6}  {'p':>7}  {'d':>6}  {'sig':>5}  {'test':>11}  n")
     print(f"\n{col}")
     print("─" * len(col))
-
     for (label, data, _), result in zip(benchmarks, stat_results):
         if "ifopng" not in data or "fopng" not in data:
             continue
@@ -247,21 +216,17 @@ def main():
         m_fp  = np.mean(data["fopng"]["accs"])  * 100
         delta = m_if - m_fp
         name  = label.replace("\n", " ")
-
         if result:
             stars = sig_stars(result["p"], min(result["n_if"], result["n_fp"]))
-            n_str = (f"{result['n_if']}"
-                     if result["n_if"] == result["n_fp"]
+            n_str = (f"{result['n_if']}" if result["n_if"] == result["n_fp"]
                      else f"{result['n_if']}/{result['n_fp']}")
-            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  "
-                  f"{delta:>+6.1f}pp  "
-                  f"{result['t']:>6.2f}  {result['p']:>7.4f}  "
-                  f"{result['d']:>6.2f}  {stars:>5}  "
-                  f"{result['test_type']:>11}  n={n_str}")
+            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  {delta:>+6.1f}pp  "
+                  f"{result['t']:>6.2f}  {result['p']:>7.4f}  {result['d']:>6.2f}  "
+                  f"{stars:>5}  {result['test_type']:>11}  n={n_str}")
         else:
-            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  "
-                  f"{delta:>+6.1f}pp  {'—':>6}  {'—':>7}  {'—':>6}  "
-                  f"{'—':>5}  {'—':>11}  (insufficient n)")
+            print(f"{name:<14} {m_if:>6.1f}%  {m_fp:>6.1f}%  {delta:>+6.1f}pp  "
+                  f"{'—':>6}  {'—':>7}  {'—':>6}  {'—':>5}  {'—':>11}  "
+                  "(insufficient n)")
 
 
 if __name__ == "__main__":

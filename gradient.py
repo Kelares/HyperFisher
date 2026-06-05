@@ -39,7 +39,7 @@ class GradientMemory:
         Handles both a single vector [D] and a list of vectors [[D], [D], ...].
         """
         if self.compression == "stop":
-            if self.basis.size(1) >= self.max_directions:
+            if self.basis and self.basis.size(1) >= self.max_directions:
                 if self.debug:
                     print(f"  [DEBUG compress] STOP — truncated to first {self.max_directions} cols, new directions discarded")
                 return None
@@ -109,11 +109,12 @@ class GradientMemory:
                     print(f"  [DEBUG compress] Post-SVD column norms: min={U_norms.min():.6f}, max={U_norms.max():.6f}")
 
             case "fifo":
-                print(f"    Reducing the gradient size from {len(self)} to {self.max_directions} via FIFO")
+                n = self.basis.size(1)                        
+                evicted = n - self.max_directions             #
+                print(f"    Reducing the gradient size from {n} to {self.max_directions} via FIFO")
                 self.basis = self.basis[:, -self.max_directions:]
                 if self.debug:
-                    print(f"  [DEBUG compress] FIFO kept cols {self.basis.size(1) - self.max_directions}:{self.basis.size(1)}")
-  
+                    print(f"  [DEBUG compress] FIFO evicted cols 0:{evicted}, kept cols {evicted}:{n}")
   
     @property
     def matrix(self) -> Optional[torch.Tensor]:
