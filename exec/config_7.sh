@@ -39,7 +39,7 @@ CHUNK_EMBED=32
 CHUNK_SIZE=64
 
 # Training hyperparameters from perfect run
-SEEDS=(1234) #42 1234 2137 811 111 ) 
+SEEDS=(1234) #42 1234 2137 811 111 )    REPLACEEEEEEEEEEEEEE 2137 ITS A BAD SEED
 EPOCHS=15
 BATCH=64
 GRADS=100
@@ -64,11 +64,11 @@ LAM["sgd"]="0"
 LAM["ewc"]="400"
 LAM["fng"]="1e-3"
 LAM["ogd"]="0"
-LAM["ong"]="0"
+LAM["ong"]="1e-3"
 LAM["fopng"]="1e-3"
 LAM["ifopng"]="1e-3"
 
-ALL_METHODS=("ifopng" "adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "ifopng")
+ALL_METHODS=("ong") #"ifopng" "adam" "sgd" "ewc" "fng" "ogd" "ong" "fopng" "ifopng")
 
 QUESTION='Primary Sub-RQ1 Panel (b) result on CIFAR-10. Also Sub-
 RQ2 Condition 3 (full normalization as proposed) and
