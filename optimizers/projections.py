@@ -879,7 +879,7 @@ class ONG(OP):
 
         # 3. Unit-step Natural Scaling (Optional but recommended for HyperNets)
         # Ensures the update doesn't explode if the Fisher landscape is flat
-        denom = torch.sqrt((v_star_unscaled * g).sum() + eps)
+        denom = torch.sqrt((v_star_unscaled * g).sum().clamp(min=0) + eps)     
         v_star = -self.lr * v_star_unscaled / (denom + eps)
 
         # Metrics for logging
