@@ -66,7 +66,7 @@ for COMP in "${COMPRESSION_TYPES[@]}"; do
             --methods=$METHOD
             --no-regulizer
             --grads_per_task=200
-            --max_directions=600
+            --max_directions=400
             --compression=$COMP
             --fisher_samples=60000
             --lr=1e-4
