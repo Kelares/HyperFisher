@@ -99,6 +99,8 @@ def _bwt_trajectory(matrix: np.ndarray) -> np.ndarray:
     Returns NaN for t=0 (undefined — no prior task).
     """
     bwt = np.full(NUM_TASKS, np.nan)
+    bwt[0] = 0.0   # task 1: no previous tasks, BWT = 0 by definition
+
     for t in range(1, NUM_TASKS):        # BWT undefined after task 1
         diffs = [matrix[t, i] - matrix[i, i] for i in range(t)]
         bwt[t] = float(np.mean(diffs)) if diffs else 0.0
@@ -106,13 +108,6 @@ def _bwt_trajectory(matrix: np.ndarray) -> np.ndarray:
 
 
 def fetch_data() -> dict:
-    """
-    Returns data[method] = {
-        'acc':  np.ndarray (n_seeds, NUM_TASKS),
-        'bwt':  np.ndarray (n_seeds, NUM_TASKS),
-        'seeds': list[int],
-    }
-    """
     api  = wandb.Api()
     runs = api.runs(
         f"{ENTITY}/{PROJECT}",
@@ -120,24 +115,24 @@ def fetch_data() -> dict:
     )
 
     data = {}
+    seen = {}   # (method, seed) → already loaded
 
     for run in runs:
         if run.state != "finished":
-            print(f"  [skip] {run.name}  state={run.state}")
             continue
-
         method = str(run.config.get("methods", ["?"])[0]).lower().strip()
         seed   = run.config.get("seed")
-
         if method not in METHOD_STYLE:
-            print(f"  [skip] {run.name}  unknown method='{method}'")
             continue
 
-        s = dict(run.summary)
+        key = (method, seed)
+        if key in seen:                   # keep only first (most-recent) run
+            continue
+        seen[key] = True
+
+        s      = dict(run.summary)
         matrix = _get_acc_matrix(s)
         if matrix is None:
-            print(f"  [warn] {run.name}  ({method}, seed={seed}) "
-                  "— accuracy matrix missing")
             continue
 
         acc_traj = _acc_trajectory(matrix)
@@ -149,11 +144,9 @@ def fetch_data() -> dict:
         data[method]["bwt"].append(bwt_traj)
         data[method]["seeds"].append(seed)
 
-    # Convert lists to arrays
     for m in data:
-        data[m]["acc"] = np.array(data[m]["acc"])   # (n_seeds, NUM_TASKS)
-        data[m]["bwt"] = np.array(data[m]["bwt"])   # (n_seeds, NUM_TASKS)
-
+        data[m]["acc"] = np.array(data[m]["acc"])
+        data[m]["bwt"] = np.array(data[m]["bwt"])
     return data
 
 
@@ -175,7 +168,7 @@ def plot_trajectories(data: dict):
     ax_acc.set_xlabel("Number of Tasks Trained")
     ax_acc.set_ylabel("Average Accuracy")
     ax_acc.set_xlim(0.75, NUM_TASKS + 0.25)
-    ax_acc.set_ylim(0.40, 1.01)
+    ax_acc.set_ylim(0.60, 1.01)
     ax_acc.set_xticks(tasks)
     ax_acc.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.2f"))
     ax_acc.grid(axis="y", color="lightgrey", linewidth=0.6, zorder=0)
@@ -213,17 +206,17 @@ def plot_trajectories(data: dict):
         ax_acc.fill_between(tasks, mean-std, mean+std,
                             color=s["color"], alpha=BAND_ALPHA, zorder=z-1)
 
-        # ── BWT — skip task 1 (undefined / NaN) ───────────────────────────
-        bwt  = data[method]["bwt"]          # (n_seeds, NUM_TASKS)
-        # tasks 2..5 only (task 1 is NaN)
-        bwt_tasks = tasks[1:]               # [2, 3, 4, 5]
-        bwt_mean  = np.nanmean(bwt[:, 1:], axis=0)
-        bwt_std   = np.nanstd (bwt[:, 1:], axis=0)
-        ax_bwt.plot(bwt_tasks, bwt_mean,
-                    color=s["color"], ls=s["ls"], lw=s["lw"], zorder=z)
-        ax_bwt.fill_between(bwt_tasks, bwt_mean-bwt_std, bwt_mean+bwt_std,
-                            color=s["color"], alpha=BAND_ALPHA, zorder=z-1)
+        # ── BWT ───────────────────────────────────────────────────────────────────
+        bwt       = data[method]["bwt"]          # (n_seeds, NUM_TASKS)
+        bwt_mean    = np.nanmean(bwt, axis=0)
+        bwt_std     = np.nanstd (bwt, axis=0)
+        bwt_mean[0] = 0.0    # definitional: no forgetting possible after task 1
+        bwt_std[0]  = 0.0
 
+        ax_bwt.plot(tasks, bwt_mean,
+                    color=s["color"], ls=s["ls"], lw=s["lw"], zorder=z)
+        ax_bwt.fill_between(tasks, bwt_mean - bwt_std, bwt_mean + bwt_std,
+                            color=s["color"], alpha=BAND_ALPHA, zorder=z-1)
         legend_handles.append(
             mlines.Line2D([], [], color=s["color"], ls=s["ls"],
                           lw=s["lw"], label=s["label"])

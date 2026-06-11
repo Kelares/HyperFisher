@@ -57,40 +57,6 @@ Bennani, M\BPBI A.%
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
-Chauhan%
-, Zhou%
-, Lu%
-, Molaei%
-\BCBL {}\ \BBA {} Clifton%
-}{%
-Chauhan%
-\ \protect \BOthers {.}}{%
-{\protect \APACyear {2024}}%
-}]{%
-chauhan_brief_2024}
-\APACinsertmetastar {%
-chauhan_brief_2024}%
-\begin{APACrefauthors}%
-Chauhan, V\BPBI K.%
-, Zhou, J.%
-, Lu, P.%
-, Molaei, S.%
-\BCBL {}\ \BBA {} Clifton, D\BPBI A.%
-\end{APACrefauthors}%
-\unskip\
-\newblock
-\APACrefYearMonthDay{2024}{}{}.
-\newblock
-{\BBOQ}\APACrefatitle {A Brief Review of Hypernetworks in Deep Learning} {A brief review of hypernetworks in deep learning}.{\BBCQ}
-\newblock
-\APACjournalVolNumPages{}{57}{9}{250}.
-\newblock
-\begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/2306.06955} \end{APACrefURL}
-\newblock
-\begin{APACrefDOI} \doi{10.1007/s10462-024-10862-8} \end{APACrefDOI}
-\PrintBackRefs{\CurrentBib}
-
-\bibitem [\protect \citeauthoryear {%
 De~Lange%
 \ \protect \BOthers {.}}{%
 De~Lange%

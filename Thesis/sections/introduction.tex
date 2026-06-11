@@ -31,7 +31,7 @@ methods, their structural intersection uncovers a critical and previously
 unexamined optimization pathology. Generating a target network's full weight 
 vector in a single forward pass would require an output layer whose width equals 
 the total number of target network parameters, which is computationally prohibitive for any non-trivial
-architecture; Because every sub-pass executes before any gradient
+architecture; because every sub-pass executes before any gradient
 update, their contributions accumulate additively in the shared meta-model
 parameters, inflating the gradient magnitude proportionally to $K$. This
 gradient inflation propagates into the projection algebra: both the gradient

@@ -11,11 +11,12 @@ projection, without any hypernetwork wrapper or functional regularizer.
 These results establish the baseline behaviour of each projection method in
 its intended setting, prior to the hypernetwork integration examined in the
 main text.
-Four benchmark streams are reported: Permuted-MNIST (5 tasks) and
+Five benchmark streams are reported: Permuted-MNIST (5 tasks) and
 Split-MNIST multi-head (5 tasks) in Figure~\ref{fig:standalone_mnist},
+Split-MNIST single-head (5 tasks) via per-task trajectory in
+Figure~\ref{fig:standalone_sh},
 Split-CIFAR10 multi-head (5 tasks) in Figure~\ref{fig:standalone_cifar10},
 and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}.
-Bars show mean accuracy over seeds; circles show individual seeds.
 
 % ── B.1  Permuted-MNIST + Split-MNIST MH ─────────────────────────────────────
 \begin{figure}[H]
@@ -75,7 +76,7 @@ Bars show mean accuracy over seeds; circles show individual seeds.
 % ── B.3  Split-CIFAR100 MH standalone ────────────────────────────────────────
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/VERIFY_standalone-cifar100_6.png}
+    \includegraphics[width=\linewidth]{figures/standalone-cifar100_6.pdf}
     \caption{%
         \textbf{Standalone target-network results --- Split-CIFAR100 multi-head
         (10 tasks, 10 epochs per task, SGD first-task at $10^{-2}$).}
@@ -95,4 +96,36 @@ Bars show mean accuracy over seeds; circles show individual seeds.
         Random-chance performance is $10\%$ (10-way classification per task).
     }
     \label{fig:standalone_cifar100}
+\end{figure}
+
+% ── B.4  Split-MNIST SH standalone — per-task trajectory ────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/standalone-sh-mnist_3.pdf}
+    \caption{%
+        \textbf{Split-MNIST single-head standalone --- all eight methods,
+        5 tasks, $n = 5$ seeds, task-incremental shared two-neuron
+        output head (Sub-RQ3).}
+        Left: average accuracy over all tasks seen so far at each task
+        step (thick line = seed mean; shaded band = $\pm 1$ standard
+        deviation).
+        Right: backward transfer from task~2 onward.
+        %
+        \texttt{iFOPNG} maintains the highest average accuracy throughout
+        all five task transitions, ending at $80.0\%$ with
+        BWT~$= -0.11$.
+        \texttt{FOPNG} follows closely at $78.7\%$ (BWT~$= -0.14$),
+        confirming the Sub-RQ3 finding that the elastic preconditioner
+        provides a consistent advantage under output-level interference.
+        \texttt{EWC} ($76.1\%$) forms a second tier, with projection
+        methods collectively outperforming all baselines.
+        \texttt{OGD} ($66.7\%$, BWT~$\approx -0.38$) performs
+        substantially worse than on multi-head benchmarks, reflecting
+        the harder gradient subspace overlap in the shared-head setting.
+        The baselines \texttt{SGD} ($63.8\%$), \texttt{Adam} ($62.7\%$),
+        \texttt{FNG} ($61.8\%$), and \texttt{ONG} ($60.5\%$) all show
+        severe forgetting (BWT~$\approx -0.42$ to $-0.48$).
+    }
+    \label{fig:standalone_sh}
 \end{figure}

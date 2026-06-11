@@ -250,9 +250,10 @@ def main():
                 exp_task_lengths=dynamic_lengths.get(409, {}), annotate_explosion=True)
 
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "normalization-conditioning_8-9.png", bbox_inches="tight")
+    for ext in ["png", "pdf"]:
+        plt.savefig(OUT + f"normalization-conditioning_8-9.{ext}", bbox_inches="tight")
     plt.close()
-    print("Done! Saved to", OUT + "normalization-conditioning_8-9.png")
+    print("Done! Saved to", OUT + "normalization-conditioning_8-9")
 
 if __name__ == "__main__":
     main()

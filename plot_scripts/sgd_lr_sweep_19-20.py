@@ -144,7 +144,7 @@ _panel(axes[0], acc_stats, "acc",
        ylim=(-0.03, 1.05),
        random_line={"y": config["random_chance_acc"], "label": f"Random chance ({int(config['random_chance_acc']*100)}%)"})
 
-axes[0].legend(fontsize=9, loc="upper left", framealpha=0.9)
+axes[0].legend(fontsize=9, loc="lower right", framealpha=0.9)
 axes[0].set_title(
     f"SGD convergence threshold — {config['title']}\n"
     r"Task-1 accuracy and loss vs learning rate (5 epochs, $n$ seeds)",

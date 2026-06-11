@@ -149,11 +149,6 @@ def main():
             ax.bar(xi + offset, mean, width=WIDTH, color=col,
                    yerr=std, capsize=3, zorder=3, alpha=0.88,
                    error_kw={"linewidth": 0.8, "ecolor": "#333", "capthick": 0.8})
-            pts = data[key]["accs"]
-            jit = np.linspace(-0.05, 0.05, len(pts))
-            for j, v in zip(jit, pts):
-                ax.scatter(xi + offset + j, v, color="white", s=10,
-                           zorder=4, edgecolors="#333", linewidths=0.5)
             group_top = max(group_top, mean + std)
         bracket_tops.append(group_top)
 
@@ -191,16 +186,22 @@ def main():
                        label=r"FOPNG   ($\hat{F}_\mathrm{new}$ only)"),
     ], fontsize=8.5, loc="lower left")
 
-    ax.text(0.99, 0.01,
-            "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05  "
-            "† df=2 (n=3), low power\n"
-            "Paired t-test (equal n); Welch independent (unequal n); two-sided",
-            transform=ax.transAxes, fontsize=6.5,
-            ha="right", va="bottom", color="#666")
+    # Replace ax.text with fig.text, below x-axis labels
+    fig.text(
+        0.01, 0,
+        "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05  "
+        "† df=2 (n=3), low power    "
+        "Paired t-test (equal n); Welch independent (unequal n); two-sided",
+        ha="left", va="top", fontsize=6.5, color="#666",
+        transform=fig.transFigure
+    )
+    # and add bottom padding so it doesn't get clipped:
+    plt.tight_layout(pad=1, rect=[0, 0.01, 1, 1])
 
-    plt.tight_layout(pad=1.5)
-    out_path = OUT + "projection-comparison_1-2-3-4-6-7-8.png"
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    out_path = OUT + "projection-comparison_1-2-3-4-6-7-8"
+    for ext in ["pdf", "png"]:
+        plt.savefig(f"{out_path}.{ext}", dpi=150, bbox_inches="tight")
+
     plt.close()
     print(f"Saved {out_path}")
 

@@ -21,7 +21,7 @@ def main():
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     fig.suptitle(
-        "Exp 7 — Split-MNIST SH HyperNetwork Suffocated  (dh=8, 5T×15ep, AdamW first-task)",
+        "Exp 7 — Split-MNIST HyperNetwork Suffocated  (dh=8, 5T×15ep, AdamW first-task)",
         fontsize=11, fontweight="bold",
     )
 
@@ -43,9 +43,10 @@ def main():
                  transform=axes[0].transAxes, fontsize=7, color="#666", style="italic")
 
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "hypernetwork-suffocated_7.png")
+    for ext in ["pdf", "png"]:
+        plt.savefig(OUT + f"hypernetwork-suffocated_7.{ext}")
     plt.close()
-    print("Saved hypernetwork-suffocated_7.png")
+    print("Saved hypernetwork-suffocated_7")
 
 if __name__ == "__main__":
     main()

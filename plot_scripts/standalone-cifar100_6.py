@@ -42,9 +42,10 @@ def main():
         )
 
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "standalone-cifar100_6.png")
+    for ext in ["pdf", "png"]:
+        plt.savefig(OUT + f"standalone-cifar100_6.{ext}")
     plt.close()
-    print("Saved standalone-cifar100_6.png")
+    print("Saved standalone-cifar100_6")
 
 if __name__ == "__main__":
     main()

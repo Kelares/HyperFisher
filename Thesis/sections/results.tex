@@ -104,7 +104,7 @@ substantially ($-0.13$).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/hypernetwork-suffocated_7.png}
+    \includegraphics[width=\linewidth]{figures/hypernetwork-suffocated_7.pdf}
     \caption{%
         \textbf{Split-MNIST SH hypernetwork, suffocated
         regime ($d_h = 8$, 5 tasks, 15 epochs per task, \texttt{AdamW}
@@ -160,7 +160,7 @@ projection-free baseline.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/normalization-conditioning_8-9.png}
+    \includegraphics[width=\linewidth]{figures/normalization-conditioning_8-9.pdf}
     \caption{%
         \textbf{Projection kernel condition number over training ---
         \texttt{iFOPNG} on Split-CIFAR10 HN.}
@@ -227,17 +227,19 @@ improving upon the original protocol.
 \subsection{Sub-RQ3: Parameter Inertia via the Combined Fisher Metric}
 \label{sec:results_rq3}
 
+% SEED 2137 FOR HN SPLIT MNIST IS BROKEN
+
 This subsection evaluates whether replacing FOPNG's task-specific natural
 gradient metric $\hat{F}_\mathrm{new}$ with the combined metric
 $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ systematically improves
 task retention across benchmarks.  Figure~\ref{fig:ifopng_comparison} presents mean
-average accuracy for both methods across all six benchmarks.
+average accuracy for both methods across all seven benchmarks.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/projection-comparison_1-2-4-6-7-8.png}
+    \includegraphics[width=\linewidth]{figures/projection-comparison_1-2-3-4-6-7-8.png}
     \caption{%
-        \textbf{iFOPNG vs.\ FOPNG across six benchmarks (Sub-RQ3).}
+        \textbf{iFOPNG vs.\ FOPNG across seven benchmarks (Sub-RQ3).}
         Grouped bars show mean average accuracy; circles show individual seeds;
         error bars show $\pm 1$ standard deviation.  The dashed vertical line
         separates standalone (left) from hypernetwork (right) settings.
@@ -248,29 +250,37 @@ average accuracy for both methods across all six benchmarks.
     \label{fig:ifopng_comparison}
 \end{figure}
 
-On the two simplest benchmarks --- Permuted-MNIST and
-Split-MNIST multi-head --- the two methods are nearly
-indistinguishable ($86.0\%$ vs.\ $85.9\%$ and $95.6\%$ vs.\ $95.2\%$
-respectively).  
+On the two simplest benchmarks --- Permuted-MNIST and Split-MNIST
+multi-head --- the two methods are nearly indistinguishable
+($86.1\%$ vs.\ $85.8\%$ and $95.9\%$ vs.\ $95.2\%$ respectively),
+consistent with low inter-task Fisher overlap on near-ceiling tasks.
 
-Both tasks are low-dimensional with limited inter-task Fisher
-overlap.
+Split-MNIST single-head provides a cleaner test of the elastic
+preconditioner under output-level interference.
+Using the task-incremental shared-head protocol (see Related Work,
+Section~\ref{sec:eval_protocols}), \texttt{iFOPNG} reaches $80.0\%$
+versus \texttt{FOPNG}'s $78.7\%$, a gap of $+1.3$~pp that is
+statistically significant ($t(4) = 24.07$, $p < 0.001$, $d = 10.76$).
+The full per-task trajectory and BWT evolution are provided in
+Appendix~B (Figure~\ref{fig:standalone_sh}).
 
-% , so $\hat{F}_\mathrm{old}$ contributes little additional mass beyond
-% what $\hat{F}_\mathrm{new}$ already captures; parameter inertia has no
-% accumulated weight to draw on.
-A clear separation emerges on harder benchmarks. On Split-CIFAR10 multi-head,
-\texttt{iFOPNG} reaches $81.1\%$ versus FOPNG's $67.4\%$, a
-gap of $14.1$~pp.  On Split-CIFAR100 multi-head the advantage
-is $5.6$~pp ($42.7\%$ vs.\ $37.1\%$). Detailed per-task trajectories for 
-these standalone references are provided in Appendix~B 
+A clear separation emerges on harder benchmarks.
+On Split-CIFAR10 multi-head, \texttt{iFOPNG} reaches $81.2\%$
+versus FOPNG's $67.1\%$, a gap of $14.1$~pp.
+On Split-CIFAR100 multi-head the advantage is $5.6$~pp
+($42.4\%$ vs.\ $36.8\%$).
+Detailed per-task trajectories for these standalone references are
+provided in Appendix~B
 (Figures~\ref{fig:standalone_cifar10} and~\ref{fig:standalone_cifar100}).
 
-The advantage carries over into the hypernetwork settings: $9.8$~pp on
-Split-MNIST HN ($70.0\%$ vs.\ $60.0\%$) and $8.6$~pp on
-Split-CIFAR10 HN ($85.6\%$ vs.\ $77.5\%$).  Across all six
-benchmarks, the retention advantage of \texttt{iFOPNG} scales robustly 
-with task complexity and cumulative Fisher overlap.
+The advantage carries over into the hypernetwork settings:
+$6.1$~pp on Split-MNIST HN ($62.9\%$ vs.\ $56.8\%$) and
+$8.6$~pp on Split-CIFAR10 HN ($85.8\%$ vs.\ $77.2\%$),
+though both fall short of statistical significance at $n = 5$,
+reflecting the elevated inter-seed variance in the hypernetwork setting
+rather than absence of effect.
+Across all seven benchmarks, the retention advantage of
+\texttt{iFOPNG} scales with task difficulty and output-level interference.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Sub-RQ4: Fisher Accumulation Operator}

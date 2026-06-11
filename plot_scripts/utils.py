@@ -184,7 +184,7 @@ def skip_exp6(method, config, summary):
     return False
 
 def skip_exp7(method, config, summary):
-    if config.get("seed", "") not in [2137, 111, 811, 42, 1234]:
+    if config.get("seed", "") not in [314, 111, 811, 42, 1234]:
         print(config["seed"])
         return True
     return False
@@ -242,7 +242,7 @@ def bar_panel(ax, data: dict, metric: str, ylabel: str, title: str,
         pts    = d[vals_key]
         jitter = np.linspace(-0.12, 0.12, len(pts))
         for j, p in zip(jitter, pts):
-            ax.scatter(i + j, p, color="white", s=12, zorder=4,
+            ax.scatter(i + j, p, color=col, s=12, zorder=4,
                        edgecolors="#333", linewidths=0.6)
 
     ax.axhline(0, color="#333", linewidth=0.7, linestyle="--", alpha=0.5)

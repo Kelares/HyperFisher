@@ -77,13 +77,16 @@ single-head variant follows \citet{farquhar_towards_2019}'s recommendation.
 
 It should be noted that \citet{garg_fisher-orthogonal_2026} label their
 Split-MNIST evaluation as single-head; however, replication of their stated
-first-task protocol --- SGD at $\eta = 10^{-5}$ for 5 epochs --- yields
-approximately $21\%$ first-task accuracy, barely above the random baseline,
-making their reported results unattainable under the stated conditions.
-We therefore suspect the original evaluation used multi-head design or a
-different first-task hyperparameter, and report both protocols to provide
-the most informative comparison regardless of which interpretation is
-correct.
+first-task protocol --- SGD at $\eta = 10^{-5}$ for five epochs --- yields
+approximately $21\%$ first-task accuracy, barely above the random baseline.
+Replication under a corrected first-task learning rate of $\eta = 10^{-3}$
+and the task-incremental single-head protocol --- a shared two-neuron output
+head with task identity provided to the evaluation harness at test time ---
+yields \texttt{iFOPNG} at $80.0\%$ and \texttt{FOPNG} at $78.7\%$,
+consistent with the range reported by \citet{garg_fisher-orthogonal_2026}.
+The stated rate of $\eta = 10^{-5}$ is therefore an error in the original
+paper's hyperparameter table; the protocol itself is correctly identified
+as task-incremental single-head.
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Regularization-Based Approaches}
 

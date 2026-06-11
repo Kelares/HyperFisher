@@ -1,20 +1,19 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% Appendix F: Hyperparameter Tables
+% Appendix G: Hyperparameter Tables
 % ─────────────────────────────────────────────────────────────────────────────
 
-\section*{Appendix F: Hyperparameter Tables}
+\section*{Appendix G: Hyperparameter Tables}
 \label{app:hyperparameters}
 
 All values are sourced directly from the W\&B run configs (CSV logs) unless
 marked $^?$ (inferred from thesis text or figure annotations).
 Entries marked $^\dagger$ are flagged in Section~\ref{sec:notes_confounds}.
-\texttt{max\_ep} is the early-stopping patience; \texttt{ep/task} is epochs
-per task; \texttt{max\_dirs} is the gradient memory column budget.
-Values that are constant across all experiments in a group are stated in the
-relevant caption rather than repeated in every row.
+\texttt{max\_ep} is the maximum epochs per task; \texttt{ep/task} is the
+configured training epochs; \texttt{max\_dirs} is the gradient memory column
+budget.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.1 \quad Standalone Target-Network Experiments}
+\subsection*{G.1 \quad Standalone Target-Network Experiments}
 \label{app:hyperparameters_standalone}
 
 \begin{table}[H]
@@ -24,6 +23,10 @@ relevant caption rather than repeated in every row.
     All rows: \texttt{model = TargetNetwork},
     \texttt{normalize = False}, \texttt{regulizer = False},
     \texttt{damping = 0.01}, $n = 5$ seeds.
+    $^*$First-task learning rate corrected from
+    \citet{garg_fisher-orthogonal_2026} ($\eta_{\mathrm{first}} = 10^{-5}$
+    yields $\approx\!21\%$ first-task accuracy;
+    see Figure~\ref{fig:sgd_threshold}).
 }
 \label{tab:hp_standalone}
 \resizebox{\linewidth}{!}{%
@@ -32,10 +35,11 @@ relevant caption rather than repeated in every row.
 Benchmark & Tasks & ep/task & max\_ep
   & First opt & First LR & LR & Batch & \makecell{Fisher\\samp.} \\
 \midrule
-Permuted-MNIST    & 5  & 10 & 5  & SGD  & $10^{-3}$ & $10^{-4}$          & 10 & 60\,000 \\
-Split-MNIST MH    & 5  & 10 & 5  & SGD  & $10^{-5}$ & $10^{-5}$          & 10 & 12\,000 \\
-Split-CIFAR10 MH  & 5  & 10 & 5  & Adam & $10^{-3}$ & $10^{-3}$          & 10 & 1\,024  \\
-Split-CIFAR100 MH & 10 & 10 & 10 & SGD  & $10^{-2}$ & $5\!\times\!10^{-3}$ & 10 & 1\,024  \\
+Permuted-MNIST    & 5  & 5  & 5  & SGD  & $10^{-3}$            & $10^{-4}$              & 10 & 60\,000 \\
+Split-MNIST MH    & 5  & 5  & 5  & SGD  & $10^{-5}$            & $10^{-5}$              & 10 & 12\,000 \\
+Split-MNIST SH    & 5  & 5  & 5  & SGD  & $10^{-3\,*}$         & $10^{-5}$              & 10 & 12\,000 \\
+Split-CIFAR10 MH  & 5  & 5  & 5  & Adam & $10^{-3}$            & $10^{-3}$              & 10 & 1\,024  \\
+Split-CIFAR100 MH & 10 & 10 & 10 & SGD  & $10^{-2}$            & $5\!\times\!10^{-3}$   & 10 & 1\,024  \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -46,11 +50,13 @@ Split-CIFAR100 MH & 10 & 10 & 10 & SGD  & $10^{-2}$ & $5\!\times\!10^{-3}$ & 10 
 \centering
 \caption{%
     \textbf{EWC $\lambda$ for standalone experiments.}
-    Projection methods and Adam/SGD use $\lambda = 0.001$ (minimal).
+    Projection methods and Adam/SGD use $\lambda = 0.001$ (minimal damping).
     $^\ddagger$CIFAR-100 MH: $\lambda=50$ collapsed and is excluded;
     $\lambda = 10$ is used (annotated in Figure~\ref{fig:standalone_cifar100}).
-    $^?$Other EWC values inferred from the set of distinct \texttt{lam}
-    values in each experiment's logs.
+    $^?$Values inferred from the set of distinct \texttt{lam} values
+    in each experiment's logs; the \texttt{lam} field is shared between
+    EWC's regularization coefficient and the projection damping term
+    (see G.6).
 }
 \label{tab:ewc_lambda}
 \small
@@ -58,16 +64,17 @@ Split-CIFAR100 MH & 10 & 10 & 10 & SGD  & $10^{-2}$ & $5\!\times\!10^{-3}$ & 10 
 \toprule
 Benchmark & EWC $\lambda$ & Log values present \\
 \midrule
-Permuted-MNIST    & $10^?$      & $\{10,\; 0.01,\; 0.001\}$ \\
-Split-MNIST MH    & $0.0005^?$  & $\{400,\; 0.001,\; 0.0005\}$ \\
+Permuted-MNIST    & $10^?$         & $\{10,\; 0.01,\; 0.001\}$ \\
+Split-MNIST MH    & $0.0005^?$     & $\{400,\; 0.001,\; 0.0005\}$ \\
+Split-MNIST SH    & $0.0005^?$     & $\{0.001,\; 0.0005\}$ \\
 Split-CIFAR10 MH  & $10$ or $50^?$ & $\{100\,000,\; 50,\; 10,\; 0.001\}$ \\
-Split-CIFAR100 MH & $10^\ddagger$ & Confirmed; $\lambda=50$ excluded \\
+Split-CIFAR100 MH & $10^\ddagger$  & Confirmed; $\lambda=50$ excluded \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.2 \quad Hypernetwork Experiments}
+\subsection*{G.2 \quad Hypernetwork Experiments}
 \label{app:hyperparameters_hn}
 
 All HN experiments: \texttt{model = HyperNetwork}, \texttt{regulizer = True},
@@ -79,9 +86,10 @@ $\beta = 0.001$ (\texttt{lam = 0.001}), $\eta = 10^{-3}$, $n = 5$ seeds.
     \textbf{Hypernetwork architecture and training parameters.}
     \texttt{c\_emb} = chunk embedding dim; \texttt{t\_emb} = task embedding dim.
     $^\dagger$Exp~407: \texttt{first\_task\_opt = None} in logs;
-    likely AdamW by code default (see F.6).
-    $^\dagger$Exp~411: extracted from the 35 completed runs at
-    chunk\,=\,6\,000, $d_h$\,=\,32, \texttt{normalize\,=\,True}.
+    likely AdamW by code default (see G.6).
+    $^\dagger$Exp~411: results extracted from the 35 completed runs at
+    chunk\,=\,6\,000, $d_h$\,=\,32, \texttt{normalize\,=\,True};
+    remaining runs are exploratory pilots (see G.6).
 }
 \label{tab:hp_hn}
 \resizebox{\linewidth}{!}{%
@@ -90,20 +98,20 @@ $\beta = 0.001$ (\texttt{lam = 0.001}), $\eta = 10^{-3}$, $n = 5$ seeds.
 Role / Benchmark & Tasks & ep/task & max\_ep
   & First opt & $d_h$ & chunk & c\_emb & t\_emb & \makecell{grads\\/ task} \\
 \midrule
-CIFAR-10 HN (main)              & 5  & 10 & 50 & AdamW        & 32 & 6\,000 & 16 & 16 & 80  \\
-CIFAR-100 HN$^\dagger$          & 10 & 10 & 50 & AdamW        & 32 & 6\,000 & 16 & 16 & 80  \\
+CIFAR-10 HN (main)                       & 5  & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 80  \\
+CIFAR-100 HN$^\dagger$                   & 10 & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 80  \\
 \midrule
-MNIST HN ($d_h=8$, suffocated)$^\dagger$ & 5 & 10 & 15 & AdamW & 8  & 64 & 32 & 32 & 100 \\
+MNIST HN ($d_h{=}8$, suffocated)$^\dagger$ & 5 & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 100 \\
 \midrule
-dh sweep $d_h = 4$              & 5  & 10 & 15 & AdamW & 4  & 64 & 32 & 32 & 80 \\
-dh sweep $d_h = 8$              & 5  & 10 & 15 & AdamW & 8 & 64 & 32 & 32 & 100 \\
-dh sweep $d_h = 16$             & 5  & 10 & 15 & AdamW & 16 & 64 & 32 & 32 & 80 \\
+$d_h$ sweep --- $d_h = 4$               & 5  & 15 & 15 & AdamW & 4  & 64 & 32 & 32 & 80  \\
+$d_h$ sweep --- $d_h = 8$               & 5  & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 100 \\
+$d_h$ sweep --- $d_h = 16$              & 5  & 15 & 15 & AdamW & 16 & 64 & 32 & 32 & 80  \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.3 \quad Normalization Ablation}
+\subsection*{G.3 \quad Normalization Ablation}
 \label{app:hyperparameters_norm}
 
 All three conditions share the same architecture:
@@ -117,8 +125,7 @@ AdamW first-task at $\eta = 10^{-3}$, \texttt{iFOPNG} only.
     \textbf{Normalization ablation conditions (Sub-RQ2).}
     The CSVs for conditions 1 and 2 also contain pilot runs at
     chunk\,=\,256, $d_h$\,=\,64; these are excluded.
-    Only chunk\,=\,6\,000, $d_h$\,=\,32 runs are used, confirmed
-    by the reported accuracy values.
+    Only chunk\,=\,6\,000, $d_h$\,=\,32 runs are used.
 }
 \label{tab:hp_norm}
 \resizebox{\linewidth}{!}{%
@@ -129,50 +136,76 @@ Condition & \texttt{normalize} & QR on $G$ & Max-scale $\hat{F}$
 \midrule
 No normalization   & \texttt{False} & \texttimes & \texttimes & 3 & 72.2\% & $-0.070$ \\
 Gradient-only      & \texttt{True}  & \checkmark & \texttimes & 3 & 68.9\% & $-0.060$ \\
-Full normalization & \texttt{True}  & \checkmark & \checkmark & 3 & 85.8\% & $-0.013$ \\
+Full normalization & \texttt{True}  & \checkmark & \checkmark & 5 & 85.8\% & $-0.013$ \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.4 \quad Sub-RQ4: Fisher Accumulation Operators}
+\subsection*{G.4 \quad Sub-RQ4 and Compression Ablation}
 \label{app:hyperparameters_rq4}
 
-Both conditions: 20-task Permuted-MNIST, \texttt{TargetNetwork},
-\texttt{normalize = False}, batch\,=\,10, $n = 5$ seeds.
+Both Sub-RQ4 conditions and all three compression ablation conditions use
+20-task Permuted-MNIST, \texttt{TargetNetwork}, \texttt{normalize = False},
+batch\,=\,10.
 
 \begin{table}[H]
 \centering
 \caption{%
-    \textbf{Sub-RQ4 accumulation parameters.}
-    \textbf{Note:} the Discussion incorrectly states $\alpha = 0.3$;
-    the confirmed value from the run logs is $\alpha = 0.5$.
+    \textbf{Sub-RQ4 accumulation parameters} ($n = 5$ seeds,
+    $\alpha = 0.5$ for EMA).
 }
 \label{tab:hp_rq4}
-\resizebox{0.82\linewidth}{!}{%
-\begin{tabular}{lccccc}
+\resizebox{0.90\linewidth}{!}{%
+\begin{tabular}{lcccccc}
 \toprule
-Operator & Tasks & ep/task & max\_ep & LR & \makecell{Fisher\\samp.} \\
+Operator & Tasks & ep/task & max\_ep & LR & $\lambda$ & \makecell{Fisher\\samp.} \\
 \midrule
-MAX (\texttt{iFOPNG})      & 20 & 10 & 5 & $10^{-4}$ & 60\,000 \\
-EMA (\texttt{iFOPNG\_ema}, $\alpha=0.5$) & 20 & 10 & 5 & $10^{-4}$ & 60\,000 \\
+MAX (\texttt{iFOPNG})                       & 20 & 5 & 5 & $10^{-4}$ & $10^{-2}$ & 60\,000 \\
+EMA (\texttt{iFOPNG\_ema}, $\alpha = 0.5$)  & 20 & 5 & 5 & $10^{-4}$ & $10^{-2}$ & 60\,000 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\vspace{4pt}
+
+\begin{table}[H]
+\centering
+\caption{%
+    \textbf{Compression ablation parameters} ($n = 5$ seeds each,
+    seeds $\{42, 111, 811, 1234, 2137\}$).
+    Note: $\lambda = 10^{-3}$ differs from the Sub-RQ4 baseline
+    ($\lambda = 10^{-2}$); the ablation is internally controlled but
+    not directly comparable to Sub-RQ4 on this hyperparameter.
+}
+\label{tab:hp_compression}
+\resizebox{0.90\linewidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Strategy & Tasks & ep/task & max\_ep & LR & $\lambda$ & max\_dirs \\
+\midrule
+SVD  (Exp~421) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 400 \\
+FIFO (Exp~422) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 400 \\
+STOP (Exp~423) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 400 \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.5 \quad SGD Convergence Threshold Diagnostic}
-\label{app:dh_sweep}
+\subsection*{G.5 \quad SGD Convergence Threshold Diagnostic}
+\label{app:sgd_threshold}
 
 The SGD threshold diagnostic (Figure~\ref{fig:sgd_threshold}) sweeps
 $\eta \in \{10^{-5},\, 5\!\times\!10^{-5},\, 10^{-4},\, 2\!\times\!10^{-4},\,
 5\!\times\!10^{-4},\, 10^{-3},\, 5\!\times\!10^{-3},\, 10^{-2}\}$
 on Split-MNIST SH (\texttt{TargetNetwork}, 1 task, 5 epochs).
 Convergence threshold: $\eta = 10^{-4}$.
-All standalone experiments in this thesis use $\eta = 10^{-3}$.
+All standalone experiments in this thesis use $\eta_{\mathrm{first}} = 10^{-3}$
+except Split-MNIST MH, which follows the
+\citet{garg_fisher-orthogonal_2026} protocol at $\eta_{\mathrm{first}} = 10^{-5}$.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{F.6 \quad Notes on Confounds and Uncertainties}
+\subsection*{G.6 \quad Notes on Confounds and Uncertainties}
 \label{sec:notes_confounds}
 
 \paragraph{Exp~407 \texttt{first\_task\_opt = None}.}
@@ -185,7 +218,7 @@ explicitly log \texttt{adamw}, suggesting Exp~407 predates that config field.
 \paragraph{Exp~411 parameter heterogeneity.}
 The CIFAR-100 HN CSV contains 222 runs across a wide range of
 \texttt{chunk\_size}, \texttt{hyper\_hidden\_dim}, and normalization settings
-— an exploratory search prior to settling on the published architecture.
+--- an exploratory search prior to settling on the published architecture.
 The 35 completed runs at chunk\,=\,6\,000, $d_h$\,=\,32,
 \texttt{normalize\,=\,True} are used for the reported results; all other
 runs are pilots.
@@ -202,3 +235,11 @@ The \texttt{lam} field is shared between EWC's $\lambda$ and the projection
 damping term, so per-method EWC values cannot be extracted from the CSV
 without row-level method filtering; Table~\ref{tab:ewc_lambda} values are
 inferred from the set of distinct \texttt{lam} values per experiment.
+
+\paragraph{$\lambda$ discrepancy between Sub-RQ4 and compression ablation.}
+The Sub-RQ4 experiments (Exps~414--415) use $\lambda = 10^{-2}$,
+while the compression ablation (Exps~421--423) uses $\lambda = 10^{-3}$.
+The compression ablation compares SVD, FIFO, and STOP under identical
+conditions and is internally valid; the comparison against the Sub-RQ4
+unconstrained baseline on absolute accuracy is confounded by this
+difference and should not be made.

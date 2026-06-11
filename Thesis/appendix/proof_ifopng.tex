@@ -1,51 +1,548 @@
 \section*{Appendix A: iFOPNG Theorem and Proof}
 \label{app:a}
 
-\subsection*{Notation}
-Throughout this proof, $g \in \mathbb{R}^p$ denotes the current gradient,
-$G \in \mathbb{R}^{p \times m}$ the memory matrix of $m$ historical gradient
-directions (each normalized to unit $\ell_2$ norm), $F_{\text{old}}$ and
-$F_{\text{new}}$ the accumulated and current-task diagonal empirical Fisher
-tensors, and $F_c = F_{\text{new}} + F_{\text{old}}$.  We treat diagonal Fisher
-matrices as vectors acting by element-wise multiplication; all matrix operations
-below are defined accordingly.
+% ─────────────────────────────────────────────────────────────────────────────
+% PREAMBLE REQUIREMENT: this appendix uses the environments
+%   assumption, theorem, lemma, proposition, corollary, remark.
+% If any are missing from the preamble, add (after \usepackage{amsthm}):
+%   \newtheorem{lemma}{Lemma}
+%   \newtheorem{proposition}{Proposition}
+%   \newtheorem{corollary}{Corollary}
+%   \theoremstyle{remark}\newtheorem{remark}{Remark}
+% ─────────────────────────────────────────────────────────────────────────────
 
-\begin{assumption}[Regularity]
+\subsection*{A.1\quad Notation and Standing Conventions}
+
+Throughout this appendix, $p$ denotes the number of trainable parameters and
+$m$ the number of stored gradient directions, with $m \ll p$.
+The vector $g \in \mathbb{R}^p$ is the current mini-batch gradient, and
+$G \in \mathbb{R}^{p \times m}$ is the memory matrix whose columns are the
+stored historical gradient directions (orthonormalised at insertion time via
+QR decomposition; the proof makes no use of this property --- see
+Remark~\ref{rem:basis}).
+$F_{\mathrm{new}}$ and $F_{\mathrm{old}}$ denote the current-task and
+accumulated diagonal empirical Fisher estimates.
+Both are positive semi-definite by construction: the diagonal entries of
+$F_{\mathrm{new}}$ are averages of squared score components, and
+$F_{\mathrm{old}}$ is an element-wise maximum of such estimates, an operation
+that preserves entry-wise non-negativity.
+The combined metric is $F_c \coloneqq F_{\mathrm{new}} + F_{\mathrm{old}}$.
+
+Diagonal Fisher tensors are stored as vectors and act by element-wise
+multiplication; in all displays below they are identified with the
+corresponding $p \times p$ diagonal matrices, which are in particular
+symmetric.
+For a symmetric positive-definite matrix $S$, we write
+$\langle w, z \rangle_S \coloneqq w^\top S\, z$ for the induced inner product
+and $\|w\|_S \coloneqq \sqrt{w^\top S\, w}$ for the induced norm;
+$\operatorname{Col}(M)$ denotes the column space of a matrix $M$.
+Two derived quantities recur throughout:
+\begin{equation}
+    B \coloneqq F_{\mathrm{old}}\, G \;\in\; \mathbb{R}^{p \times m},
+    \qquad
+    A \coloneqq B^\top F_c^{-1} B
+      \;=\; G^\top F_{\mathrm{old}}\, F_c^{-1}\, F_{\mathrm{old}}\, G
+      \;\in\; \mathbb{R}^{m \times m}.
+\end{equation}
+
+\subsection*{A.2\quad Assumptions}
+
+\begin{assumption}[Positive-definite combined metric]
 \label{ass:regularity}
-$F_c$ is positive definite and the matrix $A = G^\top F_{\text{old}}\,F_c^{-1}\,F_{\text{old}}\,G$ is invertible.
+$F_c \succ 0$; equivalently,
+$(F_{\mathrm{new}})_i + (F_{\mathrm{old}})_i > 0$ for every coordinate $i$.
 \end{assumption}
+
+Since both summands are positive semi-definite, Assumption~\ref{ass:regularity}
+can fail only on coordinates whose score component is identically zero under
+both Fisher estimates --- parameters that influenced neither the current task
+nor any previous one.
+The implementation inverts $F_c + \hat{\lambda} I$ with damping
+$\hat{\lambda} > 0$, which is positive definite unconditionally; the theorem
+below treats the exact ($\lambda \to 0$) problem, and
+Remark~\ref{rem:damping} addresses the damped form used in practice.
+
+\begin{assumption}[Projection kernel rank]
+\label{ass:rank}
+The kernel matrix $A$ is invertible.
+By Lemma~\ref{lem:gram} below, this is equivalent to
+$\operatorname{rank}(F_{\mathrm{old}}\, G) = m$: no non-trivial linear
+combination of stored directions is annihilated by the accumulated Fisher.
+\end{assumption}
+
+QR orthonormalisation at insertion guarantees
+$\operatorname{rank}(G) = m$, but rank can still be lost after weighting by
+$F_{\mathrm{old}}$ if some stored direction is supported entirely on
+coordinates with $(F_{\mathrm{old}})_i = 0$.
+This is the only mechanism of rank loss; the damped kernel
+$A + \hat{\lambda} I_m$ used in the implementation is invertible
+unconditionally (Remark~\ref{rem:damping}).
+
+\begin{assumption}[Non-degenerate residual]
+\label{ass:residual}
+$Pg \neq 0$, where
+$P \coloneqq I - B A^{-1} B^\top
+   = I - F_{\mathrm{old}}\, G\, A^{-1}\, G^\top F_{\mathrm{old}}$.
+\end{assumption}
+
+Assumption~\ref{ass:residual} is required only for the trust-region
+normalisation in Step~5 of the proof.
+The degenerate event $Pg = 0$ can occur only when $g$ lies in the protected
+image $\operatorname{Col}(F_{\mathrm{old}}\, G)$, and the convention $v = 0$
+is adopted in that case (Remark~\ref{rem:degenerate}).
+
+\subsection*{A.3\quad Auxiliary Results}
+
+\begin{lemma}[Gram structure of the projection kernel]
+\label{lem:gram}
+Under Assumption~\ref{ass:regularity}, the matrix $A = B^\top F_c^{-1} B$ is
+symmetric positive semi-definite, and the following are equivalent:
+(i) $A$ is invertible;
+(ii) $A \succ 0$;
+(iii) $\operatorname{rank}(B) = m$.
+\end{lemma}
+
+\begin{proof}
+$F_c^{-1} \succ 0$ admits a positive-definite square root $F_c^{-1/2}$.
+Symmetry is immediate from
+$A^\top = B^\top (F_c^{-1})^\top B = A$.
+For any $x \in \mathbb{R}^m$,
+\begin{equation}
+    x^\top A\, x
+    = x^\top B^\top F_c^{-1} B\, x
+    = \bigl\| F_c^{-1/2} B\, x \bigr\|_2^2 \;\geq\; 0,
+\end{equation}
+so $A \succeq 0$, with equality if and only if $F_c^{-1/2} B x = 0$, i.e.\
+$Bx = 0$ since $F_c^{-1/2}$ is invertible.
+Hence $A \succ 0$ holds exactly when $Bx = 0$ implies $x = 0$, which is
+(iii).
+Finally, a symmetric positive semi-definite matrix is invertible if and only
+if its smallest eigenvalue is strictly positive, i.e.\ if and only if it is
+positive definite, giving (i) $\Leftrightarrow$ (ii).
+\end{proof}
+
+\begin{lemma}[Strict convexity of the reduced objective]
+\label{lem:convex}
+Under Assumptions~\ref{ass:regularity}--\ref{ass:rank}, the function
+\begin{equation}
+    J(\alpha)
+    \coloneqq g^\top F_c\, g
+      \;-\; 2\, g^\top F_{\mathrm{old}}\, G\, \alpha
+      \;+\; \alpha^\top A\, \alpha,
+    \qquad \alpha \in \mathbb{R}^m,
+\end{equation}
+is strictly convex and attains its unique global minimum at
+$\alpha^* = A^{-1} G^\top F_{\mathrm{old}}\, g$.
+\end{lemma}
+
+\begin{proof}
+$J$ is a quadratic with Hessian $\nabla^2 J = 2A \succ 0$ by
+Lemma~\ref{lem:gram}, hence strictly convex.
+The first-order condition
+$\nabla J(\alpha) = -2\, G^\top F_{\mathrm{old}}\, g + 2 A \alpha = 0$
+has the unique solution
+$\alpha^* = A^{-1} G^\top F_{\mathrm{old}}\, g$,
+and for a strictly convex differentiable function the unique stationary
+point is the unique global minimiser.
+\end{proof}
+
+\subsection*{A.4\quad Main Result}
 
 \begin{theorem}[iFOPNG Update]
 \label{thm:ifopng}
-Under Assumption~\ref{ass:regularity}, the solution to
+Let Assumptions~\ref{ass:regularity}--\ref{ass:residual} hold, and consider
+the two-stage construction
 \begin{equation}
+\label{eq:ifopng_problem}
 \begin{aligned}
-    \min_{u}\; &\| g - F_c^{-1} u \|_{F_c}^2 \\
-    \text{s.t.}\quad &F_{\text{old}}^{-1} u \in \operatorname{Col}(G), \\
-    &\|v\|_{F_c} = \eta,
+    \text{(i)}\quad
+    & u^* \;=\; \operatorname*{arg\,min}_{u \,\in\, \operatorname{Col}(F_{\mathrm{old}} G)}
+        \;\bigl\| g - F_c^{-1} u \bigr\|_{F_c}^2,
+    \\[2pt]
+    \text{(ii)}\quad
+    & v \;=\; c\, F_c^{-1}\bigl(g - u^*\bigr),
+    \quad \text{with } c < 0 \text{ chosen such that } \|v\|_{F_c} = \eta.
 \end{aligned}
 \end{equation}
-with parameter update $v = c\,F_c^{-1}(g - u)$, is given by
-\eqref{eq:ifopng}, where
-$P = I - F_{\text{old}}\,G\,A^{-1}\,G^\top F_{\text{old}}$.
+When $F_{\mathrm{old}} \succ 0$, the constraint set in (i) coincides with
+$\{\, u : F_{\mathrm{old}}^{-1} u \in \operatorname{Col}(G) \,\}$, the form
+quoted in the main text; the formulation via
+$\operatorname{Col}(F_{\mathrm{old}} G)$ extends it to singular
+$F_{\mathrm{old}}$.
+Then $u^*$ exists and is unique, and the resulting update is
+Equation~\eqref{eq:ifopng} of the main text:
+\begin{equation}
+    v^* \;=\; -\,\eta\,
+    \frac{F_c^{-1} P g}{\sqrt{(Pg)^\top F_c^{-1} P g}},
+    \qquad
+    P = I - F_{\mathrm{old}}\, G\, A^{-1}\, G^\top F_{\mathrm{old}}.
+\end{equation}
 \end{theorem}
 
 \begin{proof}
-\textbf{Step 1.}  The constraint $F_{\text{old}}^{-1} u \in \operatorname{Col}(G)$ implies $u = F_{\text{old}}\,G\,\alpha$ for some $\alpha \in \mathbb{R}^m$.
+\textbf{Step 1 (parameterisation of the constraint set).}
+By definition,
+$\operatorname{Col}(F_{\mathrm{old}} G)
+ = \{\, F_{\mathrm{old}}\, G\, \alpha : \alpha \in \mathbb{R}^m \,\}
+ = \{\, B\alpha : \alpha \in \mathbb{R}^m \,\}$.
+Under Assumption~\ref{ass:rank} and Lemma~\ref{lem:gram},
+$\operatorname{rank}(B) = m$, so the map $\alpha \mapsto B\alpha$ is
+injective: the parameterisation is a bijection between $\mathbb{R}^m$ and
+the constraint set, and uniqueness of the minimiser in $\alpha$ will
+transfer to uniqueness in $u$.
+When $F_{\mathrm{old}} \succ 0$, the substitution
+$u = B\alpha \Leftrightarrow F_{\mathrm{old}}^{-1} u = G\alpha
+ \in \operatorname{Col}(G)$ recovers the main-text form of the constraint.
 
-\textbf{Step 2.}  Substituting and expanding using $\|w\|_{F_c}^2 = w^\top F_c\,w$:
+\textbf{Step 2 (expansion of the objective).}
+For arbitrary $u \in \mathbb{R}^p$, using the symmetry of $F_c$ and
+$F_c^{-1} F_c = I$,
+\begin{align}
+    \bigl\| g - F_c^{-1} u \bigr\|_{F_c}^2
+    &= \bigl(g - F_c^{-1} u\bigr)^\top F_c \bigl(g - F_c^{-1} u\bigr)
+    \notag\\
+    &= g^\top F_c\, g
+       \;-\; 2\, g^\top F_c\, F_c^{-1} u
+       \;+\; u^\top F_c^{-1} F_c\, F_c^{-1} u
+    \notag\\
+    &= g^\top F_c\, g \;-\; 2\, g^\top u \;+\; u^\top F_c^{-1} u.
+\end{align}
+Substituting $u = B\alpha$ and using
+$F_{\mathrm{old}}^\top = F_{\mathrm{old}}$,
+the linear term becomes
+$-2\, g^\top B \alpha
+ = -2\, g^\top F_{\mathrm{old}}\, G\, \alpha
+ = -2\,\bigl(G^\top F_{\mathrm{old}}\, g\bigr)^{\!\top} \alpha$
+and the quadratic term becomes
+$\alpha^\top B^\top F_c^{-1} B\, \alpha = \alpha^\top A\, \alpha$.
+The reduced objective is therefore exactly the function $J(\alpha)$ of
+Lemma~\ref{lem:convex}; its first term does not depend on $\alpha$.
+
+\textbf{Step 3 (unique minimiser).}
+By Lemma~\ref{lem:convex}, $J$ is strictly convex and its unique global
+minimiser solves the normal equations
 \begin{equation}
-    \| g - F_c^{-1} u \|_{F_c}^2 = g^\top F_c\,g - 2\,g^\top F_{\text{old}}\,G\,\alpha + \alpha^\top A\,\alpha.
+\label{eq:normal_eq}
+    A\, \alpha^* \;=\; G^\top F_{\mathrm{old}}\, g,
+    \qquad\text{i.e.}\qquad
+    \alpha^* = A^{-1}\, G^\top F_{\mathrm{old}}\, g .
 \end{equation}
 
-\textbf{Step 3.}  Setting the gradient with respect to $\alpha$ to zero yields
-$\alpha^* = A^{-1} G^\top F_{\text{old}}\,g$.
+\textbf{Step 4 (back-substitution and the projection operator).}
+Substituting $\alpha^*$ into the parameterisation,
+\begin{equation}
+    u^* = B\,\alpha^*
+        = F_{\mathrm{old}}\, G\, A^{-1}\, G^\top F_{\mathrm{old}}\, g,
+    \qquad\text{hence}\qquad
+    g - u^* = \bigl(I - F_{\mathrm{old}}\, G\, A^{-1}\,
+              G^\top F_{\mathrm{old}}\bigr)\, g = P g .
+\end{equation}
+$P$ is symmetric, since $A^{-1}$ is symmetric by Lemma~\ref{lem:gram}.
+By Step~1, $u^*$ is the unique solution of stage~(i).
 
-\textbf{Step 4.}  Substituting back: $u^* = F_{\text{old}}\,G\,A^{-1}\,G^\top F_{\text{old}}\,g$, so
-$g - u^* = P g$.
+\textbf{Step 5 (well-posedness of the trust-region normalisation).}
+For $v = c\, F_c^{-1} P g$,
+\begin{equation}
+    \|v\|_{F_c}^2
+    = c^2\,\bigl(F_c^{-1} P g\bigr)^{\!\top} F_c \bigl(F_c^{-1} P g\bigr)
+    = c^2\,(Pg)^\top F_c^{-1} F_c\, F_c^{-1} (Pg)
+    = c^2\,(Pg)^\top F_c^{-1} (Pg).
+\end{equation}
+The scalar $(Pg)^\top F_c^{-1} (Pg)$ is a quadratic form in the positive
+definite matrix $F_c^{-1}$, hence non-negative, and strictly positive under
+Assumption~\ref{ass:residual}; the square root below is therefore real and
+non-zero.
 
-\textbf{Step 5.}  Applying the trust-region constraint $\|v\|_{F_c} = \eta$ to
-$v = c\,F_c^{-1} Pg$ gives
-$c = \eta / \sqrt{(Pg)^\top F_c^{-1} Pg}$,
-yielding the stated update.
+\textbf{Step 6 (magnitude and sign).}
+The constraint $\|v\|_{F_c} = \eta$ forces
+$|c| = \eta \big/ \sqrt{(Pg)^\top F_c^{-1} P g}$ and determines $c$ only up
+to sign.
+The negative root is selected so that for an empty memory
+($m = 0$, hence $P = I$) the update reduces to the trust-region
+natural-gradient \emph{descent} step of \texttt{FNG} under the combined
+metric,
+$v^* = -\eta\, F_c^{-1} g \big/ \sqrt{g^\top F_c^{-1} g}$
+--- the same convention adopted by \texttt{FOPNG}
+\citep{garg_fisher-orthogonal_2026}.
+This yields the stated update and completes the proof.
 \end{proof}
+
+\subsection*{A.5\quad Optimality Characterisation}
+
+\begin{corollary}[Fisher-orthogonality of the corrected gradient]
+\label{cor:orth}
+Let $r^* \coloneqq g - F_c^{-1} u^*$ denote the residual controlled by
+stage~(i) of \eqref{eq:ifopng_problem}.
+Then
+\begin{equation}
+    G^\top F_{\mathrm{old}}\, r^* = 0;
+    \qquad\text{equivalently}\qquad
+    \langle g_k,\, r^* \rangle_{F_{\mathrm{old}}} = 0
+    \quad\text{for every stored column } g_k \text{ of } G.
+\end{equation}
+After the metric image of the protected component is removed, the corrected
+gradient carries zero $F_{\mathrm{old}}$-weighted overlap with every stored
+historical direction.
+\end{corollary}
+
+\begin{proof}
+Direct computation using
+$G^\top F_{\mathrm{old}}\, F_c^{-1}\, F_{\mathrm{old}}\, G = A$:
+\begin{equation}
+    G^\top F_{\mathrm{old}}\, r^*
+    = G^\top F_{\mathrm{old}}\, g
+      - \underbrace{G^\top F_{\mathrm{old}}\, F_c^{-1}\,
+        F_{\mathrm{old}}\, G}_{=\,A}\, A^{-1}\, G^\top F_{\mathrm{old}}\, g
+    = G^\top F_{\mathrm{old}}\, g - G^\top F_{\mathrm{old}}\, g
+    = 0 .
+\end{equation}
+This is precisely the system of normal equations~\eqref{eq:normal_eq}.
+\end{proof}
+
+\begin{proposition}[Projection interpretation]
+\label{prop:projector}
+The substitution $w \coloneqq F_c^{-1} u$, a bijection under
+Assumption~\ref{ass:regularity}, maps stage~(i) of
+\eqref{eq:ifopng_problem} to
+\begin{equation}
+    \min_{w \,\in\, \mathcal{S}} \;\|g - w\|_{F_c}^2,
+    \qquad
+    \mathcal{S} \coloneqq
+    \operatorname{Col}\bigl(F_c^{-1} F_{\mathrm{old}}\, G\bigr).
+\end{equation}
+The operator
+$\Pi \coloneqq F_c^{-1} F_{\mathrm{old}}\, G\, A^{-1}\,
+ G^\top F_{\mathrm{old}}$
+satisfies $\Pi^2 = \Pi$ and $F_c \Pi = (F_c \Pi)^\top$ --- it is idempotent
+and self-adjoint with respect to
+$\langle \cdot, \cdot \rangle_{F_c}$ --- and is therefore the
+$F_c$-orthogonal projector onto $\mathcal{S}$, with $w^* = \Pi g$.
+Consequently the update direction decomposes as
+\begin{equation}
+    F_c^{-1}\bigl(g - u^*\bigr) \;=\; F_c^{-1} g \;-\; \Pi\, g :
+\end{equation}
+the combined-metric natural gradient, minus the $F_c$-orthogonal projection
+of the raw gradient onto the metric image of the memory.
+\end{proposition}
+
+\begin{proof}
+Idempotency follows from the kernel identity:
+\begin{equation}
+    \Pi^2
+    = F_c^{-1} B\, A^{-1}
+      \underbrace{\bigl(B^\top F_c^{-1} B\bigr)}_{=\,A}
+      A^{-1} B^\top
+    = F_c^{-1} B\, A^{-1} B^\top
+    = \Pi .
+\end{equation}
+Self-adjointness in the $F_c$-geometry is equivalent to symmetry of
+$F_c \Pi = B A^{-1} B^\top$, which holds by Lemma~\ref{lem:gram}.
+An idempotent operator that is self-adjoint with respect to an inner
+product is the orthogonal projector onto its range in that geometry;
+here $\operatorname{range}(\Pi) = F_c^{-1}\operatorname{Col}(B) =
+\mathcal{S}$, since $A^{-1} B^\top$ has full row rank $m$ under
+Assumption~\ref{ass:rank}.
+By the projection theorem, $w^* = \Pi g$ is the unique solution of the
+substituted problem, and $w^* = F_c^{-1} u^*$ is consistent with Step~4 of
+the main proof.
+The displayed decomposition is then immediate from
+$F_c^{-1}(g - u^*) = F_c^{-1} g - F_c^{-1} u^* = F_c^{-1} g - \Pi g$.
+\end{proof}
+
+\subsection*{A.6\quad Scope, Degenerate Cases, and the Practical Form}
+
+\begin{remark}[Elastic trust region --- the inertia mechanism]
+\label{rem:elastic}
+The trust-region budget splits additively across the two geometries:
+\begin{equation}
+    \|v\|_{F_c}^2
+    \;=\; v^\top F_{\mathrm{new}}\, v \;+\; v^\top F_{\mathrm{old}}\, v
+    \;=\; \|v\|_{F_{\mathrm{new}}}^2 + \|v\|_{F_{\mathrm{old}}}^2
+    \;=\; \eta^2 .
+\end{equation}
+A single budget $\eta^2$ is therefore shared between displacement measured
+in the current-task geometry and displacement measured in the accumulated
+historical geometry: a coordinate with large $(F_{\mathrm{old}})_i$ consumes
+more of the budget per unit of motion and is moved correspondingly less.
+This is the precise sense in which historical importance acts as
+\emph{inertia} rather than as a restoring force --- no reference point and
+no penalty term enter the objective, in direct contrast to EWC
+\citep{kirkpatrick_overcoming_2017}.
+\end{remark}
+
+\begin{remark}[Degenerate and boundary cases]
+\label{rem:degenerate}
+(i) \emph{Empty memory} ($m = 0$): the constraint set is $\{0\}$, so
+$u^* = 0$, $P = I$, and the update is the \texttt{FNG} trust-region step
+under $F_c$.
+(ii) \emph{Vanishing residual} ($Pg = 0$): the trust region is infeasible
+along the projected direction and the convention $v = 0$ is adopted; the
+implementation's $\varepsilon$-guards return a numerically negligible step.
+This event can occur only when $g \in
+\operatorname{Col}(F_{\mathrm{old}}\,G)$.
+(iii) \emph{Vanishing history} ($F_{\mathrm{old}} = 0$): this lies outside
+Assumption~\ref{ass:rank}, but the damped implementation degrades
+gracefully --- the correction term carries $F_{\mathrm{old}}$ as an outer
+factor, so the correction vanishes identically, $P = I$, and the method
+again reduces to damped \texttt{FNG}.
+\end{remark}
+
+\begin{remark}[Damped implementation]
+\label{rem:damping}
+The implementation inverts $F_c + \hat{\lambda} I$ and
+$A + \hat{\lambda} I_m$ with $\hat{\lambda} = \lambda / s$, where
+$s = \max_i (F_c)_i$ is the projection-scoped rescaling factor
+(Section~\ref{sec:normalization}), and applies a pseudo-inverse as a final
+safeguard.
+Theorem~\ref{thm:ifopng} is the exact $\lambda \to 0$ statement; Tikhonov
+damping perturbs the projection by $\mathcal{O}(\lambda)$ and renders
+Assumptions~\ref{ass:regularity}--\ref{ass:rank} satisfied unconditionally.
+Because the numerator, the kernel $A$, and the trust-region denominator are
+all computed under the same rescaled metric, the direction of $v^*$ is
+invariant to $s$; only the conditioning of the inversion is affected.
+\end{remark}
+
+\begin{remark}[Role of the stored-basis normalisation]
+\label{rem:basis}
+The proof makes no use of the orthonormality (or unit norm) of the columns
+of $G$.
+Indeed, the update is invariant under right-multiplication of $G$ by any
+invertible $R \in \mathbb{R}^{m \times m}$: the substitutions $B \mapsto BR$
+and $A \mapsto R^\top A R$ leave the operator
+$B A^{-1} B^\top$ --- and hence $P$, $u^*$, and $v^*$ --- unchanged.
+Orthonormalisation at insertion is therefore purely a numerical
+conditioning device, as established in Sub-RQ2; it carries no geometric
+content within the exact problem.
+\end{remark}
+
+\begin{remark}[First-order scope of the guarantee]
+\label{rem:scope}
+Theorem~\ref{thm:ifopng} characterises the constrained minimiser and the
+step magnitude; it does not assert monotone first-order descent of the
+current-task loss.
+One has $g^\top v^* = -\eta\, \bigl(g^\top F_c^{-1} P g\bigr) \big/
+\sqrt{(Pg)^\top F_c^{-1} P g}$, which is strictly negative whenever the
+memory is empty, but the sign of $g^\top F_c^{-1} P g$ is not implied by
+Assumptions~\ref{ass:regularity}--\ref{ass:residual} for arbitrary
+configurations: the projection deliberately suppresses --- and, for
+gradients strongly aligned with the protected image, may locally reverse
+--- components carrying $F_{\mathrm{old}}$-weighted overlap with stored
+directions.
+Retention, rather than per-step descent on the current task, is the
+property the constraint enforces.
+\end{remark}
+
+\begin{remark}[Beyond diagonal metrics]
+\label{rem:nondiagonal}
+Diagonality of the Fisher estimates is never invoked: every step of the
+proof relies only on the symmetry of $F_{\mathrm{old}}$ and the positive
+definiteness of $F_c$.
+Theorem~\ref{thm:ifopng}, Corollary~\ref{cor:orth}, and
+Proposition~\ref{prop:projector} therefore hold verbatim for arbitrary
+symmetric positive semi-definite $F_{\mathrm{old}}$ and symmetric positive
+definite $F_c$ --- for example, Kronecker-factored curvature
+approximations --- at the cost of the corresponding matrix solves replacing
+the element-wise operations.
+\end{remark}
+
+\subsection*{Algorithm Statements}
+
+Theorem~\ref{thm:ifopng} yields the per-step update rule.
+Algorithm~\ref{alg:ifopng} gives the complete continual-learning procedure.
+Projection-scoped scaling (lines 5--6) normalises all Fisher quantities by the
+maximum entry of $F_c$ so that the inversion in line~7 remains well-conditioned;
+crucially, $\lambda$ is scaled by the same factor, keeping the effective
+damping relative to the Fisher magnitude constant
+(Remark~\ref{rem:damping}).
+Algorithm~\ref{alg:prefisher} is reproduced from
+\citet{garg_fisher-orthogonal_2026} without modification.
+It pre-multiplies each stored gradient by the Fisher estimate of the task it
+was collected on, absorbing the metric weighting into $\tilde{G}$ at
+collection time so that $\tilde{G}$ approximates $F_{\mathrm{old}}\,G$ (up to
+subsequent element-wise maximum updates of $F_{\mathrm{old}}$) and the
+per-iteration projection reduces to a single matrix--vector product against
+$\tilde{G}$.
+Empirically the two algorithms produce indistinguishable results on all
+benchmarks evaluated here; \texttt{preIFOPNG} is the implementation preferred
+in practice due to its reduced cost.
+
+% ── Algorithm 1: iFOPNG ──────────────────────────────────────────────────────
+
+\begin{algorithm}[htbp]
+\caption{iFOPNG Algorithm (extends \texttt{FOPNG}~\citep{garg_fisher-orthogonal_2026}
+       via combined metric $F_c$)}
+\label{alg:ifopng}
+\small
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+\begin{algorithmic}[1]
+\Require Initial parameters $\theta_0$, task sequence $\{D_1,\ldots,D_T\}$,
+              learning rate $\eta$, damping $\lambda$,
+              number of stored gradients per task $k$, number of epochs $E$
+\State Initialize gradient memory $G \leftarrow [\,]$.
+       Train on task $D_1$ using Adam or SGD.
+\State Compute $F_{\mathrm{old}} \leftarrow \widehat{F}(D_1)$;\quad
+       Store $G \leftarrow [g_1, \ldots, g_k]$
+\For{task $t = 2, 3, \ldots, T$}
+       \For{epoch $e = 1, \ldots, E$}
+              \State Recompute new-task Fisher:
+                     $\hat{F}_{\mathrm{new}} \leftarrow \widehat{F}(D_t)$;
+              \State Form combined metric:
+                     $F_c \leftarrow \hat{F}_{\mathrm{new}} + F_{\mathrm{old}}$
+              \For{all batches $(x, y)$ in $D_t$}
+              \State Compute gradient $g \leftarrow \nabla_\theta \mathcal{L}_t(\theta)$
+              \State Compute $v^*$ according to Theorem~\ref{thm:ifopng}
+                     under metric $F_c$
+              \State Update parameters: $\theta \leftarrow \theta + v^*$
+              \EndFor
+       \EndFor
+       \State Store gradients:
+              $G \leftarrow [G,\; g_{k(t-1)+1}, \ldots, g_{kt}]$
+       \State Update accumulated Fisher:
+              $F_{\mathrm{old}} \leftarrow
+              \max\!\left(F_{\mathrm{old}},\, \hat{F}_{\mathrm{new}}\right)$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+% ── Algorithm 2: preIFOPNG ───────────────────────────────
+
+\begin{algorithm}[htbp]
+\caption{preIFOPNG Algorithm~\citep{garg_fisher-orthogonal_2026},
+       adapted for the iFOPNG combined metric}
+\label{alg:prefisher}
+\small
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+\begin{algorithmic}[1]
+\Require Initial parameters $\theta_0$, task sequence $\{D_1,\ldots,D_T\}$,
+              learning rate $\eta$, damping $\lambda$,
+              number of stored gradients per task $k$, number of epochs $E$
+\State Initialize pre-Fisher memory $\tilde{G} \leftarrow [\,]$.
+       Train on task $D_1$ using Adam or SGD.
+\State Compute $F_1 \leftarrow \widehat{F}(D_1)$;\quad
+       $F_{\mathrm{old}} \leftarrow F_1$;\quad
+       Store $\tilde{G} \leftarrow [F_1 \odot g_1, \ldots, F_1 \odot g_k]$
+\For{task $t = 2, 3, \ldots, T$}
+       \For{epoch $e = 1, \ldots, E$}
+              \State Recompute new-task Fisher:
+                     $\hat{F}_{\mathrm{new}} \leftarrow \widehat{F}(D_t)$;
+              \State Form combined metric:
+                     $F_c \leftarrow \hat{F}_{\mathrm{new}} + F_{\mathrm{old}}$
+              \For{all batches $(x, y)$ in $D_t$}
+              \State Compute gradient $g \leftarrow \nabla_\theta \mathcal{L}_t(\theta)$
+              \State Compute $v^*$ according to Theorem~\ref{thm:ifopng}
+                     using $\tilde{G}$ in place of $G$
+              \State Update parameters: $\theta \leftarrow \theta + v^*$
+              \EndFor
+       \EndFor
+       \State Compute $F_t \leftarrow \widehat{F}(D_t)$;\quad
+              Store $\tilde{G} \leftarrow
+              [\tilde{G},\; F_t \odot g_{k(t-1)+1},
+              \ldots, F_t \odot g_{kt}]$
+       \State Update accumulated Fisher:
+              $F_{\mathrm{old}} \leftarrow
+              \max\!\left(F_{\mathrm{old}},\, \hat{F}_{\mathrm{new}}\right)$
+\EndFor
+\end{algorithmic}
+\end{algorithm}

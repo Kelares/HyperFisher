@@ -5,7 +5,7 @@
 \section*{Appendix D: Additional Experiment Figures}
 \label{app:additional}
 
-This appendix collects four figures that are referenced in the Results section
+This appendix collects five figures that are referenced in the Results section
 but omitted from the main text for space.
 Figure~\ref{fig:heatmap_c8} provides the per-task accuracy matrix for the
 Split-CIFAR10 hypernetwork experiment.
@@ -15,6 +15,7 @@ Figure~\ref{fig:sgd_threshold} documents the SGD first-task convergence
 diagnostic.
 Figure~\ref{fig:ema_vs_max} provides the per-seed paired comparison
 underlying the Sub-RQ4 statistical test.
+Figure~\ref{fig:compression_ablation} establishes attempted principled solution to the problem of storing G. (POLISH THIS. ALSO PREFOPNG)
 
 % ── D.1  Per-task accuracy matrix — Split-CIFAR10 HN ─────────────────────────
 
@@ -82,7 +83,7 @@ underlying the Sub-RQ4 statistical test.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.72\linewidth]{figures/sgd_split_mnist_lr_threshold.png}
+    \includegraphics[width=0.72\linewidth]{figures/sgd_split_mnist_lr_threshold.pdf}
     \caption{%
         \textbf{SGD first-task convergence threshold --- Split-MNIST
         (5 epochs, task-1 only).}
@@ -106,11 +107,37 @@ underlying the Sub-RQ4 statistical test.
     \label{fig:sgd_threshold}
 \end{figure}
 
-% ── D.4  EMA vs MAX per-seed comparison ──────────────────────────────────────
+% ── D.3  OGD learning rate sweep — Split-CIFAR100 HN ─────────────────────────
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/ema-vs-max-stat_14-15.png}
+    \includegraphics[width=0.80\linewidth]{figures/ogd-lr-sweep-simple_11.png}
+    \caption{%
+        \textbf{\texttt{OGD} learning rate sweep --- Split-CIFAR100
+        hypernetwork (Exp~11), $n = 3$ seeds per rate.}
+        Left: final average accuracy.  Right: final backward transfer.
+        Bars show seed mean; error bars show $\pm 1$ standard deviation;
+        circles show individual seeds.
+        %
+        $\eta = 5\times10^{-3}$ failed to converge across all three
+        seeds and is excluded from further reporting.
+        $\eta = 10^{-3}$ achieves $39\%$ average accuracy with moderate
+        forgetting and was retained as the operating rate for Config~11.
+        $\eta = 5\times10^{-4}$ converges reliably but yields lower
+        accuracy ($33\%$) with comparable forgetting, offering no
+        advantage.
+        This sweep is the sole instance in which a method-specific
+        learning rate required empirical selection beyond the values
+        specified in \citet{garg_fisher-orthogonal_2026} Table~1.
+    }
+    \label{fig:ogd_lr_sweep}
+\end{figure}
+
+% ── D.5  EMA vs MAX per-seed comparison ──────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/ema-vs-max-stat_14-15.pdf}
     \caption{%
         \textbf{EMA vs.\ MAX Fisher accumulation --- per-seed statistical
         comparison, 20-task Permuted-MNIST, $n = 5$ seeds (Sub-RQ4).}
@@ -132,4 +159,39 @@ underlying the Sub-RQ4 statistical test.
         where both strategies lose more than $30$~pp over the full sequence).
     }
     \label{fig:ema_vs_max}
+\end{figure}
+
+% ── D.6  Gradient memory compression ablation ────────────────────────────────
+% MIGHT BE BECAUSE OF THE GRADIENTS BEING PRACTICALL ORTHOGONAL NO MATTER WHAT I DO.
+% STOP, COMPRESS, ROLL. DOESNT MATTER
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/compression-ablation_421-422-423.png}
+\caption{%
+        \textbf{Gradient memory compression ablation ---
+        20-task Permuted-MNIST, \texttt{iFOPNG} with MAX accumulation,
+        \texttt{max\_directions}$= 400$, $n = 5$ seeds each.}
+        Left: average accuracy trajectory over 20 tasks (thick line =
+        seed mean; shaded band = $\pm 1$ standard deviation).
+        Right: backward transfer trajectory from task~2 onward.
+        The vertical dashed line marks the first compression event at
+        task~6, at which point the gradient basis is full and each new
+        task's directions displace existing ones according to strategy.
+        %
+        Three strategies are compared: SVD (retain top-$K$ singular
+        vectors), FIFO (evict oldest task directions), and STOP
+        (freeze basis, discard new directions).
+        All three trajectories are visually indistinguishable throughout;
+        final average accuracy spans $58.71\%$--$58.93\%$,
+        a between-condition range of $0.22$~pp.
+        The result confirms that allocation strategy is dominated by
+        budget size: with $400$ directions for 20 tasks
+        ($\approx 20$ per task), the binding constraint is the
+        budget-to-task ratio rather than how the budget is distributed.
+        On Permuted-MNIST, where task distributions are structurally
+        homogeneous, all gradient directions carry equal importance and
+        SVD's importance-weighted selection provides no measurable
+        advantage over the simpler alternatives.
+    }
+\label{fig:compression_ablation}
 \end{figure}

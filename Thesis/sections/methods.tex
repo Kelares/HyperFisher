@@ -43,6 +43,18 @@ task $i$.
 Negative BWT quantifies catastrophic forgetting; a value of zero indicates
 perfect retention.
 
+Reporting both metrics jointly is necessary because each can mask
+failure modes invisible to the other.
+A method that applies an overly conservative projection --- refusing
+gradient components that would encode new tasks --- can achieve
+near-zero BWT while gaining little average accuracy; conversely, a
+method that fully retrains on each new task may sustain competitive
+average accuracy on the most recently seen tasks while accumulating
+large negative BWT on earlier ones.
+Only the combination of high accuracy with near-zero BWT constitutes
+genuine continual learning, distinguishing methods that balance
+plasticity and stability from those that sacrifice one for the other.
+
 \subsubsection{Multi-Head and Single-Head Evaluation}
 Following \citet{farquhar_towards_2019}, who demonstrated that multi-head
 evaluations can inflate apparent method performance, we report results under
@@ -201,7 +213,7 @@ in previous tasks but uninformative on the current one.
 \texttt{iFOPNG} is introduced in this thesis as a variant of FOPNG that
 resolves this asymmetry by adopting the \emph{combined metric}
 \begin{equation}
-    F_c \;\triangleq\; \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}},
+    F_c \coloneqq\; \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}},
     \label{eq:combined_fisher}
 \end{equation}
 where $\hat{F}_{\mathrm{old}}$ is maintained as the element-wise maximum of
@@ -305,19 +317,26 @@ distinct sources of ill-conditioning:
         the basis $G$; the gradient $g$ entering the projection update
         itself is the unmodified parameter gradient from the model.
 
-    \item \textbf{Metric-tensor normalization.}
-          Within each projection computation, both Fisher terms are
-          divided by the maximum entry of the metric tensor $F_c$ that
-          defines the constrained natural gradient problem:
-          \begin{equation}
-              \tilde{F} = \frac{F}{\max_i (F_c)_i + \varepsilon},
-              \qquad F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}},
-          \end{equation}
-          where $F_c$ is the combined Fisher used as the Riemannian metric
-          in iFOPNG, or $\hat{F}_{\mathrm{new}}$ alone for FOPNG.
-          This scaling is applied locally within the kernel computation
-          and does not affect the optimisation trajectory outside the
-          projection step.
+    \item \textbf{Metric-tensor scaling.}
+        Within each projection computation, all Fisher quantities are
+        jointly divided by a single scale factor derived from the
+        maximum entry of the combined metric:
+        \begin{equation}
+            s = \max_i\,(F_c)_i, \qquad
+            \hat{f} = F\,/\,s
+            \;\;\text{for } F \in \{F_{\mathrm{old}},\,
+            \hat{F}_{\mathrm{new}},\, F_c\},
+            \qquad \hat{\lambda} = \lambda\,/\,s.
+        \end{equation}
+        Critically, the damping coefficient $\lambda$ is rescaled by the
+        same factor, so its ratio to the Fisher magnitude is preserved
+        across tasks regardless of how the Fisher scale drifts as more
+        tasks accumulate.
+        Because the projection kernel $A$, its pseudo-inverse, and the
+        trust-region denominator are all computed under the same rescaled
+        metric, the direction of $v^*$ is invariant to $s$; only the
+        condition number of $A$ is reduced, which is the sole purpose of
+        the operation.
 \end{enumerate}
 
 Together, these operations ensure $G^\top\tilde{F}G$ remains

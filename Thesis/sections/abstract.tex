@@ -24,8 +24,8 @@
     $F_c = F_{\text{new}}+F_{\text{old}}$, inspired by the parameter-inertia concept
     of Elastic Weight Consolidation.  Methods are benchmarked on sequential Split and Permuted MNIST, Split-CIFAR10 and Split-CIFAR100.  The empirical findings reveal that projection normalization
     completely resolves matrix inversion collapse, and that in the hypernetwork setting
-    all normalized projection methods outperform plain SGD, with \texttt{iFOPNG}
-    matching the best projection baseline.  However, a standalone hypernetwork optimized
+    all normalized projection methods outperform plain SGD, with \texttt{iFOPNG} consistently outperforming \texttt{FOPNG} 
+    across all benchmarks.  However, a standalone hypernetwork optimized
     with \texttt{Adam} and von Oswald's functional regularizer consistently surpasses
     all projection variants, indicating that momentum, which projection methods forgo by
     design, is the decisive factor in compressed generative weight spaces.

@@ -21,6 +21,8 @@
 \usepackage{changepage}
 
 \usepackage{amssymb}
+\usepackage{mathtools}
+
 \usepackage{makecell}
 
 %   \usepackage{xltabular}   % Replaces ltablex for robust multi-page tabularx
@@ -102,7 +104,15 @@
 
 
 \section*{Acknowledgements}
-The author thanks dr.\ Giacomo Spiegler for supervision and valuable feedback throughout this project.
+
+The algorithmic framework of this thesis builds directly on the
+Fisher-Orthogonal Projected Natural Gradient method of
+\citet{garg_fisher-orthogonal_2026}, whose derivations and design
+served as the primary technical foundation for \texttt{iFOPNG}.
+The hypernetwork architecture, weight-chunking scheme, and functional
+regularizer are due to \citet{oswald_continual_2020} and are adopted
+here without modification.
+
 \newpage
 \bibliography{references}
 

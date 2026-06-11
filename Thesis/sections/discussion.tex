@@ -98,11 +98,21 @@ explicit local rescaling.
 \subsection{Sub-RQ3: Parameter Inertia via the Elastic Fisher Preconditioner}
 
 The \texttt{iFOPNG} advantage scales monotonically with benchmark difficulty
-across all six settings (Figure~\ref{fig:ifopng_comparison}): negligible where
+across all seven settings (Figure~\ref{fig:ifopng_comparison}): negligible where
 inter-task Fisher overlap is low, substantial on high-overlap benchmarks.
 $F_c$ inflates the effective curvature of historically important coordinates,
 suppressing over-aggressive natural gradient steps without any penalty term or
 stored reference point.
+
+% ADD after "high-overlap benchmarks" paragraph (after line 116):
+The single-head Split-MNIST result ($+1.3$~pp, $p < 0.001$) is
+particularly informative: it demonstrates that the elastic advantage
+persists even when output-level interference is present, confirming
+that $F_c$ provides genuine protection beyond what backbone projection
+alone achieves.
+The strong effect size ($d = 10.76$) with near-zero inter-seed variance
+on this benchmark suggests the shared-head gradient competition is a
+highly consistent signal that the combined metric exploits reliably.
 
 This mechanism stands in direct contrast to EWC, which achieves a similar
 dampening effect via an explicit quadratic penalty pulling parameters toward
@@ -147,6 +157,25 @@ an adaptive schedule that increases decay as the task sequence
 grows longer may produce a more favorable comparison for EMA under
 long-horizon retention.
 
+\paragraph{Gradient memory compression under budget constraints.}
+A supplementary ablation (Appendix~D, Figure~\ref{fig:compression_ablation})
+compared three strategies for managing the gradient basis $G$ when the
+budget of $400$ directions is exhausted on a 20-task sequence:
+SVD-based compression (keep top-$K$ singular vectors), FIFO eviction
+(discard oldest task), and STOP (freeze the basis, admit no new directions).
+All three strategies produce statistically indistinguishable final average
+accuracy ($58.89$--$58.96\%$, range $0.07$~pp).
+This confirms that the dominant constraint is budget size --- approximately
+20 directions per task for a 20-task sequence --- rather than allocation
+strategy.
+SVD's theoretical advantage (importance-weighted subspace preservation)
+provides no empirical benefit on Permuted-MNIST, where task distributions
+are structurally homogeneous and all gradient directions carry equal
+importance.
+On benchmarks with heterogeneous task distributions, SVD may yet prove
+superior; the present result establishes a null baseline on the standard
+long-horizon benchmark.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Limitations}
 
@@ -164,17 +193,24 @@ The preliminary ten-task Split-CIFAR100 result, in which EWC overtakes both
 \texttt{Adam} and \texttt{iFOPNG}, is suggestive but insufficient to
 establish a trend; a systematic sweep over task count is warranted.
 
-Second, the hypernetwork architecture used in this study is intentionally
-shallow, with small hidden dimensions ($d_h \in \{8, 16\}$) and
-embedding dimensions of $32$.
-Larger hypernetworks, such as those used for language model weight
-generation \citep{chauhan_brief_2024}, may exhibit qualitatively different
-gradient accumulation dynamics — both in terms of the severity of the
-normalization pathology and in the relative contribution of momentum to
-meta-generator stability.
-The suffocated regime ($d_h = 8$) explored here provides an empirical
-lower bound on expressivity, but an upper bound in a high-capacity regime
-remains uncharted.
+Second, the results are specific to the constrained-capacity regimes
+examined here.
+For Split-MNIST, a standard-capacity hypernetwork solves the benchmark
+near-trivially regardless of the continual learning method applied;
+the suffocated setting ($d_h = 8$) is deliberately chosen to place the
+architecture below saturation, where method differences are measurable.
+For Split-CIFAR10, the convolutional target network is large enough that
+the hypernetwork already operates under a natural capacity constraint,
+and meaningful method separation emerges without artificial bottlenecking.
+Whether the projection--hypernetwork interaction studied here generalises
+to harder benchmarks requiring larger target architectures --- where the
+hypernetwork must generate weights for deeper convolutional or
+attention-based networks and the task itself is sufficiently complex to
+prevent ceiling effects --- remains an open question.
+In such settings, the gradient accumulation pathology documented here
+would be substantially more severe: chunk counts scale with the target
+parameter count, so the condition number blowup $\sim C^4$ identified
+here represents a lower bound on the numerical challenge at scale.
 
 Third, the proposed normalization scheme — QR orthonormalization of the
 gradient basis combined with absolute-maximum scaling of the metric tensor

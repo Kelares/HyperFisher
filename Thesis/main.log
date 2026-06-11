@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  5 JUN 2026 03:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  10 JUN 2026 11:44
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -577,10 +577,38 @@ Package: changepage 2009/10/20 v1.0c check page and change page layout
 \cp@tempcnt=\count338
 ) (/usr/share/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
+) (/usr/share/texmf-dist/tex/latex/mathtools/mathtools.sty
+Package: mathtools 2024/10/04 v1.31 mathematical typesetting tools
+ (/usr/share/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2025/03/01 v4.3b Infix arithmetic (KKT,FJ)
+\calc@Acount=\count339
+\calc@Bcount=\count340
+\calc@Adimen=\dimen265
+\calc@Bdimen=\dimen266
+\calc@Askip=\skip113
+\calc@Bskip=\skip114
+LaTeX Info: Redefining \setlength on input line 86.
+LaTeX Info: Redefining \addtolength on input line 87.
+\calc@Ccount=\count341
+\calc@Cskip=\skip115
+) (/usr/share/texmf-dist/tex/latex/mathtools/mhsetup.sty
+Package: mhsetup 2021/03/18 v1.4 programming setup (MH)
+)
+\g_MT_multlinerow_int=\count342
+\l_MT_multwidth_dim=\dimen267
+\origjot=\skip116
+\l_MT_shortvdotswithinadjustabove_dim=\dimen268
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen269
+\l_MT_above_intertext_sep=\dimen270
+\l_MT_below_intertext_sep=\dimen271
+\l_MT_above_shortintertext_sep=\dimen272
+\l_MT_below_shortintertext_sep=\dimen273
+\xmathstrut@box=\box66
+\xmathstrut@dim=\dimen274
 ) (/usr/share/texmf-dist/tex/latex/makecell/makecell.sty
 Package: makecell 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
-\rotheadsize=\dimen265
-\c@nlinenum=\count339
+\rotheadsize=\dimen275
+\c@nlinenum=\count343
 \TeXr@lab=\toks37
 ) (/usr/share/texmf-dist/tex/latex/amscls/amsthm.sty
 Package: amsthm 2020/05/29 v2.20.6
@@ -589,70 +617,70 @@ Package: amsthm 2020/05/29 v2.20.6
 \thm@headfont=\toks40
 \thm@notefont=\toks41
 \thm@headpunct=\toks42
-\thm@preskip=\skip113
-\thm@postskip=\skip114
-\thm@headsep=\skip115
+\thm@preskip=\skip117
+\thm@postskip=\skip118
+\thm@headsep=\skip119
 \dth@everypar=\toks43
 )
-\c@assumption=\count340
-\c@theorem=\count341
-\c@lemma=\count342
-\c@proposition=\count343
-\c@corollary=\count344
-\c@definition=\count345
-Package hyperref Info: Option `colorlinks' set `true' on input line 59.
+\c@assumption=\count344
+\c@theorem=\count345
+\c@lemma=\count346
+\c@proposition=\count347
+\c@corollary=\count348
+\c@definition=\count349
+Package hyperref Info: Option `colorlinks' set `true' on input line 61.
  (/usr/share/texmf-dist/tex/latex/apacite/apacite.sty
 Package: apacite 2013/07/21 v6.03 APA citation
-\c@BibCnt=\count346
-\bibleftmargin=\skip116
-\bibindent=\skip117
-\bibparsep=\skip118
-\bibitemsep=\skip119
-\biblabelsep=\skip120
+\c@BibCnt=\count350
+\bibleftmargin=\skip120
+\bibindent=\skip121
+\bibparsep=\skip122
+\bibitemsep=\skip123
+\biblabelsep=\skip124
 ) (/usr/share/texmf-dist/tex/latex/natbib/natbib.sty
 Package: natbib 2010/09/13 8.31b (PWD, AO)
-\bibhang=\skip121
-\bibsep=\skip122
+\bibhang=\skip125
+\bibsep=\skip126
 LaTeX Info: Redefining \cite on input line 694.
-\c@NAT@ctr=\count347
+\c@NAT@ctr=\count351
 )
-LaTeX Info: Redefining \BBA on input line 80.
+LaTeX Info: Redefining \BBA on input line 82.
  (/usr/share/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count348
+\l__color_backend_stack_int=\count352
 ) (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 82.
-LaTeX Font Info:    ... okay on input line 82.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 84.
+LaTeX Font Info:    ... okay on input line 84.
  (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count349
-\scratchdimen=\dimen266
-\scratchbox=\box66
-\nofMPsegments=\count350
-\nofMParguments=\count351
+\scratchcounter=\count353
+\scratchdimen=\dimen276
+\scratchbox=\box67
+\nofMPsegments=\count354
+\nofMParguments=\count355
 \everyMPshowfont=\toks44
-\MPscratchCnt=\count352
-\MPscratchDim=\dimen267
-\MPnumerator=\count353
-\makeMPintoPDFobject=\count354
+\MPscratchCnt=\count356
+\MPscratchDim=\dimen277
+\MPnumerator=\count357
+\makeMPintoPDFobject=\count358
 \everyMPtoPDFconversion=\toks45
 ) (/usr/share/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
@@ -666,13 +694,13 @@ Package grfext Info: Graphics extension search list:
  (/usr/share/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-LaTeX Info: Redefining \microtypecontext on input line 82.
-Package microtype Info: Applying patch `item' on input line 82.
-Package microtype Info: Applying patch `toc' on input line 82.
-Package microtype Info: Applying patch `eqnum' on input line 82.
-Package microtype Info: Applying patch `footnote' on input line 82.
-Package microtype Info: Applying patch `verbatim' on input line 82.
-LaTeX Info: Redefining \microtypesetup on input line 82.
+LaTeX Info: Redefining \microtypecontext on input line 84.
+Package microtype Info: Applying patch `item' on input line 84.
+Package microtype Info: Applying patch `toc' on input line 84.
+Package microtype Info: Applying patch `eqnum' on input line 84.
+Package microtype Info: Applying patch `footnote' on input line 84.
+Package microtype Info: Applying patch `verbatim' on input line 84.
+LaTeX Info: Redefining \microtypesetup on input line 84.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -688,8 +716,8 @@ File: mt-ppl.cfg 2005/11/16 v1.6 microtype config. file: Palatino (RS)
 )
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: changepage package is loaded.
-\caption@adjustwidth@hsize=\dimen268
-\caption@adjustwidth@linewidth=\dimen269
+\caption@adjustwidth@hsize=\dimen278
+\caption@adjustwidth@linewidth=\dimen279
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: longtable package is loaded.
@@ -697,7 +725,7 @@ Package caption Info: longtable package is loaded.
 Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring ON on input line 82.
+Package hyperref Info: Link coloring ON on input line 84.
  (./main.out) (./main.out)
 \@outlinefile=\write3
 \openout3 = `main.out'.
@@ -737,7 +765,7 @@ Package hyperref Info: Link coloring ON on input line 82.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-\c@maskedRefs=\count355
+\c@maskedRefs=\count359
 (/usr/share/texmf-dist/tex/latex/apacite/english.apc
 File: english.apc 2013/07/21 v6.03 apacite language file
 LaTeX Info: Redefining \BPBI on input line 129.
@@ -868,17 +896,17 @@ l.64 \newpage
 
 ])
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 18.00587pt on input line 83.
+(Font)              scaled to size 18.00587pt on input line 85.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 18.00587pt on input line 83.
+(Font)              scaled to size 18.00587pt on input line 85.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 83.
+(Font)              scaled to size 9.37807pt on input line 85.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 83.
+(Font)              scaled to size 7.29405pt on input line 85.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 83.
+(Font)              scaled to size 9.37807pt on input line 85.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 83.
+(Font)              scaled to size 7.29405pt on input line 85.
  (./sections/abstract.tex
 LaTeX Font Info:    Trying to load font information for T1+fvm on input line 21.
  (/usr/share/texmf-dist/tex/latex/bera/t1fvm.fd
@@ -900,20 +928,19 @@ LaTeX Font Info:    Font shape `T1/fvm/m/n' will be
 Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/pplj/m/sc/10'.
 (microtype)             Ignoring protrusion settings for this character.
- [2] [3]) [4] (./sections/related_work.tex [5] [6] [7] [8]) (./sections/methods.tex [9]
+ [2] [3]) [4] (./sections/related_work.tex [5] [6] [7]) (./sections/methods.tex [8] [9] [10]
 
-Package natbib Warning: Citation `kingma_adam_2014' on page 10 undefined on input line 100.
+Package natbib Warning: Citation `kingma_adam_2014' on page 11 undefined on input line 112.
 
-[10]
-LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 128.
- (/usr/share/texmf-dist/tex/latex/psnfss/ufplmbb.fd
+LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 140.
+(/usr/share/texmf-dist/tex/latex/psnfss/ufplmbb.fd
 File: ufplmbb.fd 2003/10/30 Fontinst v1.914 font definitions for U/fplmbb.
 ) [11] [12]
-Overfull \hbox (4.47778pt too wide) in paragraph at lines 257--268
+Overfull \hbox (4.47778pt too wide) in paragraph at lines 269--280
 \T1/pplj/m/n/10.95 (-20) get net-work in all hy-per-net-work con-fig-u-ra-tions: \T1/fvm/m/n/10.95 PyTorch\T1/pplj/m/n/10.95 (-20) 's \T1/fvm/m/n/10.95 functional_call
  []
 
-[13]) (./sections/experiment_design.tex [14] [15] [16]
+[13] [14]) (./sections/experiment_design.tex [15] [16]
 Overfull \hbox (14.18117pt too wide) in paragraph at lines 121--128
 []\T1/pplj/m/n/10.95 (-20) Incoming
  []
@@ -928,150 +955,186 @@ Overfull \hbox (7.64449pt too wide) in paragraph at lines 134--138
 []\T1/pplj/m/n/10.95 (-20) Gradient batches
  []
 
-[17]) (./sections/results.tex [18]
-<figures/hypernetwork-cifar10_8.png, id=479, 709.33005pt x 319.4334pt>
+[17] [18]) (./sections/results.tex [19]
+<figures/hypernetwork-cifar10_8.png, id=488, 709.33005pt x 319.4334pt>
 File: figures/hypernetwork-cifar10_8.png Graphic file (type png)
 <use figures/hypernetwork-cifar10_8.png>
 Package pdftex.def Info: figures/hypernetwork-cifar10_8.png  used on input line 51.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
- [19]
-<figures/hypernetwork-suffocated_7.png, id=492, 709.33005pt x 319.4334pt>
-File: figures/hypernetwork-suffocated_7.png Graphic file (type png)
-<use figures/hypernetwork-suffocated_7.png>
-Package pdftex.def Info: figures/hypernetwork-suffocated_7.png  used on input line 107.
-(pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
+<figures/hypernetwork-suffocated_7.pdf, id=494, 710.11986pt x 319.3345pt>
+File: figures/hypernetwork-suffocated_7.pdf Graphic file (type pdf)
+<use figures/hypernetwork-suffocated_7.pdf>
+Package pdftex.def Info: figures/hypernetwork-suffocated_7.pdf  used on input line 107.
+(pdftex.def)             Requested size: 358.50473pt x 161.22122pt.
 LaTeX Font Info:    Font shape `T1/fvm/b/n' will be
 (Font)              scaled to size 8.50006pt on input line 123.
- [20 <./figures/hypernetwork-cifar10_8.png>] [21 <./figures/hypernetwork-suffocated_7.png>]
-<figures/normalization-conditioning_8-9.png, id=515, 779.7933pt x 376.16534pt>
-File: figures/normalization-conditioning_8-9.png Graphic file (type png)
-<use figures/normalization-conditioning_8-9.png>
-Package pdftex.def Info: figures/normalization-conditioning_8-9.png  used on input line 163.
-(pdftex.def)             Requested size: 358.50473pt x 172.94057pt.
-<figures/normalization-ablation_8-9-10.png, id=520, 637.06004pt x 318.7107pt>
+ [20 <./figures/hypernetwork-cifar10_8.png>] [21 <./figures/hypernetwork-suffocated_7.pdf>]
+<figures/normalization-conditioning_8-9.pdf, id=623, 780.58244pt x 379.03297pt>
+File: figures/normalization-conditioning_8-9.pdf Graphic file (type pdf)
+<use figures/normalization-conditioning_8-9.pdf>
+Package pdftex.def Info: figures/normalization-conditioning_8-9.pdf  used on input line 163.
+(pdftex.def)             Requested size: 358.50473pt x 174.08545pt.
+ [22 <./figures/normalization-conditioning_8-9.pdf>]
+<figures/normalization-ablation_8-9-10.png, id=741, 637.06004pt x 318.7107pt>
 File: figures/normalization-ablation_8-9-10.png Graphic file (type png)
 <use figures/normalization-ablation_8-9-10.png>
 Package pdftex.def Info: figures/normalization-ablation_8-9-10.png  used on input line 201.
 (pdftex.def)             Requested size: 268.87854pt x 134.51895pt.
- [22 <./figures/normalization-conditioning_8-9.png>]
-<figures/projection-comparison_1-2-4-6-7-8.png, id=530, 637.4214pt x 354.6048pt>
-File: figures/projection-comparison_1-2-4-6-7-8.png Graphic file (type png)
-<use figures/projection-comparison_1-2-4-6-7-8.png>
-Package pdftex.def Info: figures/projection-comparison_1-2-4-6-7-8.png  used on input line 238.
-(pdftex.def)             Requested size: 358.50473pt x 199.44305pt.
+<figures/projection-comparison_1-2-3-4-6-7-8.png, id=744, 756.426pt x 389.2944pt>
+File: figures/projection-comparison_1-2-3-4-6-7-8.png Graphic file (type png)
+<use figures/projection-comparison_1-2-3-4-6-7-8.png>
+Package pdftex.def Info: figures/projection-comparison_1-2-3-4-6-7-8.png  used on input line 240.
+(pdftex.def)             Requested size: 358.50473pt x 184.50688pt.
  [23 <./figures/normalization-ablation_8-9-10.png>]
-<figures/ema-vs-max-trajectory_14-15.png, id=543, 1001.4213pt x 381.3447pt>
+
+LaTeX Warning: Reference `sec:eval_protocols' on page 24 undefined on input line 261.
+
+[24 <./figures/projection-comparison_1-2-3-4-6-7-8.png>]
+<figures/ema-vs-max-trajectory_14-15.png, id=764, 1001.4213pt x 381.3447pt>
 File: figures/ema-vs-max-trajectory_14-15.png Graphic file (type png)
 <use figures/ema-vs-max-trajectory_14-15.png>
-Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.png  used on input line 289.
+Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.png  used on input line 299.
 (pdftex.def)             Requested size: 358.50473pt x 136.51588pt.
- [24 <./figures/projection-comparison_1-2-4-6-7-8.png>]) (./sections/discussion.tex [25 <./figures/ema-vs-max-trajectory_14-15.png>] [26] [27] [28]) (./sections/conclusions.tex [29] [30]) [31] (./main.bbl
-Underfull \hbox (badness 1303) in paragraph at lines 232--249
+) (./sections/discussion.tex [25 <./figures/ema-vs-max-trajectory_14-15.png>] [26] [27] [28] [29]) (./sections/conclusions.tex [30] [31])
+
+Package natbib Warning: Citation `oswald_continual_2020' on page 32 undefined on input line 113.
+
+[32] (./main.bbl
+Underfull \hbox (badness 1303) in paragraph at lines 198--215
 []\T1/pplj/m/n/10.95 (+20) Garg, I., Kolhe, N., Peng, A., & Gopalam, R.  (2026).  \T1/pplj/m/it/10.95 (+20) Fisher-
  []
 
-[32]) [33] (./appendix/proof_ifopng.tex
-Overfull \hbox (34.86212pt too wide) in paragraph at lines 15--16
-[][]\T1/pplj/b/n/10.95 (-20) Assumption 1 \T1/pplj/m/n/10.95 (-20) (Reg-u-lar-ity)\T1/pplj/b/n/10.95 (-20) . []$\OML/zplm/m/it/10.95 F[]$ \T1/pplj/m/it/10.95 (-20) is pos-i-tive def-i-nite and the ma-trix $\OML/zplm/m/it/10.95 A \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 G[]F[] F[] F[] G$
- []
-
-) (./appendix/standalone_targetnetwork.tex [34
+[33]) [34] (./appendix/proof_ifopng.tex [35
 
 ]
-<figures/standalone-mnist_1-2.png, id=648, 709.33005pt x 511.6716pt>
+Overfull \hbox (5.73094pt too wide) in paragraph at lines 83--86
+[][]\T1/pplj/b/n/10.95 (-20) Assumption 3 \T1/pplj/m/n/10.95 (-20) (Non-de-gen-er-ate resid-ual)\T1/pplj/b/n/10.95 (-20) . []$\OML/zplm/m/it/10.95 Pg \OMS/zplm/m/n/10.95 6\OT1/zplm/m/n/10.95 = \OT1/pplx/m/n/10.95 0$\T1/pplj/m/it/10.95 (-20) , where $\OML/zplm/m/it/10.95 P [][]\OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 I \OMS/zplm/m/n/10.95 ^^@ \OML/zplm/m/it/10.95 BA[]B[] \OT1/zplm/m/n/10.95 =
+ []
+
+[36]
+Overfull \hbox (67.86108pt too wide) detected at line 239
+[][][]\OML/zplm/m/it/10.95 u[] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 B [] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 F[] G A[] G[]F[] g\OT1/pplx/m/n/10.95 ,  [] \OML/zplm/m/it/10.95 g \OMS/zplm/m/n/10.95 ^^@ \OML/zplm/m/it/10.95 u[] \OT1/zplm/m/n/10.95 = []\OML/zplm/m/it/10.95 I \OMS/zplm/m/n/10.95 ^^@ \OML/zplm/m/it/10.95 F[] G A[] G[]F[][] g \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 Pg\OT1/pplx/m/n/10.95 .
+ []
+
+[37]
+Overfull \hbox (16.84482pt too wide) detected at line 250
+[][][]\OMS/zplm/m/n/10.95 k\OML/zplm/m/it/10.95 v\OMS/zplm/m/n/10.95 k[] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 c[] []F[]Pg[][]F[][]F[]Pg[] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 c[] \OT1/zplm/m/n/10.95 (\OML/zplm/m/it/10.95 Pg\OT1/zplm/m/n/10.95 )[]\OML/zplm/m/it/10.95 F[]F[] F[]\OT1/zplm/m/n/10.95 (\OML/zplm/m/it/10.95 Pg\OT1/zplm/m/n/10.95 ) = \OML/zplm/m/it/10.95 c[] \OT1/zplm/m/n/10.95 (\OML/zplm/m/it/10.95 Pg\OT1/zplm/m/n/10.95 )[]\OML/zplm/m/it/10.95 F[]\OT1/zplm/m/n/10.95 (\OML/zplm/m/it/10.95 Pg\OT1/zplm/m/n/10.95 )\OT1/pplx/m/n/10.95 .
+ []
+
+
+Overfull \hbox (33.08209pt too wide) detected at line 282
+[][][]\OML/zplm/m/it/10.95 G[]F[] r[] \OT1/zplm/m/n/10.95 = \OT1/pplx/m/n/10.95 0;  [] \OMS/zplm/m/n/10.95 h\OML/zplm/m/it/10.95 g[]\OT1/pplx/m/n/10.95 ,  \OML/zplm/m/it/10.95 r[]\OMS/zplm/m/n/10.95 i[] \OT1/zplm/m/n/10.95 = \OT1/pplx/m/n/10.95 0 []\OML/zplm/m/it/10.95 g[][]G\OT1/pplx/m/n/10.95 .
+ []
+
+
+Overfull \hbox (36.26494pt too wide) detected at line 298
+[][][]\OML/zplm/m/it/10.95 G[]F[] r[] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 G[]F[] g \OMS/zplm/m/n/10.95 ^^@ []  \OML/zplm/m/it/10.95 A[] G[]F[] g \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 G[]F[] g \OMS/zplm/m/n/10.95 ^^@ \OML/zplm/m/it/10.95 G[]F[] g \OT1/zplm/m/n/10.95 = \OT1/pplx/m/n/10.95 0.
+ []
+
+[38] [39] [40]
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 473.
+) (./appendix/standalone_targetnetwork.tex
+<figures/standalone-mnist_1-2.png, id=966, 709.33005pt x 511.6716pt>
 File: figures/standalone-mnist_1-2.png Graphic file (type png)
 <use figures/standalone-mnist_1-2.png>
-Package pdftex.def Info: figures/standalone-mnist_1-2.png  used on input line 23.
+Package pdftex.def Info: figures/standalone-mnist_1-2.png  used on input line 24.
 (pdftex.def)             Requested size: 358.50473pt x 258.60681pt.
-<figures/standalone-cifar10_4.png, id=649, 709.33005pt x 319.4334pt>
+ [41]
+Overfull \vbox (79.07703pt too high) has occurred while \output is active []
+
+ [42 <./figures/standalone-mnist_1-2.png>]
+<figures/standalone-cifar10_4.png, id=977, 709.33005pt x 319.4334pt>
 File: figures/standalone-cifar10_4.png Graphic file (type png)
 <use figures/standalone-cifar10_4.png>
-Package pdftex.def Info: figures/standalone-cifar10_4.png  used on input line 54.
+Package pdftex.def Info: figures/standalone-cifar10_4.png  used on input line 55.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
- [35 <./figures/standalone-mnist_1-2.png>]
-<figures/VERIFY_standalone-cifar100_6.png, id=656, 709.33005pt x 319.4334pt>
-File: figures/VERIFY_standalone-cifar100_6.png Graphic file (type png)
-<use figures/VERIFY_standalone-cifar100_6.png>
-Package pdftex.def Info: figures/VERIFY_standalone-cifar100_6.png  used on input line 78.
-(pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
-) (./appendix/hn_ablation.tex [36 <./figures/standalone-cifar10_4.png> <./figures/VERIFY_standalone-cifar100_6.png>]
-<figures/dh-sweep_7-12-13.png, id=666, 637.06004pt x 318.7107pt>
+<figures/standalone-cifar100_6.pdf, id=978, 710.11986pt x 319.3345pt>
+File: figures/standalone-cifar100_6.pdf Graphic file (type pdf)
+<use figures/standalone-cifar100_6.pdf>
+Package pdftex.def Info: figures/standalone-cifar100_6.pdf  used on input line 79.
+(pdftex.def)             Requested size: 358.50473pt x 161.22122pt.
+<figures/standalone-sh-mnist_3.pdf, id=979, 742.2129pt x 354.80957pt>
+File: figures/standalone-sh-mnist_3.pdf Graphic file (type pdf)
+<use figures/standalone-sh-mnist_3.pdf>
+Package pdftex.def Info: figures/standalone-sh-mnist_3.pdf  used on input line 105.
+(pdftex.def)             Requested size: 358.50473pt x 171.38403pt.
+) [43 <./figures/standalone-cifar10_4.png> <./figures/standalone-cifar100_6.pdf>] (./appendix/hn_ablation.tex
+<figures/dh-sweep_7-12-13.png, id=1082, 637.06004pt x 318.7107pt>
 File: figures/dh-sweep_7-12-13.png Graphic file (type png)
 <use figures/dh-sweep_7-12-13.png>
-Package pdftex.def Info: figures/dh-sweep_7-12-13.png  used on input line 23.
+Package pdftex.def Info: figures/dh-sweep_7-12-13.png  used on input line 21.
 (pdftex.def)             Requested size: 358.50473pt x 179.35698pt.
-<figures/beta-chunk-sweep_16-17-18.png, id=667, 997.326pt x 314.8563pt>
+ [44 <./figures/standalone-sh-mnist_3.pdf>]
+<figures/beta-chunk-sweep_16-17-18.png, id=1104, 997.326pt x 314.8563pt>
 File: figures/beta-chunk-sweep_16-17-18.png Graphic file (type png)
 <use figures/beta-chunk-sweep_16-17-18.png>
-Package pdftex.def Info: figures/beta-chunk-sweep_16-17-18.png  used on input line 65.
+Package pdftex.def Info: figures/beta-chunk-sweep_16-17-18.png  used on input line 63.
 (pdftex.def)             Requested size: 358.50473pt x 113.18002pt.
- [37 <./figures/dh-sweep_7-12-13.png>]
-<figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf, id=675, 787.2612pt x 331.02733pt>
-File: figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf Graphic file (type pdf)
-<use figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf>
-Package pdftex.def Info: figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf  used on input line 113.
-(pdftex.def)             Requested size: 358.50473pt x 150.74394pt.
-) [38 <./figures/beta-chunk-sweep_16-17-18.png>] (./appendix/additional_experiments.tex
-<figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf, id=687, 1079.92044pt x 270.09308pt>
+ [45 <./figures/dh-sweep_7-12-13.png>]) (./appendix/additional_experiments.tex
+<figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf, id=1115, 1079.92044pt x 270.09308pt>
 File: figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf Graphic file (type pdf)
 <use figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf>
-Package pdftex.def Info: figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf  used on input line 23.
+Package pdftex.def Info: figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf  used on input line 24.
 (pdftex.def)             Requested size: 358.50473pt x 89.66263pt.
- [39 <./figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf>]
-<figures/hypernetwork-cifar100_11.png, id=756, 709.33005pt x 319.4334pt>
+ [46 <./figures/beta-chunk-sweep_16-17-18.png>]
+<figures/hypernetwork-cifar100_11.png, id=1122, 709.33005pt x 319.4334pt>
 File: figures/hypernetwork-cifar100_11.png Graphic file (type png)
 <use figures/hypernetwork-cifar100_11.png>
-Package pdftex.def Info: figures/hypernetwork-cifar100_11.png  used on input line 58.
+Package pdftex.def Info: figures/hypernetwork-cifar100_11.png  used on input line 59.
 (pdftex.def)             Requested size: 358.50473pt x 161.44662pt.
- [40 <./figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf>]
-<figures/sgd_split_mnist_lr_threshold.png, id=827, 450.7239pt x 439.1607pt>
-File: figures/sgd_split_mnist_lr_threshold.png Graphic file (type png)
-<use figures/sgd_split_mnist_lr_threshold.png>
-Package pdftex.def Info: figures/sgd_split_mnist_lr_threshold.png  used on input line 85.
-(pdftex.def)             Requested size: 258.12384pt x 251.50357pt.
- [41 <./figures/hypernetwork-cifar100_11.png>]
-<figures/ema-vs-max-stat_14-15.png, id=834, 709.33005pt x 318.7107pt>
-File: figures/ema-vs-max-stat_14-15.png Graphic file (type png)
-<use figures/ema-vs-max-stat_14-15.png>
-Package pdftex.def Info: figures/ema-vs-max-stat_14-15.png  used on input line 113.
-(pdftex.def)             Requested size: 358.50473pt x 161.08136pt.
-) [42 <./figures/sgd_split_mnist_lr_threshold.png>] (./appendix/full_benchmark.tex
-<figures/hypernetwork-trajectory_4-8-bars.pdf, id=845, 706.0779pt x 308.5929pt>
-File: figures/hypernetwork-trajectory_4-8-bars.pdf Graphic file (type pdf)
-<use figures/hypernetwork-trajectory_4-8-bars.pdf>
-Package pdftex.def Info: figures/hypernetwork-trajectory_4-8-bars.pdf  used on input line 26.
-(pdftex.def)             Requested size: 358.50473pt x 156.6881pt.
- [43 <./figures/ema-vs-max-stat_14-15.png>]
-<figures/hypernetwork-trajectory_2-7-bars.pdf, id=857, 706.0779pt x 308.5929pt>
-File: figures/hypernetwork-trajectory_2-7-bars.pdf Graphic file (type pdf)
-<use figures/hypernetwork-trajectory_2-7-bars.pdf>
-Package pdftex.def Info: figures/hypernetwork-trajectory_2-7-bars.pdf  used on input line 55.
-(pdftex.def)             Requested size: 358.50473pt x 156.6881pt.
- [44 <./figures/hypernetwork-trajectory_4-8-bars.pdf>]) (./appendix/hyper_parameters.tex [45 <./figures/hypernetwork-trajectory_2-7-bars.pdf>]
-Underfull \hbox (badness 2884) in paragraph at lines 27--27
+ [47 <./figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf>]
+<figures/sgd_split_mnist_lr_threshold.pdf, id=1194, 450.58965pt x 439.33888pt>
+File: figures/sgd_split_mnist_lr_threshold.pdf Graphic file (type pdf)
+<use figures/sgd_split_mnist_lr_threshold.pdf>
+Package pdftex.def Info: figures/sgd_split_mnist_lr_threshold.pdf  used on input line 86.
+(pdftex.def)             Requested size: 258.12384pt x 251.69276pt.
+ [48 <./figures/hypernetwork-cifar100_11.png>]
+<figures/ogd-lr-sweep-simple_11.png, id=1200, 519.8622pt x 231.0231pt>
+File: figures/ogd-lr-sweep-simple_11.png Graphic file (type png)
+<use figures/ogd-lr-sweep-simple_11.png>
+Package pdftex.def Info: figures/ogd-lr-sweep-simple_11.png  used on input line 114.
+(pdftex.def)             Requested size: 286.80487pt x 127.4579pt.
+ [49 <./figures/sgd_split_mnist_lr_threshold.pdf>]
+<figures/ema-vs-max-stat_14-15.pdf, id=1273, 710.07349pt x 319.4442pt>
+File: figures/ema-vs-max-stat_14-15.pdf Graphic file (type pdf)
+<use figures/ema-vs-max-stat_14-15.pdf>
+Package pdftex.def Info: figures/ema-vs-max-stat_14-15.pdf  used on input line 140.
+(pdftex.def)             Requested size: 358.50473pt x 161.28148pt.
+ [50 <./figures/ogd-lr-sweep-simple_11.png>]
+<figures/compression-ablation_421-422-423.png, id=1280, 778.3479pt x 361.5909pt>
+File: figures/compression-ablation_421-422-423.png Graphic file (type png)
+<use figures/compression-ablation_421-422-423.png>
+Package pdftex.def Info: figures/compression-ablation_421-422-423.png  used on input line 169.
+(pdftex.def)             Requested size: 358.50473pt x 166.54349pt.
+) [51 <./figures/ema-vs-max-stat_14-15.pdf>] (./appendix/full_benchmark.tex) [52 <./figures/compression-ablation_421-422-423.png>] (./appendix/hyper_parameters.tex
+Underfull \hbox (badness 2884) in paragraph at lines 30--30
 []\T1/pplj/m/n/10 (+20) Table 2: |\T1/pplj/b/n/10 (+20) Stan-dalone train-ing hy-per-pa-ram-e-ters. \T1/pplj/m/n/10 (+20) All rows: \T1/fvm/m/n/10 model =
  []
 
-[46]
-LaTeX Font Info:    Trying to load font information for TS1+pplj on input line 134.
+[53]
+LaTeX Font Info:    Trying to load font information for TS1+pplj on input line 141.
  (/usr/share/texmf-dist/tex/latex/psnfss/ts1pplj.fd
 File: ts1pplj.fd 2004/09/06 font definitions for TS1/pplj.
-)
-Overfull \hbox (15.80386pt too wide) in paragraph at lines 167--173
+) [54]
+Underfull \hbox (badness 1286) in paragraph at lines 180--180
+[]\T1/pplj/m/n/10 (+20) Table 7: |\T1/pplj/b/n/10 (+20) Com-pres-sion ab-la-tion pa-ram-e-ters \T1/pplj/m/n/10 (+20) ($\OML/zplm/m/it/10 n \OT1/zplm/m/n/10 = \OT1/pplx/m/n/10 5$ \T1/pplj/m/n/10 (+20) seeds each, seeds
+ []
+
+
+Overfull \hbox (15.80386pt too wide) in paragraph at lines 198--206
 \T1/pplj/m/n/10.95 (-20) The SGD thresh-old di-ag-nos-tic (Fig-ure [][]15[][]) sweeps $\OML/zplm/m/it/10.95 ^^Q \OMS/zplm/m/n/10.95 2 f\OT1/pplx/m/n/10.95 10[],  5  \OMS/zplm/m/n/10.95 ^^B  \OT1/pplx/m/n/10.95 10[],  10[],  2  \OMS/zplm/m/n/10.95 ^^B
  []
 
-[47]
 
 LaTeX Font Warning: Font shape `T1/fvm/m/sc' undefined
-(Font)              using `T1/fvm/m/n' instead on input line 178.
+(Font)              using `T1/fvm/m/n' instead on input line 211.
 
 
-Overfull \hbox (25.60689pt too wide) in paragraph at lines 179--184
+Overfull \hbox (25.60689pt too wide) in paragraph at lines 212--217
 [] []\T1/pplj/m/sc/10.95/80ls (-20) exp 407 \T1/fvm/m/n/10.95/80ls first_task_opt = none\T1/pplj/m/sc/10.95/80ls (-20) .[] \T1/pplj/m/n/10.95 (-20) The run con-fig records \T1/fvm/m/n/10.95 first_task_opt
  []
 
-) [48]
+[55]) [56]
 
 Package natbib Warning: There were undefined citations.
 
@@ -1084,22 +1147,25 @@ L3 programming layer <2026-01-19>
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
+
+LaTeX Warning: There were undefined references.
+
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 510DE2953968E21E9B5C7426B75EB52F;11377.
  ) 
 Here is how much of TeX's memory you used:
- 22129 strings out of 469515
- 377491 string characters out of 5470808
- 885715 words of memory out of 5000000
- 49091 multiletter control sequences out of 15000+600000
- 831206 words of font info for 985 fonts, out of 8000000 for 9000
+ 22901 strings out of 469515
+ 390671 string characters out of 5470808
+ 905309 words of memory out of 5000000
+ 49780 multiletter control sequences out of 15000+600000
+ 836369 words of font info for 1020 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 123i,23n,121p,2171b,676s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbij8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbj8a.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrij8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmb8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmr8a.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (50 pages, 2817956 bytes).
+ 123i,23n,121p,2171b,692s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbij8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbj8a.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrij8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmb8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmr8a.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
+Output written on main.pdf (58 pages, 2491315 bytes).
 PDF statistics:
- 1092 PDF objects out of 1200 (max. 8388607)
- 812 compressed objects within 9 object streams
- 197 named destinations out of 1000 (max. 500000)
- 202208 words of extra memory for PDF output out of 221844 (max. 10000000)
+ 1569 PDF objects out of 1728 (max. 8388607)
+ 940 compressed objects within 10 object streams
+ 228 named destinations out of 1000 (max. 500000)
+ 204256 words of extra memory for PDF output out of 221844 (max. 10000000)
 

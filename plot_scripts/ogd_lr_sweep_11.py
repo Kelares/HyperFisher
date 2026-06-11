@@ -230,6 +230,7 @@ ax_ret.set_title("Retention: just-trained (solid) vs final after all tasks (dash
                  fontsize=9, fontweight='bold', pad=5)
 ax_ret.legend(fontsize=7.5, loc='upper right', ncol=2)
 
-plt.savefig("plots/ogd_lr_sweep_exp11.png")
+for ext in ["pdf", "png"]:
+    plt.savefig(f"plots/ogd_lr_sweep_exp11.{ext}")
 plt.close()
-print("Saved plots/ogd_lr_sweep_exp11.png")
+print("Saved plots/ogd_lr_sweep_exp11")

@@ -5,16 +5,14 @@
 \section*{Appendix C: Hypernetwork Architecture Ablations}
 \label{app:hn_ablations}
 
-This appendix documents three architectural ablations that motivated the
+% REPLACE: "This appendix documents three architectural ablations..."
+This appendix documents two architectural ablations that motivated the
 hypernetwork configurations used in the main experiments.
 Figure~\ref{fig:dh_sweep} establishes the diagnostic capacity level
 $d_h = 8$ for the suffocated Split-MNIST regime (Sub-RQ1, Benchmark~1).
 Figure~\ref{fig:beta_chunk_sweep} presents the joint sweep over
 regularization strength $\beta$ and chunk size $c$ used to select the
 operating point for all main hypernetwork experiments.
-Figure~\ref{fig:hn_trajectory_c8} traces the per-task evolution of average
-accuracy and backward transfer for the Split-CIFAR10 standard hypernetwork
-across all five task transitions.
 
 % ── C.1  Hidden-dimension sweep ───────────────────────────────────────────────
 
@@ -106,47 +104,47 @@ across all five task transitions.
     \label{fig:beta_chunk_sweep}
 \end{figure}
 
-% ── C.3  Per-task accuracy trajectory — Split-CIFAR10 standard HN ────────────
+% % ── C.3  Per-task accuracy trajectory — Split-CIFAR10 standard HN ────────────
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf}
-    \caption{%
-        \textbf{Per-task learning trajectory --- Split-CIFAR10 standard
-        hypernetwork (Config~8, 5 tasks, 50 epochs per task,
-        \texttt{AdamW} first-task initialisation, full normalisation).}
-        Left: average accuracy over all tasks seen so far, evaluated after
-        each task is trained ($x$-axis = number of tasks learned).
-        Right: backward transfer over the same sequence.
-        Thick lines show the seed mean; thin lines show individual seeds.
-        %
-        After task~1 all methods achieve high single-task accuracy
-        ($0.78$--$0.95$), since no forgetting has yet occurred.
-        The stratification that determines the final ordering in the
-        main text (Figure~1) is established by task~2 and remains
-        largely stable thereafter.
-        \texttt{Adam} (pink) maintains the highest trajectory throughout,
-        ending at ${\approx}0.84$ and separating from the projection
-        cluster at task~2.
-        \texttt{SGD} (grey) tracks \texttt{Adam} closely for tasks 1--3
-        before diverging slightly downward, reflecting the onset of
-        forgetting without momentum.
-        \texttt{iFOPNG} (blue), \texttt{EWC} (brown), and \texttt{OGD}
-        (green) form a mid-tier cluster between $0.71$ and $0.78$ from
-        task~2 onward.
-        \texttt{ONG} (red) undergoes a pronounced dip at task~4
-        (individual seeds visible in the thin lines), partially recovering
-        to ${\approx}0.67$ by task~5; this instability is consistent with
-        the high seed variance for \texttt{ONG} reported in the main text.
-        %
-        The backward transfer panel confirms that the functional
-        regularizer suppresses forgetting across all methods: BWT values
-        remain within $[{-0.03},\,{+0.01}]$ throughout the full sequence.
-        The accuracy gap between \texttt{Adam} and projection methods
-        therefore reflects a deficit in forward transfer to newly seen
-        tasks rather than differential forgetting of earlier ones --- a
-        conclusion consistent with the per-task heatmaps in
-        Appendix~D (Figure~\ref{fig:heatmap_c8}).
-    }
-    \label{fig:hn_trajectory_c8}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=\linewidth]{figures/hypernetwork-heatmaps_8-fig1_trajectory.pdf}
+%     \caption{%
+%         \textbf{Per-task learning trajectory --- Split-CIFAR10 standard
+%         hypernetwork (Config~8, 5 tasks, 50 epochs per task,
+%         \texttt{AdamW} first-task initialisation, full normalisation).}
+%         Left: average accuracy over all tasks seen so far, evaluated after
+%         each task is trained ($x$-axis = number of tasks learned).
+%         Right: backward transfer over the same sequence.
+%         Thick lines show the seed mean; thin lines show individual seeds.
+%         %
+%         After task~1 all methods achieve high single-task accuracy
+%         ($0.78$--$0.95$), since no forgetting has yet occurred.
+%         The stratification that determines the final ordering in the
+%         main text (Figure~1) is established by task~2 and remains
+%         largely stable thereafter.
+%         \texttt{Adam} (pink) maintains the highest trajectory throughout,
+%         ending at ${\approx}0.84$ and separating from the projection
+%         cluster at task~2.
+%         \texttt{SGD} (grey) tracks \texttt{Adam} closely for tasks 1--3
+%         before diverging slightly downward, reflecting the onset of
+%         forgetting without momentum.
+%         \texttt{iFOPNG} (blue), \texttt{EWC} (brown), and \texttt{OGD}
+%         (green) form a mid-tier cluster between $0.71$ and $0.78$ from
+%         task~2 onward.
+%         \texttt{ONG} (red) undergoes a pronounced dip at task~4
+%         (individual seeds visible in the thin lines), partially recovering
+%         to ${\approx}0.67$ by task~5; this instability is consistent with
+%         the high seed variance for \texttt{ONG} reported in the main text.
+%         %
+%         The backward transfer panel confirms that the functional
+%         regularizer suppresses forgetting across all methods: BWT values
+%         remain within $[{-0.03},\,{+0.01}]$ throughout the full sequence.
+%         The accuracy gap between \texttt{Adam} and projection methods
+%         therefore reflects a deficit in forward transfer to newly seen
+%         tasks rather than differential forgetting of earlier ones --- a
+%         conclusion consistent with the per-task heatmaps in
+%         Appendix~D (Figure~\ref{fig:heatmap_c8}).
+%     }
+%     \label{fig:hn_trajectory_c8}
+% \end{figure}

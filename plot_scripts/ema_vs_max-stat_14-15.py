@@ -57,21 +57,55 @@ def main():
     # ── Left: paired lines ────────────────────────────────────────────────
     ax = axes[0]
     shared = sorted(set(ema_seeds) & set(max_seeds))
+    
+    ann_data = [] # Collect data to space manually
+    
     for seed in shared:
         ie = ema_seeds.index(seed); im = max_seeds.index(seed)
         ev = ema_accs[ie]; mv = max_accs[im]
         col = SEED_COLORS.get(seed, "#777")
+        
         ax.plot([0, 1], [ev, mv], color=col, linewidth=1.5,
                 marker="o", markersize=7, zorder=3, label=f"seed={seed}")
-        ax.annotate(f"  D={mv - ev:+.4f}", xy=(1, mv),
-                    fontsize=7, color=col, va="center")
+        
+        # Save original Y position for spacing logic
+        ann_data.append({
+            "y_orig": mv, 
+            "y_curr": mv, 
+            "text": f"Δ={mv - ev:+.4f}", 
+            "color": col
+        })
+
+    # 1. Sort annotations from bottom to top
+    ann_data.sort(key=lambda d: d["y_orig"])
+
+    # 2. Force a strict minimum vertical gap
+    min_gap = 0.0018  # You can slightly increase this if needed
+    for i in range(1, len(ann_data)):
+        if ann_data[i]["y_curr"] - ann_data[i-1]["y_curr"] < min_gap:
+            ann_data[i]["y_curr"] = ann_data[i-1]["y_curr"] + min_gap
+
+    # 3. Plot the spaced text and draw connecting leader lines
+    for d in ann_data:
+        # Place text out at x=1.06 to clearly bypass the marker
+        ax.text(1.06, d["y_curr"], d["text"], color=d["color"], 
+                fontsize=7.5, va="center", ha="left")
+        
+        # Draw a faint leader line connecting the marker to the new text position
+        ax.plot([1.015, 1.05], [d["y_orig"], d["y_curr"]], 
+                color=d["color"], linewidth=0.8, alpha=0.6, zorder=2)
+
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["EMA\n(iFOPNG_ema)", "MAX\n(iFOPNG)"], fontsize=9)
     ax.set_ylabel("Avg. Accuracy (20 tasks)", fontsize=9)
     ax.set_title("Paired per-seed comparison", fontsize=10, fontweight="bold")
     ax.set_xlim(-0.35, 1.7)
+    
+    # Expand Y limits slightly to account for text pushed upward
     ylo = min(min(ema_accs), min(max_accs)) - 0.003
     yhi = max(max(ema_accs), max(max_accs)) + 0.008
+    if ann_data:
+        yhi = max(yhi, ann_data[-1]["y_curr"] + 0.002)
     ax.set_ylim(ylo, yhi)
     ax.legend(fontsize=7.5, loc="lower right", framealpha=0.9)
 
@@ -83,11 +117,7 @@ def main():
             color=["#A8C7E8", "#1B6CA8"], width=0.5, capsize=5, zorder=3,
             alpha=0.88,
             error_kw={"linewidth": 1.2, "ecolor": "#333", "capthick": 1.2})
-    for lst, xi in [(ema_accs, 0), (max_accs, 1)]:
-        jit = np.linspace(-0.09, 0.09, len(lst))
-        for j, v in zip(jit, lst):
-            ax2.scatter(xi + j, v, color="white", s=20, zorder=4,
-                        edgecolors="#333", linewidths=0.8)
+    
     y_top = max(means) + max(stds) + 0.002
     ax2.plot([0, 0, 1, 1], [y_top, y_top+0.001, y_top+0.001, y_top],
              color="#333", linewidth=1.0)
@@ -99,21 +129,13 @@ def main():
     ax2.set_ylabel("Avg. Accuracy (20 tasks)", fontsize=9)
     ax2.set_title("Mean +- std with significance", fontsize=10, fontweight="bold")
     ax2.set_ylim(ylo - 0.001, y_top + 0.006)
-    stats_txt = (
-        f"Paired t(4):  t = {t_stat:.2f},  p = {p_t:.5f}\n"
-        f"Wilcoxon:     W = {stat_w:.0f},    p = {p_w:.5f}\n"
-        f"Cohen's d (paired) = {cohen_d:.2f}\n"
-        f"Mean D = {np.mean(diffs)*100:.2f} pp  (MAX > EMA)\n"
-        f"H0: EMA >= MAX  ->  REJECTED"
-    )
-    ax2.text(0.05, 0.5, stats_txt, transform=ax2.transAxes,
-             fontsize=7.5, va="bottom",
-             bbox=dict(boxstyle="round,pad=0.4", fc="#f9f9f9", ec="#ccc", alpha=0.95))
 
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "ema-vs-max-stat_14-15.png")
+    for ext in ["pdf", "png"]:
+        plt.savefig(OUT + f"ema-vs-max-stat_14-15.{ext}")
     plt.close()
-    print("Saved ema-vs-max-stat_14-15.png")
+    
+    print("Saved ema-vs-max-stat_14-15")
     print(f"\nEMA: {np.mean(ema_accs):.4f} +- {np.std(ema_accs):.4f}")
     print(f"MAX: {np.mean(max_accs):.4f} +- {np.std(max_accs):.4f}")
     print(f"Delta = {np.mean(diffs)*100:.3f} pp")
