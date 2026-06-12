@@ -69,8 +69,8 @@ for COMP in "${COMPRESSION_TYPES[@]}"; do
             --max_directions=400
             --compression=$COMP
             --fisher_samples=60000
-            --lr=1e-4
-            --max_epochs=5
+            --lr=1e-3
+            --max_epochs=100
             --batch_size=10
             --lam=1e-3
             --first_task_opt=sgd

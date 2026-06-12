@@ -44,12 +44,11 @@ for ACC_TYPE in "${ACCUMULATION_TYPES[@]}"; do
         ARGS=(
             --task=split_cifar100, --model=TargetNetwork
             --methods=$METHOD --no-regulizer
-            --num_of_tasks=20
             --grads_per_task=200 --max_directions=400
             --fisher_samples=60000
-            --lr=$LR --max_epochs=5 --batch_size=10
+            --lr=$LR 
+            --max_epochs=100 --batch_size=10
             --lam=$LAM
-            --alpha=0.5
             # Universal SGD initialization 
             --first_task_opt=sgd --first_task_lr=1e-3 
             
