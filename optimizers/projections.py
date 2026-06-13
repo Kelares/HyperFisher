@@ -879,16 +879,14 @@ class ONG(OP):
 
         # 3. Unit-step Natural Scaling (Optional but recommended for HyperNets)
         # Ensures the update doesn't explode if the Fisher landscape is flat
-        # denom = torch.sqrt((v_star_unscaled * g).sum().clamp(min=0) + eps)     
-        # v_star = -self.lr * v_star_unscaled / (denom + eps)
+        denom = torch.sqrt((v_star_unscaled * g).sum() + eps)
+        v_star = -self.lr * v_star_unscaled / (denom + eps)
 
-        v_star = -self.lr * v_star_unscaled
         # Metrics for logging
         F_sqrt = F_new_s.clamp(min=0).sqrt()
         weighted_rho = ((F_sqrt * v_star_unscaled).norm() / ((F_sqrt * v_nat).norm() + eps)).item()
         
         return v_star, weighted_rho, correction.norm().item(), (v_star_unscaled.norm() / (v_nat.norm() + eps)).item()
-
 
 
 class OGD(FOPNG):
