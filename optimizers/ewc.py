@@ -210,6 +210,7 @@ def train_ewc(
     epochs:         int            = 5,
     max_epochs:     Optional[int]  = None,
     optimizer_cls                  = torch.optim.Adam,
+    first_task_optimizer_lr        = 1e-3,
     first_task_optimizer_cls       = torch.optim.AdamW,
     task_classes:   Optional[list] = None,
     verbose:        bool           = True,
@@ -249,7 +250,7 @@ def train_ewc(
                     print(f"\n[{name}] Task 1 – {first_task_optimizer_cls.__name__}")
 
                 opt = first_task_optimizer_cls(
-                    model.parameters(), lr=1e-3, weight_decay=1e-4
+                    model.parameters(), lr=first_task_optimizer_lr, weight_decay=1e-4
                 )
 
                 while best_loss >= loss_to_achieve and loss_repeat < 10 and epoch < _max_epochs:
