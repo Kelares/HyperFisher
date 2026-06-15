@@ -216,6 +216,7 @@ def train_ewc(
     saved:          bool           = False,
     warmup:         bool           = False,
     beta:           float          = 0.01,
+    normalize:      bool           = False
 ) -> Dict:
     device      = next(model.parameters()).device
     has_spawn   = hasattr(model, "spawn")
@@ -424,7 +425,8 @@ def train_ewc(
 
         # ── Compute Fisher + anchor, normalise ────────────────────────────────
         ewc.after_task(model, t, task_id, loader, device)
-        ewc._normalise_fishers()
+        if normalize:
+            ewc._normalise_fishers()
 
         # ── Snapshot generated weights for the regulizer ──────────────────────
         # Only meaningful for HyperNetwork (has .w after spawn); safe no-op otherwise.

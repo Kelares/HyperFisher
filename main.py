@@ -185,8 +185,8 @@ if __name__ == "__main__":
                     regulizer=config.get("regulizer", True),
                     optimizer_cls = optimizer,
                     first_task_optimizer_cls=first_task_optimizer_cls,
-                    beta=config.get("beta", 0.1)
-
+                    beta=config.get("beta", 0.1),
+                    normalize=config.get("normalize")
                 )
 
             elif method == "sgd" or method == "adam":
