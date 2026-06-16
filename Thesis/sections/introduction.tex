@@ -11,15 +11,25 @@ parameters for an incoming task, gradient updates blindly overwrite the weight
 configurations essential for retaining prior task spaces, shifting the internal
 representation manifolds away from historical objective minima.
 
+Beyond its theoretical interest, this limitation carries direct practical
+cost. Deployed systems must either be retrained from scratch whenever the
+data distribution shifts --- at substantial computational and energetic
+expense --- or retain growing archives of historical data for replay, an
+option foreclosed in privacy-regulated and on-device settings where past
+data cannot be stored. Continual learning methods that preserve prior
+competence without replay therefore address both the economic burden of
+repeated retraining and the deployment of adaptive models under
+data-retention constraints.
+
 Modern continual learning (CL) literature is conventionally structured into
 three core algorithmic families: replay-based strategies that leverage episodic
 data buffers, regularization-based frameworks that penalize parameter deviations,
 and architectural or parameter-isolation methods \citep{de_lange_continual_2022}.
-Within the meta-learning domain, hypernetworks \citep{ha_hypernetworks_2016}
+Within the meta-learning domain, hypernetworks \citep{ha_hypernetworks_2017}
 have emerged as an elegant paradigm. Hypernetworks circumvent parameter-space
 conflicts by utilizing a centralized, lightweight meta-model to generate the
 target network's complete parameter weights conditioned on task embeddings, as
-formalized by \citet{oswald_continual_2022}. Concurrently, within the field of
+formalized by \citet{oswald_continual_2020}. Concurrently, within the field of
 geometric optimization, gradient projection methods, exemplified by the
 recently proposed Fisher-Orthogonal Projected Natural Gradient Descent (FOPNG)
 \citep{garg_fisher-orthogonal_2026}, explicitly constrain subsequent updates to 
@@ -31,7 +41,10 @@ methods, their structural intersection uncovers a critical and previously
 unexamined optimization pathology. Generating a target network's full weight 
 vector in a single forward pass would require an output layer whose width equals 
 the total number of target network parameters, which is computationally prohibitive for any non-trivial
-architecture; because every sub-pass executes before any gradient
+architecture. Chunked hypernetworks therefore partition generation into $K$
+sequential sub-passes, each emitting a fixed-size segment of the weight
+vector from the same shared generator; because every sub-pass executes
+before any gradient
 update, their contributions accumulate additively in the shared meta-model
 parameters, inflating the gradient magnitude proportionally to $K$. This
 gradient inflation propagates into the projection algebra: both the gradient
@@ -86,8 +99,7 @@ This is decomposed into four sub-research questions (Sub-RQs):
     \item[\textbf{Sub-RQ3}] \textbf{(Parameter Inertia):} Does replacing
     \texttt{FOPNG}'s task-specific metric $\hat{F}_{\mathrm{new}}$ with the
     combined inertial metric $F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$
-    yield consistent retention improvements across benchmarks, and does the
-    magnitude of any advantage scale with inter-task Fisher overlap?
+    yield consistent retention improvements across benchmarks?
 
     \item[\textbf{Sub-RQ4}] \textbf{(Fisher Accumulation):} Does accumulating
     $\hat{F}_{\mathrm{old}}$ via a non-decaying element-wise maximum operator
@@ -110,9 +122,6 @@ In the standard-capacity hypernetwork setting, \texttt{iFOPNG} surpasses
 plain \texttt{SGD} but falls short of \texttt{Adam}; under extreme
 compression the gap to \texttt{Adam} widens to $20$--$40$~pp and most
 projection methods drop below \texttt{SGD} entirely.
-Two structural limitations bound the current approach: the loss of
-adaptive momentum at each projection step, which cannot be recovered
-without projection-compatible optimizers; and the heuristic nature of
-the normalization scheme, which stabilises the projection algebra by
-discarding the curvature structure that a geometrically principled
-rescaling would preserve.
+
+
+% Explain the concept of chunking, but cut the variables (G, F^, A) and the exact condition number. Edit to state: Chunking requires K sequential forward passes, which additively inflates the raw gradients and Fisher estimates, rendering the projection matrix uninvertible

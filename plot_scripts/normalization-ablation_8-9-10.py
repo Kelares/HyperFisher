@@ -62,10 +62,10 @@ def main():
             ax.bar(xi, mean, yerr=std, color=col, width=0.55, capsize=4,
                    zorder=3, alpha=0.88,
                    error_kw={"linewidth": 1.2, "ecolor": "#333", "capthick": 1.2})
-            jit = np.linspace(-0.1, 0.1, len(vals))
-            for j, v in zip(jit, vals):
-                ax.scatter(xi + j, v, color="white", s=16, zorder=4,
-                           edgecolors="#333", linewidths=0.7)
+            # jit = np.linspace(-0.1, 0.1, len(vals))
+            # for j, v in zip(jit, vals):
+            #     ax.scatter(xi + j, v, color="white", s=16, zorder=4,
+            #                edgecolors="#333", linewidths=0.7)
             ax.text(xi, mean + std + 0.01, f"{mean:.3f}",
                     ha="center", fontsize=8, fontweight="bold", color=col)
 
@@ -80,7 +80,8 @@ def main():
         ax.set_ylim(ylim)
 
     plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "normalization-ablation_8-9-10.png")
+    for ext in ["pdf", "png"]:
+        plt.savefig(OUT + f"normalization-ablation_8-9-10.{ext}")
     plt.close()
     print("Saved normalization-ablation_8-9-10.png")
 

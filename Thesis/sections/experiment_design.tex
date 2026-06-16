@@ -4,11 +4,6 @@
 %
 % Hyperparameter provenance: benchmark-specific values deferred to the
 % appendix table.
-%
-% VERIFY before submission (flagged with % CHECK):
-%   - beta value for CIFAR HN (log shows 0.1, old draft said 0.01)
-%   - embedding dims (CIFAR HN = 16, MNIST suffocated = 32)
-%   - chunk_size / chunk-count for each HN benchmark
 % ─────────────────────────────────────────────────────────────────────────────
 
 \subsection{Experimental Design}
@@ -19,11 +14,7 @@ designs. Sub-RQ1 and Sub-RQ3 require head-to-head benchmark comparisons ---
 projection methods against an unconstrained baseline, and \texttt{iFOPNG}
 against \texttt{FOPNG} respectively. Sub-RQ2 requires a controlled ablation
 over normalization conditions. Sub-RQ4 requires a long-horizon comparison of
-two Fisher accumulation operators on the same elastic preconditioner.
-Hyperparameter choices fall into two categories: those inherited directly
-from the literature, which require no further justification, and those
-specific to the novel hypernetwork experiments, each of which is justified
-below.
+two Fisher accumulation operators on the same inertial combined-metric preconditioner.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsubsection{Hyperparameter Provenance}
@@ -49,7 +40,7 @@ initialization for MNIST-based benchmarks. While \citet{garg_fisher-orthogonal_2
 state they used the method's own learning rate for first-task SGD training 
 (e.g., $\eta = 10^{-5}$ for FOPNG), our empirical replication of this protocol 
 yielded an initial accuracy of only $\approx 21\%$. As demonstrated by the 
-learning rate convergence sweep detailed in Appendix~C (Figure~\ref{fig:sgd_threshold}), 
+learning rate convergence sweep detailed in Appendix~D (Figure~\ref{fig:sgd_threshold}), 
 this published rate falls well below the empirical convergence threshold, 
 effectively failing to establish a functional baseline. To ensure a clean initial 
 projection subspace, we standardized the first-task SGD learning rate to $10^{-3}$ 
@@ -58,7 +49,7 @@ Beyond this necessary empirical correction, no tuning was performed on the publi
 
 \paragraph{Hypernetwork experiments.}
 Settings not covered by \citet{garg_fisher-orthogonal_2026} follow the canonical 
-hypernetwork framework of \citet{oswald_continual_2022}; exact values are detailed 
+hypernetwork framework of \citet{oswald_continual_2020}; exact values are detailed 
 in Appendix~\ref{app:hyperparameters}. Because computing a full Fisher estimate 
 requires a complete $K$-chunk generation pass per training sample, estimation is 
 capped at $1{,}024$ samples to maintain computational tractability --- a standard 
@@ -72,7 +63,44 @@ clean geometric basis.
 To isolate the projection constraint as the sole independent variable in the 
 hypernetwork experiments, all methods use a uniform learning rate of $10^{-3}$ 
 rather than method-specific rates. This prevents convergence-speed artifacts 
-from conflating the structural effects of the projection geometry..
+from conflating the structural effects of the projection geometry.
+
+\paragraph{Early stopping.}
+Per-task training duration is governed by a single early-stopping rule
+shared verbatim by every method, baseline and projection alike.
+Training on a task terminates at the first of three conditions:
+the average training loss falls below $0.1$;
+ten consecutive epochs elapse without improving the best training loss
+observed on that task;
+or the benchmark's epoch cap (Appendix~\ref{app:hyperparameters}) is
+reached.
+A coupled scheduler reduces the learning rate after every three
+consecutive non-improving epochs, stepping through half-magnitude
+decrements ($10^{-2} \to 5 \times 10^{-3} \to 10^{-3} \to \dots$).
+Upon termination, the parameters of the best-loss epoch --- not the final
+epoch --- are restored and carried into the next task.
+The criterion consults only the training loss, so the stopping rule never
+observes held-out data; per-task duration is therefore adaptive while
+introducing no method-specific degree of freedom.
+
+\paragraph{Random seeds.}
+All experiments draw from a fixed seed pool.
+Configurations evaluated on five seeds use $\{42, 111, 811, 1234, 2137\}$;
+compute-limited configurations use the three-seed subset
+$\{42, 811, 1234\}$.
+The seed count for every reported comparison is stated alongside the
+corresponding result.
+One deviation applies: on the Split-MNIST hypernetwork benchmark, seed $2137$ produced degenerate runs for every
+projection-based method while leaving the unconstrained baselines
+unaffected; it was therefore excluded and replaced by seed $314$,
+yielding the five-seed set $\{42, 111, 314, 811, 1234\}$ used uniformly
+across all methods on this benchmark.
+
+\paragraph{Fisher accumulation default.}
+The EMA decay parameter $\alpha$ appears exclusively in the Sub-RQ4
+operator comparison ($\alpha = 0.5$); every other experiment accumulates
+$\hat{F}_{\mathrm{old}}$ with the element-wise \textsc{max} operator,
+which introduces no additional hyperparameter.
 
 % 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -91,7 +119,7 @@ an unconstrained standalone network (Panel a) against a hypernetwork (Panel b).
 We utilize a three-benchmark progression. \textbf{Benchmark 1 (Split-MNIST)} 
 utilizes a deliberately ``suffocated'' hypernetwork (generator hidden dimension 
 $d_h = 8$) to expose differential effects without hitting the near-perfect accuracy 
-ceilings observed at higher capacities ((see Appendix~\ref{app:hn_ablations}, Figure~\ref{fig:dh_sweep})). To ensure convergence under these constraints, each task is trained for 
+ceilings observed at higher capacities (see Appendix~\ref{app:hn_ablations}, Figure~\ref{fig:dh_sweep}). To ensure convergence under these constraints, each task is trained for 
 $15$ epochs with a batch size of $64$. \textbf{Benchmark 2 (Split-CIFAR10)} serves 
 as the primary test, offering genuine inter-task interference and utilizing a 
 standard-capacity hypernetwork trained for 50 epochs. \textbf{Benchmark 3 (Split-CIFAR100)} 
@@ -101,87 +129,97 @@ dominate, conditionally succeed based on compression, or systematically fail
 due to momentum stripping.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsubsection{Sub-RQ2 --- Projection-Scoped Normalization}
+\subsubsection{Sub-RQ2 --- Projection-Scoped Normalization} % I SHOULD REWRITE THIS SO I EXPLAIN WHY A CONDITION IS A GOOD MEASURMENT TO EXPLAIN A inversion failures.
 \label{sec:design_rq2}
 
 \paragraph{What we want to differentiate.}
 Sub-RQ2 asks whether the chunk-induced gradient accumulation pathology is
 real, characterisable, and resolvable.
 A single accuracy number cannot answer this: we need direct numerical
-evidence that the pathology occurs without normalization, that
-normalization resolves it, and that the resolution does not compromise
-projection quality.
+evidence that the pathology occurs without normalization, that normalization
+resolves it, and that the resolution does not compromise projection quality.
 
 \paragraph{Experimental design.}
-\texttt{iFOPNG} is run on the Split-CIFAR10 hypernetwork (Benchmark~2)
-under three normalization conditions, all other hyperparameters held
-constant:
+\texttt{iFOPNG} is evaluated under three normalization conditions on the
+Split-CIFAR10 hypernetwork (Benchmark~2), with all other hyperparameters
+held constant.
+Split-CIFAR10 is chosen over the CIFAR-100 and MNIST hypernetwork
+configurations specifically because its chunk size of 6\,000 yields
+$C = 198$ chunks per target network --- large enough to produce a
+measurable pathology, yet small enough that the condition number of $A$
+can be computed and logged at every projection step without becoming
+numerically intractable.
+Larger chunk counts (e.g.\ the CIFAR-100 configuration) would make the
+condition number measurement itself unreliable; smaller counts (e.g.\
+the MNIST suffocated regime) would not stress the pathology sufficiently.
+
 \begin{description}
     \item[Condition 1 --- No normalization (negative control).]
     Incoming gradient batches are appended to $G$ without orthonormalization;
     the Fisher diagonal is used at its raw scale.
-    With several hundred chunks accumulated per forward pass, the gradient
-    columns of $G$ and the entries of $\hat{F}$ are expected to reach
-    extreme magnitudes, inflating the condition number of the projection
-    kernel and driving the matrix inversion to \texttt{NaN}. This condition
-    is the negative control that demonstrates the pathology concretely.
+    With 198 chunks accumulated per forward pass, the gradient columns of % MAY BE REDUNDANT 
+    $G$ and the entries of $\hat{F}$ are expected to reach extreme
+    magnitudes, inflating the condition number of the projection kernel and
+    driving the matrix inversion to \texttt{NaN}.
+    This condition is the negative control that demonstrates the pathology
+    concretely.
+
     \item[Condition 2 --- Gradient orthonormalization only.]
     Each incoming gradient batch is orthonormalized via QR decomposition
     before insertion into $G$; the Fisher diagonal is used at its raw scale.
-    This isolates whether gradient-side conditioning alone is sufficient, or
-    whether Fisher-side scaling is also required.
+    This isolates whether gradient-side conditioning alone is sufficient,
+    or whether Fisher-side scaling is also required.
+
     \item[Condition 3 --- Full normalization (proposed).]
     Gradient batches are QR-orthonormalized at insertion, and the Fisher
-    terms are scaled by the maximum entry of the metric tensor $F_c$ within
-    each projection computation. This is the proposed scheme; all other
-    hypernetwork experiments use it.
+    terms are rescaled by the maximum entry of the ambient metric $F^*$
+    within each projection computation.
+    This is the proposed scheme; all other hypernetwork experiments use it.
 \end{description}
-In addition to accuracy and BWT, the condition number of the projection
-kernel $A$ is logged before each inversion.
+
+In addition to accuracy and BWT, the condition number $\kappa(A)$ of
+the projection kernel is logged before each inversion.
 A condition number that diverges in Condition~1 but remains bounded in
-Condition~3 constitutes direct numerical evidence for the pathology and its
-resolution.
-All conditions use the Benchmark~2 hypernetwork settings and the uniform
-learning rate of $10^{-3}$, so any performance difference is attributable
+Condition~3 constitutes direct numerical evidence for the pathology and
+its resolution.
+All conditions use the Benchmark~2 hypernetwork settings, so any performance difference is attributable
 to normalization alone.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsubsection{Sub-RQ3 --- Does iFOPNG's Elastic Preconditioner Help}
+\subsubsection{Sub-RQ3 --- Does the Combined Fisher Metric Yield Consistent Retention Improvements}
 \label{sec:design_rq3}
 
-\paragraph{What we want to differentiate.}
-Sub-RQ3 asks whether the elastic combined Fisher
-$F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$ provides a
-consistent retention improvement over rigid FOPNG, and whether any
-advantage is robust to the evaluation protocol.
-
 \paragraph{Benchmark selection and rationale.}
-To test the robustness of the elastic preconditioner, the full method suite is 
-evaluated across four standalone benchmarks. \textbf{Permuted-MNIST} tests 
-long-horizon retention under high inter-task Fisher overlap. \textbf{Split-MNIST} 
-is evaluated under both multi-head \citep{garg_fisher-orthogonal_2026} and 
-single-head \citep{farquhar_towards_2019} protocols to determine if the 
-\texttt{iFOPNG} advantage survives output-level interference. Finally, 
-\textbf{Split-CIFAR10 and Split-CIFAR100 (multi-head)} provide the most 
-discriminative environments with stronger inter-task interference. Hypernetwork 
-configurations for Split-MNIST and Split-CIFAR10 are also included for 
-completeness to verify whether the elastic advantage survives extreme parameter 
-compression. Comparing \texttt{iFOPNG} against \texttt{FOPNG} across this suite 
-isolates the specific retention benefit of the elastic preconditioner, while 
-comparisons against \texttt{OGD} verify the necessity of the Fisher metric itself.
+Sub-RQ3 compares \texttt{iFOPNG} against \texttt{FOPNG} across the four
+standalone benchmarks evaluated by \citet{garg_fisher-orthogonal_2026}:
+Permuted-MNIST (5 tasks), Split-MNIST single-head, Split-CIFAR10
+multi-head, and Split-CIFAR100 multi-head.
+All hyperparameters are taken directly from \citeauthor{garg_fisher-orthogonal_2026}'s
+Table~1, with the sole exception of the first-task learning rate for
+MNIST-based benchmarks, where the published value produces a degenerate
+initialisation; the necessary correction is established empirically in
+Appendix~D (Figure~\ref{fig:sgd_threshold}).
+This replication-faithful design ensures that any observed difference
+between \texttt{iFOPNG} and \texttt{FOPNG} is attributable to the combined
+metric $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ rather than
+to differences in training conditions.
+
+Split-MNIST multi-head and the two hypernetwork configurations
+(Split-MNIST HN and Split-CIFAR10 HN) were already conducted for
+Sub-RQ1 and are included here for completeness; they are not part of the
+Garg et al.\ replication and carry no additional inferential weight for
+Sub-RQ3.
 % ─────────────────────────────────────────────────────────────────────────────
 
 \subsubsection{Sub-RQ4 --- Fisher Accumulation Operator}
 \label{sec:design_rq4}
 
 \paragraph{What we want to differentiate.}
-Sub-RQ4 holds the elastic formulation of Sub-RQ3 fixed and isolates the
-operator used to accumulate the historical Fisher $F_{\mathrm{old}}$.
 The non-decaying maximum $F_{\mathrm{old}} \leftarrow
 \max(F_{\mathrm{old}}, F_{\mathrm{new}})$ guarantees that any parameter
 ever deemed important to a past task retains that importance permanently.
 This is protective for early tasks but monotonic by construction: the
-elastic inertia boundary can only tighten, never relax, so in a
+inertial metric boundary can only tighten, never relax, so in a
 sufficiently long sequence the accumulated metric may immobilise the
 parameters needed to learn later tasks.
 

@@ -33,7 +33,7 @@ $|\theta_t|$ (tens of thousands of scalars), the hypernetwork instead employs
 $c_k \in \mathbb{R}^{d_c}$, $k=1,\ldots,K$, is concatenated to $e_t$, and the
 network produces a block of $C_s$ parameters per forward pass.  The complete
 target weight is assembled by iterating over all $K$ chunks.  The functional
-regularizer of \citet{oswald_continual_2022} is applied on the generated
+regularizer of \citet{oswald_continual_2020} is applied on the generated
 weights:
 \begin{equation}
     L_{\text{total}} = L_t(\theta_t)

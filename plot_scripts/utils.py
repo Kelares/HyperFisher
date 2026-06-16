@@ -173,13 +173,12 @@ def load_exp(
 
 # ── Common skip functions ─────────────────────────────────────────────────
 
-def skip_exp6(method, config, summary):
-    """Exp 6 (CIFAR100 MH): keep only SGD first-task runs, drop EWC lam=50."""
-    fopt = config.get("first_task_opt", "?")
-    lam  = config.get("lam", "?")
-    if fopt == "adam" and method not in ("sgd", "adam"):
+def skip_exp6(m, c, s):
+    fopt = c.get("first_task_opt", "?")
+    lam  = c.get("lam", 0)
+    if fopt == "adam":          # drop old collapsed runs
         return True
-    if method == "ewc" and lam == 50:
+    if m == "ewc" and abs(lam - 10.0) < 1e-9:   # drop non-Garg EWC
         return True
     return False
 

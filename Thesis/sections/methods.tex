@@ -12,9 +12,6 @@
 \section{Methods}
 \label{sec:methods}
 
-This section specifies the precise formulation of every method and
-architectural component used in our experiments, providing sufficient
-detail for reproducibility.
 Conceptual motivation and positioning relative to prior work are covered
 in Section~\ref{sec:related_work}; we restrict our attention here to
 the exact algorithmic instantiations evaluated.
@@ -44,19 +41,13 @@ Negative BWT quantifies catastrophic forgetting; a value of zero indicates
 perfect retention.
 
 Reporting both metrics jointly is necessary because each can mask
-failure modes invisible to the other.
-A method that applies an overly conservative projection --- refusing
-gradient components that would encode new tasks --- can achieve
-near-zero BWT while gaining little average accuracy; conversely, a
-method that fully retrains on each new task may sustain competitive
-average accuracy on the most recently seen tasks while accumulating
-large negative BWT on earlier ones.
-Only the combination of high accuracy with near-zero BWT constitutes
-genuine continual learning, distinguishing methods that balance
-plasticity and stability from those that sacrifice one for the other.
+failure modes invisible to the other: a method that forecloses new
+learning to preserve old tasks achieves near-zero BWT alongside collapsed
+accuracy, while a method that overfits each new task sustains competitive
+accuracy at the cost of large negative BWT on earlier ones.
 
 \subsubsection{Multi-Head and Single-Head Evaluation}
-Following \citet{farquhar_towards_2019}, who demonstrated that multi-head
+Following \citet{farquhar_towards_2018}, who demonstrated that multi-head
 evaluations can inflate apparent method performance, we report results under
 both protocols for MNIST-based benchmarks.
 
@@ -71,7 +62,7 @@ approximation}
     \hat{F}_i \approx \frac{1}{N}\sum_{n=1}^{N}
     \!\left(\frac{\partial \mathcal{L}^{(n)}}{\partial \theta_i}\right)^{\!2},
 \end{equation}
-estimated over $N$ held-out samples at the end of each task.
+estimated over $N$ held-out samples.
 The full FIM is intractable for our network sizes; the diagonal
 approximation is standard across all evaluated methods
 \citep{kirkpatrick_overcoming_2017,garg_fisher-orthogonal_2026}.
@@ -109,10 +100,8 @@ the projection family that is the primary focus of this work.
 \begin{equation}
     \Delta\theta_{\mathrm{SGD}} = -\eta\,\nabla_\theta\mathcal{L}_t.
 \end{equation}
-\texttt{Adam} \citep{kingma_adam_2014} is included as an adaptive-rate
+\texttt{Adam} \citep{kingma_adam_2015} is included as an adaptive-rate
 variant.
-Both define the lower bound on retention performance; any continual learning
-method should improve upon \texttt{SGD} on the forgetting axis.
 
 \subsubsection{Natural Gradient and Fisher Natural Gradient}
 Natural gradient descent \citep{amari_natural_1998} preconditions the
@@ -121,8 +110,6 @@ manifold:
 \begin{equation}
     \Delta\theta_{\mathrm{nat}} = -\eta\,\hat{F}^{-1}\nabla_\theta\mathcal{L}.
 \end{equation}
-With a diagonal Fisher approximation, inversion reduces to element-wise
-scaling and remains computationally tractable.
 
 \texttt{FNG} \citep{garg_fisher-orthogonal_2026} applies a trust-region
 constraint to this Riemannian step:
@@ -162,7 +149,7 @@ additionally applied to each incoming batch at insertion time
 (Section~\ref{sec:normalization}).
 
 \subsubsection{Orthogonal Natural Gradient}
-ONG applies OGD-style projection to the natural gradient rather than to the
+ONG \citep{yadav_ong_2025} applies OGD-style projection to the natural gradient rather than to the
 raw gradient, combining Fisher preconditioning with a Euclidean orthogonality
 constraint:
 \begin{equation}
@@ -171,10 +158,12 @@ constraint:
         \hat{F}^{-1}g - G(G^\top G)^{-1}G^\top\hat{F}^{-1}g
       \right).
 \end{equation}
-Unlike FOPNG, the projection is measured in Euclidean rather than Fisher
-metric space, so the orthogonality guarantee does not extend to the
-statistical manifold.
-ONG uses the same memory budget as OGD.
+Unlike FOPNG, the projection is measured in Euclidean rather than Fisher metric space.
+
+%dully note:
+Following the diagonal Fisher approximation used throughout this thesis, we substitute the EKFAC inverse of \citet{yadav_ong_2025} with the diagonal empirical Fisher; 
+results are not directly comparable to the original implementation.
+
 
 \subsubsection{Fisher-Orthogonal Projected Natural Gradient Descent}
 \texttt{FOPNG} \citep{garg_fisher-orthogonal_2026} executes projection in
@@ -183,10 +172,22 @@ the Riemannian metric defined by the Fisher:
     v^*_{\mathrm{FOPNG}} = -\eta\,
     \frac{\hat{F}^{-1}Pg}{\sqrt{(Pg)^\top\hat{F}^{-1}Pg}},
     \qquad
-    P = I - \hat{F}G\!\left(G^\top\hat{F}G + \lambda I\right)^{\!-1}G^\top,
+    P = I - \hat{F}_{\mathrm{old}}\,G\!\left(G^\top\hat{F}_{\mathrm{old}}\,
+        \hat{F}^{-1}\hat{F}_{\mathrm{old}}\,G
+        + \lambda I\right)^{\!-1}\!G^\top\hat{F}_{\mathrm{old}},
     \label{eq:fopng}
 \end{equation}
-where $\lambda$ is added to the diagonal for numerical stability.
+where $\hat{F} \equiv \hat{F}_{\mathrm{new}}$ is the current-task Fisher,
+$\hat{F}_{\mathrm{old}}$ is the Fisher under which the stored directions
+were collected, and $\lambda$ is added to the diagonal for numerical
+stability.
+This is the pre-Fisher form of the practical algorithm of
+\citet{garg_fisher-orthogonal_2026}, in which the stored basis carries its
+collection-time Fisher weighting; it is the variant implemented and
+evaluated throughout this thesis, and it makes the relationship to
+\texttt{iFOPNG} exact: the latter is obtained by the single substitution
+$\hat{F}_{\mathrm{new}} \to F_c$ in the preconditioner, the trust region,
+and the projection kernel.
 We reproduce the per-benchmark learning rates and $\lambda$ values from
 \citet{garg_fisher-orthogonal_2026} Table~1 for standalone configurations,
 and use a uniform $\mathrm{lr}{=}10^{-3}$, $\lambda{=}10^{-3}$ for all
@@ -245,14 +246,10 @@ back, it is simply made harder to displace.
 \label{sec:hn_arch}
 
 \subsubsection{Chunked Hypernetworks}
-A hypernetwork \citep{ha_hypernetworks_2016} is a meta-model
-$\mathcal{H}(\cdot;\phi)$ that generates the complete weight vector
-$\theta_t = \mathcal{H}(e_t;\phi)$ of a target network conditioned on
-a task embedding $e_t$.
 Generating $\theta_t$ in a single forward pass would require an output
 layer of dimension $|\theta_t|$, which is computationally prohibitive for
 any non-trivial target architecture.
-\emph{Weight chunking} \citep{oswald_continual_2022} resolves this by
+\emph{Weight chunking} \citep{oswald_continual_2020} resolves this by
 iterating over a secondary chunk embedding $c_k$, $k=1,\ldots,K$,
 and producing a block of $C_s$ target parameters per pass; the full weight
 vector is assembled by concatenation.
@@ -261,7 +258,7 @@ chunk-induced gradient accumulation pathology addressed in
 Section~\ref{sec:normalization}.
 
 \subsubsection{Functional Regularizer}
-The functional regularizer of \citet{oswald_continual_2022} is active for
+The functional regularizer of \citet{oswald_continual_2020} is active for
 all hypernetwork configurations, with regularization strength $\beta$ treated
 as a tunable hyperparameter (see Appendix~\ref{app:hyperparameters}).
 \subsubsection{Target Network and Dropout}
@@ -320,14 +317,20 @@ distinct sources of ill-conditioning:
     \item \textbf{Metric-tensor scaling.}
         Within each projection computation, all Fisher quantities are
         jointly divided by a single scale factor derived from the
-        maximum entry of the combined metric:
+        maximum entry of the method's ambient metric $F^*$:
         \begin{equation}
-            s = \max_i\,(F_c)_i, \qquad
-            \hat{f} = F\,/\,s
-            \;\;\text{for } F \in \{F_{\mathrm{old}},\,
-            \hat{F}_{\mathrm{new}},\, F_c\},
-            \qquad \hat{\lambda} = \lambda\,/\,s.
+            s = \max\bigl(\max_i(F^*)_i,\; 1\bigr),
+            \qquad
+            \tilde{F} = F \,/\, s
+            \;\;\text{for } F \in \bigl\{\hat{F}_{\mathrm{old}},\,
+            \hat{F}_{\mathrm{new}},\, F^*\bigr\},
+            \qquad \tilde{\lambda} = \lambda \,/\, s,
+            \label{eq:scaling}
         \end{equation}
+        where $F^* = \hat{F}_{\mathrm{new}}$ for \texttt{FNG}, \texttt{ONG},
+        and \texttt{FOPNG}, and $F^* = F_c$ for \texttt{iFOPNG}.
+        The clamp to 1 prevents division below unity when the Fisher is
+        near-zero.
         Critically, the damping coefficient $\lambda$ is rescaled by the
         same factor, so its ratio to the Fisher magnitude is preserved
         across tasks regardless of how the Fisher scale drifts as more

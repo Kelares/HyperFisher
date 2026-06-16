@@ -19,7 +19,7 @@ Amari, S\BHBI i.%
 \newblock
 {\BBOQ}\APACrefatitle {Natural Gradient Works Efficiently in Learning} {Natural gradient works efficiently in learning}.{\BBCQ}
 \newblock
-\APACjournalVolNumPages{}{10}{2}{251--276}.
+\APACjournalVolNumPages{Neural Computation}{10}{2}{251--276}.
 \newblock
 \begin{APACrefURL} [{2026-05-31}]\url{https://ieeexplore.ieee.org/document/6790500} \end{APACrefURL}
 \newblock
@@ -81,7 +81,7 @@ De~Lange, M.%
 \newblock
 {\BBOQ}\APACrefatitle {A Continual Learning Survey: Defying Forgetting in Classification Tasks} {A continual learning survey: Defying forgetting in classification tasks}.{\BBCQ}
 \newblock
-\APACjournalVolNumPages{}{44}{7}{3366--3385}.
+\APACjournalVolNumPages{{IEEE} Transactions on Pattern Analysis and Machine Intelligence}{44}{7}{3366--3385}.
 \newblock
 \begin{APACrefURL} [{2026-05-16}]\url{https://ieeexplore.ieee.org/document/9349197/} \end{APACrefURL}
 \newblock
@@ -111,9 +111,9 @@ Farajtabar, M.%
 \newblock
 \APACrefYearMonthDay{2020}{}{}.
 \newblock
-\APACrefbtitle {Orthogonal Gradient Descent for Continual Learning} {Orthogonal gradient descent for continual learning}\ (\BNUM\ {arXiv}:1910.07104).
+{\BBOQ}\APACrefatitle {Orthogonal Gradient Descent for Continual Learning} {Orthogonal gradient descent for continual learning}.{\BBCQ}
 \newblock
-\APACaddressPublisher{}{{arXiv}}.
+\BIn{} \APACrefbtitle {Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS).} {Proceedings of the 23rd international conference on artificial intelligence and statistics (aistats).}
 \newblock
 \begin{APACrefURL} [{2026-02-23}]\url{http://arxiv.org/abs/1910.07104} \end{APACrefURL}
 \newblock
@@ -129,9 +129,9 @@ Farquhar%
 }{%
 {\protect \APACyear {2018}}%
 }]{%
-farquhar_towards_2019}
+farquhar_towards_2018}
 \APACinsertmetastar {%
-farquhar_towards_2019}%
+farquhar_towards_2018}%
 \begin{APACrefauthors}%
 Farquhar, S.%
 \BCBT {}\ \BBA {} Gal, Y.%
@@ -246,11 +246,11 @@ Ha%
 }{%
 Ha%
 \ \protect \BOthers {.}}{%
-{\protect \APACyear {2016}}%
+{\protect \APACyear {2017}}%
 }]{%
-ha_hypernetworks_2016}
+ha_hypernetworks_2017}
 \APACinsertmetastar {%
-ha_hypernetworks_2016}%
+ha_hypernetworks_2017}%
 \begin{APACrefauthors}%
 Ha, D.%
 , Dai, A.%
@@ -258,11 +258,11 @@ Ha, D.%
 \end{APACrefauthors}%
 \unskip\
 \newblock
-\APACrefYearMonthDay{2016}{}{}.
+\APACrefYearMonthDay{2017}{}{}.
 \newblock
-\APACrefbtitle {{HyperNetworks}} {{HyperNetworks}}\ (\BNUM\ {arXiv}:1609.09106).
+{\BBOQ}\APACrefatitle {{HyperNetworks}} {{HyperNetworks}}.{\BBCQ}
 \newblock
-\APACaddressPublisher{}{{arXiv}}.
+\BIn{} \APACrefbtitle {5th International Conference on Learning Representations (ICLR).} {5th international conference on learning representations (iclr).}
 \newblock
 \begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1609.09106} \end{APACrefURL}
 \newblock
@@ -336,6 +336,33 @@ Hu, Y.%
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
+Kingma%
+\ \BBA {} Ba%
+}{%
+Kingma%
+\ \BBA {} Ba%
+}{%
+{\protect \APACyear {2015}}%
+}]{%
+kingma_adam_2015}
+\APACinsertmetastar {%
+kingma_adam_2015}%
+\begin{APACrefauthors}%
+Kingma, D\BPBI P.%
+\BCBT {}\ \BBA {} Ba, J.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2015}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {Adam: A Method for Stochastic Optimization} {Adam: A method for stochastic optimization}.{\BBCQ}
+\newblock
+\BIn{} \APACrefbtitle {3rd International Conference on Learning Representations, {ICLR} 2015, San Diego, CA, USA, May 7-9, 2015, Conference Track Proceedings.} {3rd international conference on learning representations, {ICLR} 2015, san diego, ca, usa, may 7-9, 2015, conference track proceedings.}
+\newblock
+\begin{APACrefURL} \url{http://arxiv.org/abs/1412.6980} \end{APACrefURL}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
 Kirkpatrick%
 \ \protect \BOthers {.}}{%
 Kirkpatrick%
@@ -360,7 +387,7 @@ Kirkpatrick, J.%
 \newblock
 {\BBOQ}\APACrefatitle {Overcoming catastrophic forgetting in neural networks} {Overcoming catastrophic forgetting in neural networks}.{\BBCQ}
 \newblock
-\APACjournalVolNumPages{}{114}{13}{3521--3526}.
+\APACjournalVolNumPages{Proceedings of the National Academy of Sciences}{114}{13}{3521--3526}.
 \newblock
 \begin{APACrefURL} [{2026-02-23}]\url{http://arxiv.org/abs/1612.00796} \end{APACrefURL}
 \newblock
@@ -387,7 +414,9 @@ McCloskey, M.%
 \newblock
 \APACrefYearMonthDay{1989}{}{}.
 \newblock
-\APACrefbtitle {Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem} {Catastrophic interference in connectionist networks: The sequential learning problem}\ (\BVOL~24).
+{\BBOQ}\APACrefatitle {Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem} {Catastrophic interference in connectionist networks: The sequential learning problem}.{\BBCQ}
+\newblock
+\BIn{} G\BPBI H.~Bower\ (\BED), \APACrefbtitle {Psychology of Learning and Motivation} {Psychology of learning and motivation}\ (\BVOL~24, \BPG~109-165).
 \newblock
 \APACaddressPublisher{}{Academic Press}.
 \newblock
@@ -406,9 +435,9 @@ Oswald%
 \ \protect \BOthers {.}}{%
 {\protect \APACyear {2020}}%
 }]{%
-oswald_continual_2022}
+oswald_continual_2020}
 \APACinsertmetastar {%
-oswald_continual_2022}%
+oswald_continual_2020}%
 \begin{APACrefauthors}%
 Oswald, J\BPBI v.%
 , Henning, C.%
@@ -419,9 +448,9 @@ Oswald, J\BPBI v.%
 \newblock
 \APACrefYearMonthDay{2020}{}{}.
 \newblock
-\APACrefbtitle {Continual learning with hypernetworks} {Continual learning with hypernetworks}\ (\BNUM\ {arXiv}:1906.00695).
+{\BBOQ}\APACrefatitle {Continual learning with hypernetworks} {Continual learning with hypernetworks}.{\BBCQ}
 \newblock
-\APACaddressPublisher{}{{arXiv}}.
+\BIn{} \APACrefbtitle {8th International Conference on Learning Representations (ICLR).} {8th international conference on learning representations (iclr).}
 \newblock
 \begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1906.00695} \end{APACrefURL}
 \newblock

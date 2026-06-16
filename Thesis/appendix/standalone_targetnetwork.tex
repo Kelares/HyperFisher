@@ -32,8 +32,8 @@ and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}
         \emph{Permuted-MNIST.}
         \texttt{iFOPNG} and \texttt{FOPNG} lead at $86.1\%$ and $85.8\%$
         respectively with near-zero backward transfer, closely followed by
-        \texttt{SGD} ($84.9\%$) and \texttt{EWC} ($83.8\%$).
-        \texttt{Adam} ($68.2\%$) and \texttt{ONG} ($62.6\%$) exhibit
+        \texttt{SGD} ($84.9\%$) and \texttt{EWC} ($83.7\%$).
+        \texttt{Adam} ($67.7\%$) and \texttt{ONG} ($62.5\%$) exhibit
         substantially negative BWT ($\approx{-0.36}$ and $\approx{-0.45}$),
         reflecting severe catastrophic forgetting without a projection or
         regularization mechanism.
@@ -42,8 +42,8 @@ and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}
         Most methods cluster near the ceiling ($\geq 95\%$), reflecting the
         low difficulty of the binary per-task splits.
         \texttt{OGD}, \texttt{iFOPNG}, \texttt{SGD}, and \texttt{FOPNG}
-        lead ($96.1$--$95.6\%$); \texttt{ONG} and \texttt{FNG} are the
-        notable exceptions ($87\%$ and $86\%$) with strongly negative BWT,
+        lead ($96.5$--$95.9\%$); \texttt{ONG} and \texttt{FNG} are the
+        notable exceptions ($86.8\%$ and $84.6\%$) with strongly negative BWT,
         indicating convergence instability on this stream.
     }
     \label{fig:standalone_mnist}
@@ -59,12 +59,12 @@ and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}
         Left: average accuracy.  Right: backward transfer.
         %
         \texttt{EWC} leads at $81.9\%$ and \texttt{iFOPNG} is a close second
-        at $81.1\%$; both exhibit moderate forgetting
+        at $81.2\%$; both exhibit moderate forgetting
         (BWT $\approx -0.09$).
         The remaining methods fall to $67$--$71\%$ with substantially higher
         seed variance and stronger forgetting.
         \texttt{FOPNG} is the weakest projection method at $67.4\%$,
-        a $13.7$~pp gap below \texttt{iFOPNG} that motivates the Sub-RQ3
+        a $13.8$~pp gap below \texttt{iFOPNG} that motivates the Sub-RQ3
         comparison.
         \texttt{Adam} ($68.1\%$) performs comparably to the weaker projection
         methods, confirming that the unconstrained baseline is not dominant
@@ -81,17 +81,18 @@ and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}
         \textbf{Standalone target-network results --- Split-CIFAR100 multi-head
         (10 tasks, 10 epochs per task, SGD first-task at $10^{-2}$).}
         Left: average accuracy.  Right: backward transfer.
-        EWC was run with $\lambda = 10$; the $\lambda = 50$ configuration
-        produced collapsed runs and is excluded.
         %
-        \texttt{OGD} leads at $49.2\%$, followed by \texttt{EWC}
-        ($\lambda{=}10$, $46.8\%$) and \texttt{SGD} ($45.4\%$).
-        \texttt{iFOPNG} reaches $42.7\%$, a $5.6$~pp advantage over
-        \texttt{FOPNG} ($37.1\%$), consistent with the Sub-RQ3 finding that
+        \texttt{EWC} ($\lambda{=}50$, full Fisher, $n = 5$ seeds;
+        seed~111 not evaluated, seed~314 used instead) leads at $54.0\%$,
+        followed by \texttt{OGD} ($49.0\%$) and \texttt{SGD} ($45.1\%$).
+        \texttt{Adam} ($40.3\%$) and \texttt{FNG} ($37.4\%$) form a dense
+        mid-tier cluster.
+        \texttt{iFOPNG} reaches $42.5\%$, a $5.6$~pp advantage over
+        \texttt{FOPNG} ($36.8\%$), consistent with the Sub-RQ3 finding that
         parameter inertia provides increasing benefit as task count and
         Fisher overlap grow.
-        \texttt{ONG} has the lowest average accuracy ($32.3\%$) and the most
-        negative BWT ($\approx -0.41$), indicating near-complete forgetting
+        \texttt{ONG} has the lowest average accuracy ($33.8\%$) and the most
+        negative BWT ($\approx -0.38$), indicating near-complete forgetting
         across the ten-task sequence.
         Random-chance performance is $10\%$ (10-way classification per task).
     }
@@ -116,7 +117,7 @@ and Split-CIFAR100 multi-head (10 tasks) in Figure~\ref{fig:standalone_cifar100}
         all five task transitions, ending at $80.0\%$ with
         BWT~$= -0.11$.
         \texttt{FOPNG} follows closely at $78.7\%$ (BWT~$= -0.14$),
-        confirming the Sub-RQ3 finding that the elastic preconditioner
+        confirming the Sub-RQ3 finding that the inertial combined-metric preconditioner
         provides a consistent advantage under output-level interference.
         \texttt{EWC} ($76.1\%$) forms a second tier, with projection
         methods collectively outperforming all baselines.

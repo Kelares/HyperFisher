@@ -1,24 +1,54 @@
+% WRONG This thesis didnt validate to what extent can gradient projection methods be
+% implemented for hypernetworks. THAT WAS THE FIRST PREMISE. But I failed to create a
+% principled normalization structure for this combination. 
+
+% NOW the rq1 looks like this:
+% \item[\textbf{Sub-RQ1}] \textbf{(Synergy vs.\ Conflict):} Does the joint
+% integration of hard gradient projection with the hypernetwork's soft
+% functional regularizer yield a constructive
+% synergy, or does a standalone regularized hypernetwork offer a more
+% efficient optimization frontier?
+
+% So basically I didnt resolve that question. I made one attempt but it basically failed
+% to improve the performance of hypernetworks as plain adam with hypernetwork outperformed every 
+% other method
+
 \section{Conclusion}
 \label{sec:conclusion}
 
-This thesis investigated the extent to which gradient projection methods
-can be successfully integrated into chunked hypernetwork architectures for
-continual learning, and identified the structural conditions under which
-that integration yields benefit or harm.
-The primary research question decomposed into four sub-questions addressing
-constructive synergy, gradient normalization, the elastic Fisher metric, and
-the Fisher accumulation operator.
+This thesis investigated integrating gradient projection
+methods into chunked hypernetworks for continual learning.
+We primarily diagnosed the architectural boundaries
+and numerical pathologies governing this core integration.
+Alongside these fundamental structural findings, we
+also evaluated adjacent methodological optimizations regarding
+parameter inertia and Fisher matrix accumulation.
 
-\paragraph{Sub-RQ1 — Partial synergy bounded by the momentum problem.}
-The integration is constructive but incomplete.
-Every normalized projection variant surpasses unconstrained SGD in the
-hypernetwork setting, confirming that hard geometric constraints add genuine
-retention value.
-No projection variant matches \texttt{Adam}, however, and the gap widens
-dramatically under extreme compression — the loss of adaptive momentum is
-the binding constraint, not the projection geometry itself.
-Resolving this will require projection-compatible adaptive optimizers rather
-than post-hoc gradient modification \citep{hu_hidden_2026}.
+\paragraph{Sub-RQ1 --- Partial Synergy and the Momentum Bottleneck.}
+The synergy between hard gradient projection and
+soft functional regularization is constructive but bounded.
+While \texttt{iFOPNG} outperforms unconstrained \texttt{SGD}
+in standard-capacity settings, standalone regularized
+hypernetworks optimized via \texttt{Adam} remain
+vastly superior.
+
+This performance gap stems from an architectural
+conflict, not projection geometry.
+Under extreme compression ($d_h = 8$), Fisher-based
+projection methods suffer a severe \emph{plasticity}
+failure, exhausting the gradient budget and halting
+new task acquisition.
+Because projection modifies raw gradients before the
+optimizer updates, it discards adaptive momentum.
+In hypernetworks, this momentum acts as a crucial
+structural regularizer; without it, the network commits
+prematurely to poorly-conditioned gradient directions.
+
+Ultimately, the loss of adaptive momentum is
+the binding constraint.
+Integrating gradient projection into hypernetworks
+will require projection-compatible adaptive optimizers,
+rather than post-hoc gradient modifications \citep{hu_hidden_2026}.
 
 \paragraph{Sub-RQ2 — Normalization is a necessary condition.}
 Without explicit local rescaling, projection methods are numerically
@@ -30,38 +60,33 @@ This normalization scheme is a necessary engineering precondition for any
 future combination of gradient projection with chunked meta-learners,
 regardless of which projection algebra is employed.
 
-\paragraph{Sub-RQ3 — Parameter inertia improves retention on high-overlap benchmarks.}
-Replacing \texttt{FOPNG}'s task-specific Fisher metric with the combined
-metric $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ consistently
-improves task retention when inter-task Fisher overlap is substantial.
-The advantage of \texttt{iFOPNG} over \texttt{FOPNG} grows with benchmark
-difficulty across all seven settings: negligible on Permuted-MNIST
-($+0.3$~pp, ns) and Split-MNIST multi-head ($+0.7$~pp, ns), significant
-and consistent on Split-MNIST single-head ($+1.3$~pp, $p < 0.001$),
-substantial on Split-CIFAR10 multi-head ($+14.1$~pp, $p < 0.05$),
-and meaningful in the hypernetwork settings ($+6.1$~pp and $+8.6$~pp,
-approaching but not reaching significance at $n = 5$).
+\paragraph{Sub-RQ3 --- Parameter Inertia via Combined Fisher Metric.}
+Replacing the task-specific Fisher metric with the combined inertial metric ($F_c$)
+systematically improves retention as task difficulty and output-level interference
+increase. On simple benchmarks, both methods are statistically indistinguishable.
+On harder standalone benchmarks like Split-CIFAR10, \texttt{iFOPNG} provides
+a clear, statistically significant advantage ($+13.8$~pp, $p < 0.05$). This
+substantial raw advantage carries over into the hypernetwork settings, yielding
+performance gaps of $+11.8$~pp and $+8.6$~pp. However, these specific hypernetwork
+improvements do not reach statistical significance due to elevated inter-seed
+variance. Ultimately, integrating parameter inertia yields a consistent retention
+advantage that scales directly with benchmark complexity. % THIS CAN STILL BE IMPROVED.
 
-\paragraph{Sub-RQ4 — MAX accumulation is the clear practical choice.}
-On a twenty-task Permuted-MNIST sequence evaluated across five seeds, the
-element-wise maximum (MAX) and exponential moving average (EMA)
-accumulation strategies produced nearly parallel accuracy and backward
-transfer trajectories throughout the full sequence.
-A paired $t$-test confirms that MAX is the superior operator:
-$t(4) = 14.43$, $p < 0.001$, Cohen's $d = 7.22$, with MAX leading by a
-consistent $1.51$--$1.65$~pp across every seed pair.
-The effect is systematic and statistically unambiguous, though small in
-absolute terms: $1.60$~pp on a benchmark where both strategies decline by
-more than $30$~pp over the full sequence --- practically negligible in
-deployment terms.
-The MAX operator is therefore preferred as the simpler, marginally better,
-and hyperparameter-free alternative.
+
+\paragraph{Sub-RQ4 — MAX accumulation is the clear practical choice.} 
+Addressing the trade-off between long-horizon retention and plasticity, the element-wise maximum (MAX) 
+operator proved systematically superior to an exponential moving average(EMA). While the absolute performance
+advantage is small ($\sim$$1.60$~pp) on a twenty-task sequence, it is statistically unambiguous across
+all seeds. Crucially, the hypothesized plasticity cost associated with the monotonic growth
+of the MAX operator did not materialize over the extended task sequence, likely because the
+chosen normalization scheme minimizes sensitivity to absolute scale. Therefore, MAX emerges as the definitive practical
+choice: it avoids plasticity degradation while remaining a simpler, hyperparameter-free, and marginally superior alternative.
 
 \paragraph{Implications for the field.}
 The results establish a clear empirical boundary for the current generation
 of gradient projection methods: they can be made numerically stable in
 chunked hypernetwork settings via local rescaling, and their Fisher geometry
-can be improved via elastic accumulation, but the momentum incompatibility
+can be improved via the combined Fisher metric $F_c$, but the momentum incompatibility
 prevents them from reaching the performance frontier of adaptive
 unconstrained optimizers in generative parameter spaces.
 The normalization contribution is directly applicable to any method that
@@ -75,8 +100,16 @@ geometric constraints of the projection and the curvature structure that
 adaptive moment estimates capture.
 
 \paragraph{Future directions.}
-The most direct extension is a projected variant of \texttt{Adam} that
-maintains momentum across projected steps rather than discarding it at
-each update, addressing the primary mechanism identified in Sub-RQ1;
-this direction has been partially explored in concurrent work
-\citep{hu_hidden_2026}.
+The most immediate extension is developing
+projection-compatible adaptive optimizers that maintain
+momentum across constrained updates \citep{hu_hidden_2026}.
+Additionally, the heuristic QR normalization, FIM max scaling scheme
+must be replaced with a principled reformulation
+that integrates chunk-Jacobian curvature directly
+into the projection algebra.
+Finally, future work should systematically evaluate
+these interactions on extended task sequences,
+where soft regularization penalties may degrade,
+and on larger target architectures,
+where the documented condition number blowup
+will require more robust mitigation.

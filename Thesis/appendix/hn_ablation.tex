@@ -30,15 +30,15 @@ operating point for all main hypernetwork experiments.
         projection--baseline gap across capacity levels.
         %
         Three capacity levels are compared.
-        At $d_h = 4$ (Exp~12), the Adam--iFOPNG gap is $14.0$~pp, but
+        At $d_h = 4$, the Adam--iFOPNG gap is $14.0$~pp, but
         individual seed variance for \texttt{iFOPNG} is extreme (range
         $\approx 0.25$), indicating that the bottleneck is too severe for
         reliable projection convergence.
-        At $d_h = 8$ (Exp~7), the gap widens to $23.5$~pp and variance
+        At $d_h = 8$, the gap widens to $23.5$~pp and variance
         contracts substantially: seeds cluster in the range $0.63$--$0.92$
         for \texttt{Adam} and $0.63$--$0.75$ for \texttt{iFOPNG}, making
         the failure mode severe and consistently replicable.
-        At $d_h = 16$ (Exp~13), projection methods partially recover ---
+        At $d_h = 16$, projection methods partially recover ---
         the gap narrows to $9.4$~pp --- as the larger gradient budget
         reduces the relative cost of subspace projection.
         %
@@ -63,8 +63,7 @@ operating point for all main hypernetwork experiments.
     \includegraphics[width=\linewidth]{figures/beta-chunk-sweep_16-17-18.png}
     \caption{%
         \textbf{Beta and chunk-size sweep --- hypernetwork performance
-        vs.\ backward transfer trade-off across three benchmarks
-        (Exps~16--18).}
+        vs.\ backward transfer trade-off across three benchmarks.}
         Each panel plots mean average accuracy ($y$-axis) against backward
         transfer ($x$-axis) for all evaluated combinations of regularization
         strength $\beta \in \{0.01, 0.05, 0.1, 0.5\}$ and chunk size

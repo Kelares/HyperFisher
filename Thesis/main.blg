@@ -12,52 +12,47 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated wiz_functions (elt_size=8) to 9000 items from 6000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Database file #1: references.bib
-Warning--I didn't find a database entry for "kingma_adam_2014"
-Warning--I didn't find a database entry for "oswald_continual_2020"
 apacite.bst [2013/07/21 v6.03 APA bibliography style]
-Warning--No journal in amari_natural_1998
-Warning--No journal in de_lange_continual_2022
 Warning--No journal in grossberg_how_1980
-Warning--No journal in kirkpatrick_overcoming_2017
-You've used 15 entries,
+You've used 16 entries,
             6951 wiz_defined-function locations,
-            1388 strings with 14440 characters,
-and the built_in function-call counts, 33653 in all, are:
-= -- 4056
-> -- 487
-< -- 1395
-+ -- 1473
-- -- 30
-* -- 2116
-:= -- 5877
-add.period$ -- 69
-call.type$ -- 15
-change.case$ -- 255
+            1397 strings with 15013 characters,
+and the built_in function-call counts, 35915 in all, are:
+= -- 4466
+> -- 456
+< -- 1462
++ -- 1555
+- -- 32
+* -- 2223
+:= -- 6026
+add.period$ -- 79
+call.type$ -- 16
+change.case$ -- 277
 chr.to.int$ -- 0
-cite$ -- 34
-duplicate$ -- 1025
-empty$ -- 1338
-format.name$ -- 560
-if$ -- 6641
+cite$ -- 33
+duplicate$ -- 1079
+empty$ -- 1441
+format.name$ -- 587
+if$ -- 7108
 int.to.chr$ -- 0
-int.to.str$ -- 45
+int.to.str$ -- 48
 missing$ -- 0
-newline$ -- 461
-num.names$ -- 120
-pop$ -- 906
+newline$ -- 490
+num.names$ -- 130
+pop$ -- 912
 preamble$ -- 1
-purify$ -- 60
+purify$ -- 64
 quote$ -- 0
-skip$ -- 1777
+skip$ -- 2143
 stack$ -- 0
-substring$ -- 2098
-swap$ -- 595
-text.length$ -- 223
+substring$ -- 2059
+swap$ -- 618
+text.length$ -- 175
 text.prefix$ -- 0
 top$ -- 1
-type$ -- 1200
-warning$ -- 4
-while$ -- 200
+type$ -- 1600
+warning$ -- 1
+while$ -- 207
 width$ -- 0
-write$ -- 591
-(There were 6 warnings)
+write$ -- 626
+(There was 1 warning)

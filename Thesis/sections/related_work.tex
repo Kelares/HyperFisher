@@ -54,6 +54,7 @@ most tractable.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Evaluation Protocols: Multi-Head and Single-Head Designs}
+\label{sec:eval_protocols}
 
 Within the task-incremental setting, two evaluation protocols govern how the
 network's output layer is organized.
@@ -63,7 +64,7 @@ output-level interference between tasks.
 In the \emph{single-head} protocol, all tasks share one output layer,
 requiring the backbone alone to resolve inter-task interference --- a
 substantially harder problem.
-\citet{farquhar_towards_2019} demonstrated that multi-head evaluations
+\citet{farquhar_towards_2018} demonstrated that multi-head evaluations
 systematically inflate apparent method performance by removing a major
 source of forgetting, and argued that single-head evaluation is the more
 rigorous protocol.
@@ -73,20 +74,11 @@ match the evaluation conditions of \citet{garg_fisher-orthogonal_2026} and
 enable direct numerical comparison.
 For Split-MNIST, both protocols are evaluated: the multi-head variant
 replicates \citeauthor{garg_fisher-orthogonal_2026}'s conditions, while the
-single-head variant follows \citet{farquhar_towards_2019}'s recommendation.
-
-It should be noted that \citet{garg_fisher-orthogonal_2026} label their
-Split-MNIST evaluation as single-head; however, replication of their stated
-first-task protocol --- SGD at $\eta = 10^{-5}$ for five epochs --- yields
-approximately $21\%$ first-task accuracy, barely above the random baseline.
-Replication under a corrected first-task learning rate of $\eta = 10^{-3}$
-and the task-incremental single-head protocol --- a shared two-neuron output
-head with task identity provided to the evaluation harness at test time ---
-yields \texttt{iFOPNG} at $80.0\%$ and \texttt{FOPNG} at $78.7\%$,
-consistent with the range reported by \citet{garg_fisher-orthogonal_2026}.
-The stated rate of $\eta = 10^{-5}$ is therefore an error in the original
-paper's hyperparameter table; the protocol itself is correctly identified
-as task-incremental single-head.
+single-head variant follows \citet{farquhar_towards_2018}'s recommendation.
+We replicate \citeauthor{garg_fisher-orthogonal_2026}'s task-incremental
+single-head protocol --- a shared two-neuron output head with task identity
+provided to the evaluation harness at test time --- subject to a necessary
+first-task learning rate correction detailed in Section~\ref{sec:hparam_provenance}.
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Regularization-Based Approaches}
 
@@ -148,7 +140,7 @@ and FOPNG.
 \subsection{Hypernetworks for Continual Learning}
 An orthogonal architectural response to catastrophic forgetting replaces the
 multi-head output design entirely with a \emph{hypernetwork}
-\citep{ha_hypernetworks_2016}: a meta-model
+\citep{ha_hypernetworks_2017}: a meta-model
 $\mathcal{H}(\cdot;\phi)$ trained to synthesize the complete weight
 vector $\theta_t = \mathcal{H}(e_t;\phi)$ of a target network,
 conditioned on a task embedding $e_t$.
@@ -157,7 +149,7 @@ than a dedicated output head, achieving implicit task separation through the
 generative bottleneck and impressive parameter compression ratios relative to
 storing separate networks per task.
 Generating the full $\theta_t$ in a single forward pass is computationally
-intractable for large target networks, so \citet{oswald_continual_2022}
+intractable for large target networks, so \citet{oswald_continual_2020}
 introduced \emph{weight chunking}: the generator iterates over a secondary
 chunk embedding $c_k$, producing $C_s$ target parameters per pass and
 assembling the full weight vector by concatenation.
@@ -182,7 +174,7 @@ representations to further stabilize sequential learning.
 
 % ──────────────────
 \subsection{Identified Gaps and Motivating Pathologies}
-
+% Section 3.6 (Identified Gaps): Cut the mechanical explanation completely. Edit to: "Furthermore, the architectural necessity of weight-chunking introduces a severe numerical pathology in the projection kernel (detailed in Section 4.5.1) that is unique to this intersection and lacks prior treatment in the literature."
 Whether hard geometric projection constraints are compatible with the
 soft functional regularization already employed by hypernetworks, or
 whether layering both simultaneously over-constrains the generator's

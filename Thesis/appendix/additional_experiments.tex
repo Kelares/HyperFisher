@@ -5,7 +5,7 @@
 \section*{Appendix D: Additional Experiment Figures}
 \label{app:additional}
 
-This appendix collects five figures that are referenced in the Results section
+This appendix collects seven figures that are referenced in the Results section
 but omitted from the main text for space.
 Figure~\ref{fig:heatmap_c8} provides the per-task accuracy matrix for the
 Split-CIFAR10 hypernetwork experiment.
@@ -13,9 +13,15 @@ Figure~\ref{fig:hn_cifar100} shows the full method comparison on the
 ten-task Split-CIFAR100 hypernetwork benchmark.
 Figure~\ref{fig:sgd_threshold} documents the SGD first-task convergence
 diagnostic.
+Figure~\ref{fig:ogd_lr_sweep} reports the \texttt{OGD} learning-rate
+sensitivity sweep.
 Figure~\ref{fig:ema_vs_max} provides the per-seed paired comparison
 underlying the Sub-RQ4 statistical test.
-Figure~\ref{fig:compression_ablation} establishes attempted principled solution to the problem of storing G. (POLISH THIS. ALSO PREFOPNG)
+Figure~\ref{fig:compression_ablation} compares the SVD, FIFO, and STOP
+gradient-memory compression strategies on 20-task Permuted-MNIST.
+Figure~\ref{fig:seed2137_failure} documents the seed-2137 initialization
+failure on the Split-MNIST hypernetwork benchmark that motivated the
+seed-replacement policy of Section~\ref{sec:hparam_provenance}.
 
 % ── D.1  Per-task accuracy matrix — Split-CIFAR10 HN ─────────────────────────
 
@@ -114,7 +120,7 @@ Figure~\ref{fig:compression_ablation} establishes attempted principled solution 
     \includegraphics[width=0.80\linewidth]{figures/ogd-lr-sweep-simple_11.png}
     \caption{%
         \textbf{\texttt{OGD} learning rate sweep --- Split-CIFAR100
-        hypernetwork (Exp~11), $n = 3$ seeds per rate.}
+        hypernetwork (10 tasks, standard capacity), $n = 3$ seeds per rate.}
         Left: final average accuracy.  Right: final backward transfer.
         Bars show seed mean; error bars show $\pm 1$ standard deviation;
         circles show individual seeds.
@@ -122,7 +128,8 @@ Figure~\ref{fig:compression_ablation} establishes attempted principled solution 
         $\eta = 5\times10^{-3}$ failed to converge across all three
         seeds and is excluded from further reporting.
         $\eta = 10^{-3}$ achieves $39\%$ average accuracy with moderate
-        forgetting and was retained as the operating rate for Config~11.
+        forgetting and was retained as the operating rate for the
+        Split-CIFAR100 hypernetwork configuration.
         $\eta = 5\times10^{-4}$ converges reliably but yields lower
         accuracy ($33\%$) with comparable forgetting, offering no
         advantage.
@@ -134,7 +141,8 @@ Figure~\ref{fig:compression_ablation} establishes attempted principled solution 
 \end{figure}
 
 % ── D.5  EMA vs MAX per-seed comparison ──────────────────────────────────────
-
+% THIS SECTION ONLY EXPANDS BY ADDING THE FIGURE. ALMOST ALL OF THE CAPTION'S 
+% CONTENT ALREADY EXISTS IN RESULTS EMA VS MAX SECTION.
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{figures/ema-vs-max-stat_14-15.pdf}
@@ -194,4 +202,55 @@ Figure~\ref{fig:compression_ablation} establishes attempted principled solution 
         advantage over the simpler alternatives.
     }
 \label{fig:compression_ablation}
+\end{figure}
+
+
+% ── D.7  Seed-2137 initialization failure — Split-MNIST HN ──────────────────
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/seed2137_failure_exp7.pdf}
+\caption{%
+    \textbf{Seed-2137 initialization failure --- Split-MNIST hypernetwork
+    ($d_h = 8$, 5 tasks, task-incremental single-head).}
+    Each group of bars shows average accuracy for one method; within each
+    group the lighter bar is the mean over the four valid seeds
+    $\{42, 111, 811, 1234\}$ ($\pm 1$ SD, shown as error bar) and the darker
+    bar is the value obtained under seed~2137.
+    Methods whose seed-2137 bar is absent (\texttt{OGD}, \texttt{ONG})
+    crashed with \texttt{NaN} train loss at task~1 and produced no
+    evaluable result.
+    %
+    The failure is selective by method class.
+    Unconstrained baselines (\texttt{Adam}, \texttt{SGD}) and
+    \texttt{EWC} show no anomaly under seed~2137, converging normally and
+    posting results within the valid-seed distribution.
+    Every gradient-memory method (\texttt{FNG}, \texttt{FOPNG},
+    \texttt{iFOPNG}) converges to an identical degenerate accuracy of
+    $10.73\%$ --- a value equal to the single-task mean across the five
+    tasks, indicating that task~1 was learned normally
+    ($53.7\%$ of final accuracy attributable to task~1 alone) while
+    every subsequent task was never learned.
+    %
+    The underlying mechanism is a shared task-1 initialization failure.
+    Under this seed, all adaptive-optimizer runs of the hypernetwork
+    converge to a degenerate task-1 solution at $53.7\%$ accuracy
+    (barely above binary chance on the 5-task single-head protocol)
+    rather than the $\approx 99\%$ reached by SGD on the same seed.
+    Methods that carry nothing forward from task~1 (Adam, EWC) recover
+    by learning tasks 2--5 independently.
+    Methods that bootstrap their gradient memory $G$ and Fisher estimate
+    $\hat{F}$ from the task-1 solution are permanently foreclosed:
+    the projection subspace is seeded from a near-random initialisation,
+    causing all subsequent gradient updates to be projected to near-zero.
+    \texttt{OGD} and \texttt{ONG} additionally overflow during Fisher
+    estimation on the untrained task-2 embedding, producing \texttt{NaN}
+    propagation consistent with the diagnostic in the thesis body.
+    Because the failure is caused by the initialization and affects all
+    projection-based methods identically, it renders any cross-method
+    comparison on this seed invalid; seed~2137 was therefore replaced by
+    seed~314 for the Split-MNIST hypernetwork experiment
+    (see Section~\ref{sec:hparam_provenance}).
+}
+\label{fig:seed2137_failure}
 \end{figure}

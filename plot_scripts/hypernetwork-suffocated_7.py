@@ -8,7 +8,7 @@ Output: plots/hypernetwork-suffocated_7.png
 """
 import os
 import matplotlib.pyplot as plt
-from utils import STYLE, METHOD_ORDER, load_exp, bar_panel, COLORS
+from utils import STYLE, METHOD_ORDER, load_exp, bar_panel, COLORS, skip_exp7
 
 RESULTS = "results/"
 OUT     = "plots/"
@@ -17,7 +17,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     plt.rcParams.update(STYLE)
 
-    data = load_exp(RESULTS + "407.csv", min_seeds=2)
+    data = load_exp(RESULTS + "407.csv", min_seeds=2, skip_fn=skip_exp7)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     fig.suptitle(
