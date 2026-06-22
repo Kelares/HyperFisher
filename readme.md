@@ -55,7 +55,6 @@ projection methods rely on, and fixing that distortion is one of the two technic
 contributions here. The other is a new projection variant, **iFOPNG**, that builds
 parameter *inertia* directly into the metric rather than into a penalty term.
 
-
 <br/>
 
 ---
@@ -120,10 +119,6 @@ into the ambient metric. Gradient storage (the `PreFisher` path) is identical to
 **only** difference is the inverse metric used at update time ($F_c^{-1}$ instead of
 $\hat F_\text{new}^{-1}$).
 
-> 🏷️ **Naming.** The method is called **iFOPNG** in the thesis (the *i* is for *inertia*).
-> For backwards compatibility the CLI flag and the class are still named `efopng` / `eFOPNG`
-> — see the flag-mapping table below. They are the same method.
-
 **② Projection-scoped normalisation.**
 To counter the *C⁴* inflation above, the gradient basis is **QR-orthonormalised at insertion
 time** and the Fisher is rescaled by its **max entry** before the projection matrix is
@@ -153,15 +148,15 @@ and restores numerically stable matrix inversion in the chunked setting. Enabled
 | `ong` | ONG | Orthogonal natural gradient |
 | `fng` | FNG | Natural gradient under $\hat F_\text{new}$, no projection |
 | `fopng` | FOPNG | Fisher-orthogonal projected natural gradient (Garg et al., 2026) |
-| `efopng` | **iFOPNG** *(ours)* | Same as FOPNG but combined-Fisher inertia metric $F_c$ |
+| `ifopng` | **iFOPNG** *(ours)* | Same as FOPNG but combined-Fisher inertia metric $F_c$ |
 
 **Variants** (storage / accumulation ablations)
 
 | Flag | Variant |
 |------|---------|
 | `fopng_prefisher` | FOPNG with Fisher pre-multiplied into stored gradients |
-| `efopng_prefisher` | iFOPNG with pre-Fisher gradient storage |
-| `efopng_ema` | iFOPNG with EMA (rather than MAX) Fisher accumulation — RQ4 ablation |
+| `ifopng_prefisher` | iFOPNG with pre-Fisher gradient storage |
+| `ifopng_ema` | iFOPNG with EMA (rather than MAX) Fisher accumulation — RQ4 ablation |
 
 <br/>
 
@@ -254,7 +249,7 @@ run sequentially in the same process.
 python main.py \
   --task split_mnist_sh \
   --model HyperNetwork \
-  --methods adam ewc fopng efopng \
+  --methods adam ewc fopng ifopng \
   --epochs 10 --lr 1e-3 \
   --normalize
 
@@ -262,14 +257,14 @@ python main.py \
 python main.py \
   --task split_cifar10 \
   --model TargetNetwork \
-  --methods sgd efopng \
+  --methods sgd ifopng \
   --no-regulizer
 
 # RQ4 ablation: MAX vs. EMA Fisher accumulation
 python main.py \
   --task permuted_mnist \
   --model HyperNetwork \
-  --methods efopng efopng_ema
+  --methods ifopng ifopng_ema
 ```
 
 On the cluster, the per-configuration SLURM scripts wrap these calls:
@@ -287,16 +282,17 @@ sbatch config_4.sh     # Split-CIFAR10, standalone (RQ1 / RQ3 / RQ4)
 |----------|---------|-------------|
 | `--task` | *required* | `permuted_mnist` · `split_mnist_sh` · `split_mnist_mh` · `split_cifar10` · `split_cifar100` |
 | `--model` | `HyperNetwork` | `HyperNetwork` or `TargetNetwork` |
-| `--methods` | `fopng adam` | Any of: `sgd adam ewc ogd ong fng fopng efopng` (+ `*_prefisher`, `efopng_ema`) |
+| `--methods` | `fopng adam` | Any of: `sgd adam ewc ogd ong fng fopng ifopng` (+ `*_prefisher`, `ifopng_ema`) |
 | `--seed` | `1000` | Random seed (canonical set: `42 111 811 1234 2137`) |
 | `--epochs` | `10` | Epochs per task |
 | `--lr` | `1e-3` | Learning rate |
 | `--first_task_lr` / `--first_task_opt` | `1e-3` / — | First-task LR and optimiser (see reproducibility note) |
 | `--lam` | `1e-3` | Damping (λI) on the projection / Fisher inverse |
-| `--alpha` | `0.3` | EMA coefficient (for `efopng_ema`) |
+| `--alpha` | `0.3` | EMA coefficient (for `ifopng_ema`) |
 | `--normalize` | off | **Projection-scoped normalisation** (QR + max-entry Fisher scaling) |
 | `--fisher_samples` | `1024` | Samples for diagonal Fisher estimation |
 | `--grads_per_task` / `--max_directions` | `40` / `80` | Gradient-memory size per task / hard cap |
+| `--compression` | `svd` | Overflow handling when memory exceeds the cap: `svd` (compress) · `fifo` (drop oldest) · `stop` |
 | `--hyper_hidden_dim` | `16` | Hypernetwork bottleneck width |
 | `--task_embedding_dim` / `--chunk_embedding_dim` | `4` / `10` | Task / chunk embedding sizes |
 | `--chunk_size` | `1000` | Target-weight chunk size |
