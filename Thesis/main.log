@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  22 JUN 2026 23:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.8)  23 JUN 2026 01:03
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -804,11 +804,11 @@ LaTeX Info: Redefining \BHBI on input line 130.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package epstopdf Info: Source file: <logo.eps>
-(epstopdf)                    date: 2026-06-02 20:30:00
+(epstopdf)                    date: 2026-06-23 01:00:05
 (epstopdf)                    size: 1093622 bytes
 (epstopdf)             Output file: <logo-eps-converted-to.pdf>
-(epstopdf)                    date: 2026-06-02 20:30:00
-(epstopdf)                    size: 51204 bytes
+(epstopdf)                    date: 2026-06-23 01:00:10
+(epstopdf)                    size: 51309 bytes
 (epstopdf)             Command: <repstopdf --outfile=logo-eps-converted-to.pdf logo.eps>
 (epstopdf)             \includegraphics on input line 12.
 Package epstopdf Info: Output file is already uptodate.
@@ -930,79 +930,79 @@ Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/pplj/m/sc/10'.
 (microtype)             Ignoring protrusion settings for this character.
  [2] [3] [4]) (./sections/related_work.tex [5]
-LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 74.
+LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 54.
  (/usr/share/texmf-dist/tex/latex/psnfss/ufplmbb.fd
 File: ufplmbb.fd 2003/10/30 Fontinst v1.914 font definitions for U/fplmbb.
 ) [6] [7] [8]) (./sections/methods.tex [9] [10] [11]
-Overfull \hbox (48.64243pt too wide) detected at line 158
+Overfull \hbox (48.64243pt too wide) detected at line 143
 [][][]\OML/zplm/m/it/10.95 v[] \OT1/zplm/m/n/10.95 = \OMS/zplm/m/n/10.95 ^^@\OML/zplm/m/it/10.95 ^^Q []\OT1/pplx/m/n/10.95 ,  \OML/zplm/m/it/10.95 P \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 I \OMS/zplm/m/n/10.95 ^^@ \OML/zplm/m/it/10.95 F[] G  [][]  G[]F[]\OT1/pplx/m/n/10.95 ,
  []
 
 [12] [13]
-Overfull \hbox (6.51814pt too wide) detected at line 298
+Overfull \hbox (6.51814pt too wide) detected at line 282
 [][][]\OML/zplm/m/it/10.95 s \OT1/zplm/m/n/10.95 = [][]\OML/zplm/m/it/10.95 F[]\OT1/pplx/m/n/10.95 ,  1[],  [] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 F \OT1/zplm/m/n/10.95 / \OML/zplm/m/it/10.95 s  []F \OMS/zplm/m/n/10.95 2 []\OML/zplm/m/it/10.95 F[]\OT1/pplx/m/n/10.95 ,  \OML/zplm/m/it/10.95 F[]\OT1/pplx/m/n/10.95 ,  \OML/zplm/m/it/10.95 F[][]\OT1/pplx/m/n/10.95 ,  [] \OT1/zplm/m/n/10.95 = \OML/zplm/m/it/10.95 ^^U \OT1/zplm/m/n/10.95 / \OML/zplm/m/it/10.95 s\OT1/pplx/m/n/10.95 ,
  []
 
 [14]) (./sections/experiment_design.tex [15] [16]
-LaTeX Font Info:    Trying to load font information for TS1+pplj on input line 112.
+LaTeX Font Info:    Trying to load font information for TS1+pplj on input line 106.
  (/usr/share/texmf-dist/tex/latex/psnfss/ts1pplj.fd
 File: ts1pplj.fd 2004/09/06 font definitions for TS1/pplj.
 ) [17] [18]
-Overfull \hbox (14.18117pt too wide) in paragraph at lines 188--196
+Overfull \hbox (14.18117pt too wide) in paragraph at lines 179--187
 []\T1/pplj/m/n/10.95 (-20) Incoming
  []
 
 
-Overfull \hbox (12.36153pt too wide) in paragraph at lines 198--202
+Overfull \hbox (12.36153pt too wide) in paragraph at lines 189--193
 []\T1/pplj/m/n/10.95 (-20) Each in-com-
  []
 
 
-Overfull \hbox (7.64449pt too wide) in paragraph at lines 204--208
+Overfull \hbox (7.64449pt too wide) in paragraph at lines 195--199
 []\T1/pplj/m/n/10.95 (-20) Gradient batches
  []
 
 
-Overfull \hbox (1.53368pt too wide) in paragraph at lines 204--208
+Overfull \hbox (1.53368pt too wide) in paragraph at lines 195--199
 \T1/pplj/m/n/10.95 (-20) are QR-orthonormalized at in-ser-tion, and the Fisher terms are rescaled
  []
 
 [19]) (./sections/results.tex [20]
-<figures/hypernetwork-cifar10_8.pdf, id=523, 710.09413pt x 319.3345pt>
+<figures/hypernetwork-cifar10_8.pdf, id=522, 710.09413pt x 319.3345pt>
 File: figures/hypernetwork-cifar10_8.pdf Graphic file (type pdf)
 <use figures/hypernetwork-cifar10_8.pdf>
-Package pdftex.def Info: figures/hypernetwork-cifar10_8.pdf  used on input line 31.
+Package pdftex.def Info: figures/hypernetwork-cifar10_8.pdf  used on input line 26.
 (pdftex.def)             Requested size: 358.50473pt x 161.2261pt.
  [21 <./figures/hypernetwork-cifar10_8.pdf>]
-<figures/hypernetwork-suffocated_7.pdf, id=630, 710.11986pt x 319.3345pt>
+<figures/hypernetwork-suffocated_7.pdf, id=629, 710.11986pt x 319.3345pt>
 File: figures/hypernetwork-suffocated_7.pdf Graphic file (type pdf)
 <use figures/hypernetwork-suffocated_7.pdf>
-Package pdftex.def Info: figures/hypernetwork-suffocated_7.pdf  used on input line 57.
+Package pdftex.def Info: figures/hypernetwork-suffocated_7.pdf  used on input line 52.
 (pdftex.def)             Requested size: 358.50473pt x 161.22122pt.
 LaTeX Font Info:    Font shape `T1/fvm/b/n' will be
-(Font)              scaled to size 8.50006pt on input line 70.
-<figures/normalization-conditioning_8-9.pdf, id=634, 778.73357pt x 392.27553pt>
+(Font)              scaled to size 8.50006pt on input line 65.
+<figures/normalization-conditioning_8-9.pdf, id=633, 778.73357pt x 392.27553pt>
 File: figures/normalization-conditioning_8-9.pdf Graphic file (type pdf)
 <use figures/normalization-conditioning_8-9.pdf>
-Package pdftex.def Info: figures/normalization-conditioning_8-9.pdf  used on input line 87.
+Package pdftex.def Info: figures/normalization-conditioning_8-9.pdf  used on input line 82.
 (pdftex.def)             Requested size: 358.50473pt x 180.59258pt.
  [22 <./figures/hypernetwork-suffocated_7.pdf>]
-<figures/normalization-ablation_8-9-10.pdf, id=741, 637.84985pt x 319.77794pt>
+<figures/normalization-ablation_8-9-10.pdf, id=740, 637.84985pt x 319.77794pt>
 File: figures/normalization-ablation_8-9-10.pdf Graphic file (type pdf)
 <use figures/normalization-ablation_8-9-10.pdf>
-Package pdftex.def Info: figures/normalization-ablation_8-9-10.pdf  used on input line 104.
+Package pdftex.def Info: figures/normalization-ablation_8-9-10.pdf  used on input line 99.
 (pdftex.def)             Requested size: 268.87854pt x 134.79863pt.
  [23 <./figures/normalization-conditioning_8-9.pdf> <./figures/normalization-ablation_8-9-10.pdf>]
-<figures/projection-comparison_1-2-3-4-6-7-8.pdf, id=963, 756.66693pt x 389.53293pt>
+<figures/projection-comparison_1-2-3-4-6-7-8.pdf, id=962, 756.66693pt x 389.53293pt>
 File: figures/projection-comparison_1-2-3-4-6-7-8.pdf Graphic file (type pdf)
 <use figures/projection-comparison_1-2-3-4-6-7-8.pdf>
-Package pdftex.def Info: figures/projection-comparison_1-2-3-4-6-7-8.pdf  used on input line 138.
+Package pdftex.def Info: figures/projection-comparison_1-2-3-4-6-7-8.pdf  used on input line 133.
 (pdftex.def)             Requested size: 358.50473pt x 184.5605pt.
  [24 <./figures/projection-comparison_1-2-3-4-6-7-8.pdf>]
-<figures/ema-vs-max-trajectory_14-15.pdf, id=1087, 1001.82086pt x 382.05136pt>
+<figures/ema-vs-max-trajectory_14-15.pdf, id=1086, 1001.82086pt x 382.05136pt>
 File: figures/ema-vs-max-trajectory_14-15.pdf Graphic file (type pdf)
 <use figures/ema-vs-max-trajectory_14-15.pdf>
-Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.pdf  used on input line 168.
+Package pdftex.def Info: figures/ema-vs-max-trajectory_14-15.pdf  used on input line 163.
 (pdftex.def)             Requested size: 358.50473pt x 136.7164pt.
 ) (./sections/discussion.tex [25 <./figures/ema-vs-max-trajectory_14-15.pdf>] [26] [27] [28] [29]) (./sections/conclusions.tex [30]) [31] [32] (./main.bbl
 Underfull \hbox (badness 1303) in paragraph at lines 194--211
@@ -1014,54 +1014,54 @@ Underfull \hbox (badness 1303) in paragraph at lines 194--211
 ] [36]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 161.
 ) [37] (./appendix/standalone_targetnetwork.tex
-<figures/garg-repl-grid.pdf, id=1289, 1071.76411pt x 564.06737pt>
+<figures/garg-repl-grid.pdf, id=1288, 1071.76411pt x 564.06737pt>
 File: figures/garg-repl-grid.pdf Graphic file (type pdf)
 <use figures/garg-repl-grid.pdf>
 Package pdftex.def Info: figures/garg-repl-grid.pdf  used on input line 19.
 (pdftex.def)             Requested size: 358.50761pt x 188.68185pt.
  [38]) [39 <./figures/garg-repl-grid.pdf>] (./appendix/hn_ablation.tex
-<figures/dh-sweep_7-12-13.pdf, id=1324, 637.84985pt x 319.79703pt>
+<figures/dh-sweep_7-12-13.pdf, id=1323, 637.84985pt x 319.79703pt>
 File: figures/dh-sweep_7-12-13.pdf Graphic file (type pdf)
 <use figures/dh-sweep_7-12-13.pdf>
 Package pdftex.def Info: figures/dh-sweep_7-12-13.pdf  used on input line 21.
 (pdftex.def)             Requested size: 358.50473pt x 179.73898pt.
  [40]
-<figures/beta-chunk-sweep_16-17-18.pdf, id=1330, 997.33075pt x 314.97652pt>
+<figures/beta-chunk-sweep_16-17-18.pdf, id=1329, 997.33075pt x 314.97652pt>
 File: figures/beta-chunk-sweep_16-17-18.pdf Graphic file (type pdf)
 <use figures/beta-chunk-sweep_16-17-18.pdf>
 Package pdftex.def Info: figures/beta-chunk-sweep_16-17-18.pdf  used on input line 63.
 (pdftex.def)             Requested size: 358.50473pt x 113.22324pt.
  [41 <./figures/dh-sweep_7-12-13.pdf>]) (./appendix/additional_experiments.tex
-<figures/hypernetwork-cifar100_11.pdf, id=1422, 710.11986pt x 319.3345pt>
+<figures/hypernetwork-cifar100_11.pdf, id=1421, 710.11986pt x 319.3345pt>
 File: figures/hypernetwork-cifar100_11.pdf Graphic file (type pdf)
 <use figures/hypernetwork-cifar100_11.pdf>
 Package pdftex.def Info: figures/hypernetwork-cifar100_11.pdf  used on input line 30.
 (pdftex.def)             Requested size: 358.50473pt x 161.22122pt.
  [42 <./figures/beta-chunk-sweep_16-17-18.pdf>]
-<figures/sgd_split_mnist_lr_threshold.pdf, id=1495, 450.58965pt x 439.33888pt>
+<figures/sgd_split_mnist_lr_threshold.pdf, id=1494, 450.58965pt x 439.33888pt>
 File: figures/sgd_split_mnist_lr_threshold.pdf Graphic file (type pdf)
 <use figures/sgd_split_mnist_lr_threshold.pdf>
 Package pdftex.def Info: figures/sgd_split_mnist_lr_threshold.pdf  used on input line 57.
 (pdftex.def)             Requested size: 258.12384pt x 251.69276pt.
  [43 <./figures/hypernetwork-cifar100_11.pdf>]
-<figures/ogd-lr-sweep-simple_11.pdf, id=1574, 525.40291pt x 231.19173pt>
+<figures/ogd-lr-sweep-simple_11.pdf, id=1573, 525.40291pt x 231.19173pt>
 File: figures/ogd-lr-sweep-simple_11.pdf Graphic file (type pdf)
 <use figures/ogd-lr-sweep-simple_11.pdf>
 Package pdftex.def Info: figures/ogd-lr-sweep-simple_11.pdf  used on input line 85.
 (pdftex.def)             Requested size: 286.80487pt x 126.2069pt.
  [44 <./figures/sgd_split_mnist_lr_threshold.pdf>]
-<figures/ema-vs-max-stat_14-15.pdf, id=1646, 710.07349pt x 319.4442pt>
+<figures/ema-vs-max-stat_14-15.pdf, id=1645, 710.07349pt x 319.4442pt>
 File: figures/ema-vs-max-stat_14-15.pdf Graphic file (type pdf)
 <use figures/ema-vs-max-stat_14-15.pdf>
 Package pdftex.def Info: figures/ema-vs-max-stat_14-15.pdf  used on input line 113.
 (pdftex.def)             Requested size: 358.50473pt x 161.28148pt.
-<figures/compression-ablation_421-422-423.pdf, id=1647, 778.3479pt x 361.78561pt>
+<figures/compression-ablation_421-422-423.pdf, id=1646, 778.3479pt x 361.78561pt>
 File: figures/compression-ablation_421-422-423.pdf Graphic file (type pdf)
 <use figures/compression-ablation_421-422-423.pdf>
 Package pdftex.def Info: figures/compression-ablation_421-422-423.pdf  used on input line 142.
 (pdftex.def)             Requested size: 358.50473pt x 166.63318pt.
  [45 <./figures/ogd-lr-sweep-simple_11.pdf> <./figures/ema-vs-max-stat_14-15.pdf>]
-<figures/seed2137_failure_exp7.pdf, id=1794, 599.21301pt x 288.10887pt>
+<figures/seed2137_failure_exp7.pdf, id=1793, 599.21301pt x 288.10887pt>
 File: figures/seed2137_failure_exp7.pdf Graphic file (type pdf)
 <use figures/seed2137_failure_exp7.pdf>
 Package pdftex.def Info: figures/seed2137_failure_exp7.pdf  used on input line 177.
@@ -1083,10 +1083,10 @@ Here is how much of TeX's memory you used:
  14 hyphenation exceptions out of 8191
  123i,23n,121p,2509b,690s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbij8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplbj8a.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></usr/share/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/texmf-dist/fonts/type1/public/fpl/fplrij8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmb8a.pfb></usr/share/texmf-dist/fonts/type1/public/bera/fvmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (52 pages, 1167008 bytes).
+Output written on main.pdf (52 pages, 1166887 bytes).
 PDF statistics:
- 2062 PDF objects out of 2073 (max. 8388607)
- 1012 compressed objects within 11 object streams
+ 2061 PDF objects out of 2073 (max. 8388607)
+ 1011 compressed objects within 11 object streams
  197 named destinations out of 1000 (max. 500000)
  200665 words of extra memory for PDF output out of 221844 (max. 10000000)
 

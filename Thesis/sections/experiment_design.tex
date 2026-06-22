@@ -1,10 +1,4 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% Experimental Design
-% Now a \subsection of the Methods section (fits the fixed thesis structure).
-%
-% Hyperparameter provenance: benchmark-specific values deferred to the
-% appendix table.
-% ─────────────────────────────────────────────────────────────────────────────
 
 \subsection{Experimental Design}
 \label{sec:experimental_design}
@@ -179,15 +173,12 @@ $C = 197$ chunks per target network --- large enough to produce a
 measurable pathology, yet small enough that the condition number of $A$
 can be computed and logged at every projection step without becoming
 numerically intractable.
-% Larger chunk counts (e.g.\ the CIFAR-100 configuration) would make the
-% condition number measurement itself unreliable; smaller counts (e.g.\
-% the MNIST suffocated regime) would not stress the pathology sufficiently.
 
 \begin{description}
     \item[Condition 1 --- No normalization (negative control).]
     Incoming gradient batches are appended to $G$ without orthonormalization;
     the Fisher diagonal is used at its raw scale.
-    With 197 chunks accumulated per forward pass, the gradient columns of % MAY BE REDUNDANT 
+    With 197 chunks accumulated per forward pass, the gradient columns of  
     $G$ and the entries of $F$ are expected to reach extreme
     magnitudes, inflating the condition number of the projection kernel and
     driving the matrix inversion to \texttt{NaN}.

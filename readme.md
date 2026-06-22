@@ -11,13 +11,13 @@
 ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 ```
 
-### *Fisher-Orthogonal Parameter Manifolds*
-### *Enforcing Hard Constraints in Hypernetwork-based Continual Learning*
+### *Gradient Projection Methods for Continual Learning in Hypernetworks*
 
 <br/>
 
-**Jakub Michałowski** · Thesis Repository  
-Department of Cognitive Science and Artificial Intelligence · Tilburg University
+**Jakub Michałowski** · Bachelor's Thesis · Tilburg University
+Department of Cognitive Science and Artificial Intelligence
+Supervised by Dr. Giacomo Spigler
 
 <br/>
 
@@ -32,182 +32,201 @@ Department of Cognitive Science and Artificial Intelligence · Tilburg Universit
 
 ---
 
-## ◈ What is this?
+## ◈ What this is
 
-Can a neural network learn a new task **without forgetting the old ones**?
+A continual-learning system needs to learn a sequence of tasks without forgetting
+earlier ones. Two families of methods attack this problem from very different angles:
 
-This repository contains my thesis implementation of **FOPNG** (*Fisher-Orthogonal Projected Natural Gradient Descent*) applied to **hypernetworks** for continual learning. The core idea: instead of operating in flat Euclidean space like most methods, FOPNG respects the true Riemannian geometry of the parameter space — using the Fisher information matrix to define what "changing old task outputs" actually means, then enforcing a hard constraint that new updates cannot do it.
+- **Gradient projection** methods (OGD, ONG, FNG, FOPNG) constrain *how the weights move*,
+  projecting each update away from directions that would disturb earlier tasks.
+- **Hypernetworks** attack it from the *architecture* side: a small network generates the
+  weights of a target network from a per-task embedding, so the storage cost of "remembering"
+  is decoupled from the number of parameters in the target.
 
-The hypernetwork wrapper keeps the Fisher matrix and gradient memory **compact and task-count-independent**, making the approach tractable even for larger target networks.
+This repository is the implementation behind my thesis, which asks a question that — to my
+knowledge — had not been studied directly:
 
-<br/>
+> **Can Fisher-based gradient projection methods be constructively integrated into a
+> chunked hypernetwork, or do the two mechanisms interfere?**
 
----
+The honest short answer the thesis arrives at is **mostly "they interfere"** — and the
+interesting part is *why*. The chunked weight-generation process distorts the geometry that
+projection methods rely on, and fixing that distortion is one of the two technical
+contributions here. The other is a new projection variant, **iFOPNG**, that builds
+parameter *inertia* directly into the metric rather than into a penalty term.
 
-## ◈ Repository Map
-
-```
-./
-│
-├── 🧠  HyperFisher/          ← Main project (my code)
-│
-├── 🏋️  gym/                  ← Side project: SSMs vs Transformers on
-│                               memory-intensive RL benchmarks
-│
-├── 📄  misc/                 ← Thesis writing · poster · proposal · residuals
-│
-├── 📦  FOPNG/                ← Reference: Garg et al. (2026) original implementation
-├── 📦  fop/                  ← Reference: related paper codebase
-├── 📦  hypercl/              ← Reference: von Oswald et al. (2020) hypernetwork CL
-│
-└── 🧪  toy_playground/       ← Scratch experiments and quick prototypes
-```
-
-> **Note:** `FOPNG/`, `fop/`, and `hypercl/` are external codebases included for replication and reference — not my own work.
+> ⚠️ **A note on framing.** An earlier version of this README reported a single
+> preliminary run in which FOPNG reached ~97% on Split-MNIST. That number was an early,
+> cherry-picked artefact and **does not survive a proper multi-seed, multiple-comparison-corrected
+> evaluation.** The results section below reflects the finished thesis, not that prototype.
 
 <br/>
 
 ---
 
-## ◈ HyperFisher — Main Project
+## ◈ Research questions
+
+**Main RQ.** Can Fisher-based gradient projection methods be integrated into chunked
+hypernetwork architectures for continual learning, and how do they compare to standard
+baselines in that setting?
+
+Decomposed into four sub-questions, each mapped to a set of experiments:
+
+| Sub-RQ | Question |
+|--------|----------|
+| **RQ1** | Do projection methods and hypernetwork architectures **synergise or conflict** — standalone target network vs. chunked hypernetwork? |
+| **RQ2** | Does the proposed **projection-scoped normalisation** resolve the chunk-induced conditioning pathology in the Fisher/projection machinery? |
+| **RQ3** | Does **iFOPNG** (combined-Fisher inertia metric) improve over **FOPNG** (single-task Fisher metric)? |
+| **RQ4** | Does **MAX** or **EMA** Fisher accumulation across tasks retain old tasks better? |
+
+<br/>
+
+---
+
+## ◈ What I actually found
+
+Stated plainly, with the caveats that matter:
+
+- **In the hypernetwork setting, the simple baselines win.** Adam and EWC form a
+  statistically indistinguishable top tier and **significantly outperform every projection
+  method** (e.g. Adam vs. iFOPNG, Holm-corrected *p* ≈ 0.005). Projection methods do not
+  earn their keep once a hypernetwork is in the loop.
+- **iFOPNG is the best of the projection family, but the win is fragile.** iFOPNG improves
+  on FOPNG, but **iFOPNG vs. SGD does not survive Holm–Bonferroni correction** — so this is
+  reported as a trend, not a confirmed effect.
+- **The chunk-conditioning pathology is real and quantifiable.** With *C* chunks, the
+  backward pass scales gradients by ~*C* and the diagonal Fisher by ~*C²*, so the projection
+  matrix *A* inflates by roughly *C⁴*. This pushes *A* out of the usable floating-point range.
+  Note that κ(*A*) is **scale-invariant** — so the proposed normalisation is a
+  *float-precision* fix that restores a workable regime, **not** a reduction of the condition
+  number per se. This is the core RQ2 finding.
+- **MAX beats EMA** for cross-task Fisher accumulation by a significant margin (RQ4).
+
+These are the claims the thesis defends; exact per-seed numbers, significance tables, and
+trajectory plots live in W&B and in the thesis figures (see *Experiment tracking* below).
+
+<br/>
+
+---
+
+## ◈ The two contributions
+
+**① iFOPNG — "inertia" Fisher-Orthogonal Projected Natural Gradient.**
+FOPNG preconditions the projected update with the *new* task's Fisher, $\hat F_\text{new}$.
+iFOPNG instead uses a **combined metric**
+
+$$F_c = \hat F_\text{new} + \hat F_\text{old}$$
+
+so that parameters that were important to previous tasks acquire elevated metric mass and
+*geometrically resist displacement* — no explicit EWC-style penalty term required. The
+contrast with EWC is the point: EWC enforces inertia through a loss penalty; iFOPNG bakes it
+into the ambient metric. Gradient storage (the `PreFisher` path) is identical to FOPNG; the
+**only** difference is the inverse metric used at update time ($F_c^{-1}$ instead of
+$\hat F_\text{new}^{-1}$).
+
+> 🏷️ **Naming.** The method is called **iFOPNG** in the thesis (the *i* is for *inertia*).
+> For backwards compatibility the CLI flag and the class are still named `efopng` / `eFOPNG`
+> — see the flag-mapping table below. They are the same method.
+
+**② Projection-scoped normalisation.**
+To counter the *C⁴* inflation above, the gradient basis is **QR-orthonormalised at insertion
+time** and the Fisher is rescaled by its **max entry** before the projection matrix is
+formed. This is applied locally, scoped to the projection step (hence "projection-scoped"),
+and restores numerically stable matrix inversion in the chunked setting. Enabled with
+`--normalize`.
+
+<br/>
+
+---
+
+## ◈ Methods implemented
+
+**Baselines**
+
+| Flag | Method | Idea |
+|------|--------|------|
+| `sgd` | SGD | Naive sequential SGD — lower bound |
+| `adam` | Adam | Naive sequential Adam — strong, forgetting-prone baseline |
+| `ewc` | EWC | Diagonal-Fisher penalty on important weights (Kirkpatrick et al., 2017) |
+
+**Projection family** (all share the `OP` base class in `optimizers/projections.py`)
+
+| Flag | Method | Metric / projection |
+|------|--------|---------------------|
+| `ogd` | OGD | Euclidean orthogonal projection, no Fisher (Farajtabar et al., 2020) |
+| `ong` | ONG | Orthogonal natural gradient |
+| `fng` | FNG | Natural gradient under $\hat F_\text{new}$, no projection |
+| `fopng` | FOPNG | Fisher-orthogonal projected natural gradient (Garg et al., 2026) |
+| `efopng` | **iFOPNG** *(ours)* | Same as FOPNG but combined-Fisher inertia metric $F_c$ |
+
+**Variants** (storage / accumulation ablations)
+
+| Flag | Variant |
+|------|---------|
+| `fopng_prefisher` | FOPNG with Fisher pre-multiplied into stored gradients |
+| `efopng_prefisher` | iFOPNG with pre-Fisher gradient storage |
+| `efopng_ema` | iFOPNG with EMA (rather than MAX) Fisher accumulation — RQ4 ablation |
+
+<br/>
+
+---
+
+## ◈ Benchmarks & settings
+
+Every benchmark is run in **both** settings, which is what RQ1 turns on:
+
+- **Standalone** — projection method applied directly to a target network (`--model TargetNetwork`)
+- **Hypernetwork** — projection method applied to the shared hypernetwork parameters that
+  generate the target weights (`--model HyperNetwork`)
+
+| Benchmark | Flag | Tasks | Heads |
+|-----------|------|-------|-------|
+| Permuted-MNIST | `permuted_mnist` | configurable | single |
+| Split-MNIST (single-head) | `split_mnist_sh` | 5 binary | single |
+| Split-MNIST (multi-head) | `split_mnist_mh` | 5 binary | multi |
+| Split-CIFAR-10 | `split_cifar10` | 5 | multi |
+| Split-CIFAR-100 | `split_cifar100` | 20 | multi |
+
+<br/>
+
+---
+
+## ◈ Repository structure
 
 ```
 HyperFisher/
 │
-├── main.py               ← Entry point — full CLI for all experiments
-├── main.sh               ← Example run scripts
-├── hyper_network.py      ← HyperNetwork: generates target weights from task embeddings
-├── mlp_base.py           ← Plain MLP target network
-├── utils.py              ← Shared utilities
+├── main.py                  ← Entry point; full experiment CLI
+│
+├── fisher.py                ← DiagonalFisherEstimator (MAX/EMA accumulation, clipping, normalisation)
+├── gradient.py              ← Gradient memory + collectors (raw / pre-Fisher); QR at insertion
+├── utils.py                 ← Shared utilities (grad vectors, BWT, evaluation, plotting)
+│
+├── models/
+│   ├── hyper_network.py     ← Chunked HyperNetwork + HyperRegulizer
+│   ├── mlp.py               ← MLP target network
+│   └── cnn.py               ← CNN target network (CIFAR)
 │
 ├── optimizers/
-│   ├── fopng.py          ← FOPNG — Fisher-Orthogonal Projected Natural Gradient
-│   ├── ewc.py            ← EWC — Elastic Weight Consolidation baseline
-│   └── adam.py           ← Adam baseline (naive, no forgetting protection)
+│   ├── projections.py       ← OP base class + OGD / ONG / FNG / FOPNG / iFOPNG (+ variants)
+│   ├── ewc.py               ← EWC baseline
+│   └── vanilla.py           ← SGD / Adam baselines
 │
 ├── tasks/
-│   ├── split_mnist.py    ← Split-MNIST: 5 binary tasks (0v1, 2v3, 4v5, 6v7, 8v9)
-│   ├── permuted_mnist.py ← Permuted-MNIST: 10+ random permutation tasks
-│   └── split_cifar10.py  ← Split-CIFAR-10: 5 tasks on natural images
+│   ├── permuted_mnist.py
+│   ├── split_mnist_sh.py
+│   ├── split_mnist_mh.py
+│   ├── split_cifar10.py
+│   └── split_cifar100.py
 │
-├── visualizations/       ← Trajectory plots and per-task accuracy graphs
-├── sweep.yaml            ← W&B hyperparameter sweep config
+├── config_*.sh              ← SLURM launch scripts, one per thesis configuration (1–23)
 │
-├── data/                 ← Auto-populated on first run
-└── wandb/                ← W&B run logs (auto-populated)
+└── plotting/                ← Figure generators (rq1_*, rq3, rq5, trajectories, …)
 ```
 
-<br/>
-
----
-
-## ◈ The Method
-
-**FOPNG** combines two ideas applied to the compact hypernetwork parameter set φ:
-
-<br/>
-
-**① Natural Gradient** — Standard gradient descent treats all parameter directions equally. The Fisher information matrix $\mathcal{F}_\theta$ captures how sensitively the model's output *distribution* responds to each parameter. Natural gradient descent preconditions updates with $\mathcal{F}_\theta^{-1}$, making steps equal-sized in *distribution space* rather than Euclidean space:
-
-$$\Delta\theta_\text{nat} = -\eta \, \mathcal{F}_\theta^{-1} \nabla_\theta \mathcal{L}$$
-
-**② Orthogonal Projection** — After each task $k$, its gradient $g_k$ is stored in a memory matrix $G = [g_1 \mid \cdots \mid g_{t-1}]$. New updates are projected onto the **Fisher-orthogonal complement** of $G$ — directions guaranteed not to alter prior task outputs:
-
-$$\Delta\theta = -\eta \left[ I - G(G^\top \mathcal{F}_\theta G)^{-1} G^\top \mathcal{F}_\theta \right] \mathcal{F}_\theta^{-1} \nabla_\theta \mathcal{L}_t$$
-
-Applied to the **hypernetwork** φ (rather than the full target network), both the Fisher matrix and gradient memory stay compact and task-count-independent.
-
-<br/>
-
----
-
-## ◈ Baselines
-
-| Method | Type | Key idea |
-|--------|------|----------|
-| **Adam** | Naive | No forgetting protection — establishes lower bound |
-| **EWC** | Regularization | Diagonal Fisher penalty on important weights, Euclidean space |
-| **OGD** | Projection | Euclidean orthogonal gradient projection — closest analogue to FOPNG |
-| **FNG** | Natural gradient | Natural gradient without orthogonal projection |
-
-<br/>
-
----
-
-## ◈ Benchmarks
-
-| Benchmark | Tasks | Input | Notes |
-|-----------|-------|-------|-------|
-| **Split-MNIST** | 5 binary | 784-dim | Entry-level sequential learning |
-| **Permuted-MNIST** | 10+ | 784-dim | Long-horizon retention test |
-| **Split-CIFAR-10** | 5 | 3072-dim | Natural images, higher complexity |
-| **Split-CIFAR-100** | 20 | 3072-dim | 100 classes, hardest benchmark |
-
-<br/>
-
----
-
-## ◈ Usage
-
-```bash
-cd HyperFisher
-
-# Split-MNIST with all three methods
-python main.py \
-  --task split_mnist \
-  --methods fopng ewc adam \
-  --model HyperNetwork \
-  --epochs 5 \
-  --lr 1e-3 \
-  --embedding_dim 4
-
-# Split-CIFAR-10, FOPNG only, more gradient memory
-python main.py \
-  --task split_cifar10 \
-  --methods fopng \
-  --model HyperNetwork \
-  --epochs 10 \
-  --grads_per_task 40 \
-  --max_directions 200
-
-# Run a W&B hyperparameter sweep
-bash sweep.sh
-```
-
-<br/>
-
-**Key CLI arguments:**
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--task` | *required* | `split_mnist` · `permuted_mnist` · `split_cifar10` |
-| `--methods` | `fopng adam` | Any of: `fopng` `ewc` `adam` `ogd` `fng` |
-| `--model` | `HyperNetwork` | `HyperNetwork` or `MLP` |
-| `--epochs` | `10` | Epochs per task |
-| `--lr` | `1e-3` | Learning rate |
-| `--lam` | `1e-3` | EWC regularization strength |
-| `--grads_per_task` | `40` | Gradient directions stored per task |
-| `--max_directions` | `80` | Hard cap on memory matrix columns |
-| `--embedding_dim` | `4` | Task embedding dimension |
-| `--hyper_hidden_dim` | `16` | Hypernetwork bottleneck width |
-
-<br/>
-
----
-
-## ◈ Preliminary Results
-
-> Split-MNIST · Full Hypernetwork · 5 sequential binary tasks
-
-After training on all 5 tasks, final per-task accuracy:
-
-| Method | T1 | T2 | T3 | T4 | T5 | **Avg** |
-|--------|----|----|----|----|----|----|
-| Adam (baseline) | 99% | 50% | 97% | 47% | 98% | 78% |
-| EWC | 52% | 56% | 48% | 98% | 97% | 70% |
-| **FOPNG (ours)** | **100%** | **97%** | **93%** | **99%** | **97%** | **97%** |
-
-FOPNG successfully maintains near-perfect accuracy across all tasks with minimal forgetting. Adam collapses on previously learned tasks within a few update steps. EWC partially mitigates forgetting but degrades significantly under longer task sequences.
+> Each task module exposes a `TaskGenerator` with `.config`, `.target_network`,
+> `.generate(...)` and `.solo_target(...)`, so `main.py` can load any benchmark by name
+> via `importlib`.
 
 <br/>
 
@@ -218,12 +237,116 @@ FOPNG successfully maintains near-perfect accuracy across all tasks with minimal
 ```bash
 git clone --recurse-submodules <repo-url>
 cd HyperFisher
-pip install torch torchvision wandb
+conda create -n venv python=3.10 && conda activate venv
+pip install torch torchvision wandb matplotlib numpy tqdm
 ```
 
-CUDA is recommended. The training loop detects GPU automatically and falls back to CPU.
+A CUDA GPU is recommended; the code falls back to CPU automatically. Datasets download on
+first run.
 
-Datasets are downloaded automatically on first run into `HyperFisher/data/`.
+<br/>
+
+---
+
+## ◈ Usage
+
+The entry point is `main.py`. Pick a benchmark, a model setting, and one or more methods to
+run sequentially in the same process.
+
+```bash
+# Split-MNIST (single-head), hypernetwork, baselines vs. projection family
+python main.py \
+  --task split_mnist_sh \
+  --model HyperNetwork \
+  --methods adam ewc fopng efopng \
+  --epochs 10 --lr 1e-3 \
+  --normalize
+
+# Standalone target network — the RQ1 "no hypernetwork" comparison point
+python main.py \
+  --task split_cifar10 \
+  --model TargetNetwork \
+  --methods sgd efopng \
+  --no-regulizer
+
+# RQ4 ablation: MAX vs. EMA Fisher accumulation
+python main.py \
+  --task permuted_mnist \
+  --model HyperNetwork \
+  --methods efopng efopng_ema
+```
+
+On the cluster, the per-configuration SLURM scripts wrap these calls:
+
+```bash
+sbatch config_8.sh     # Split-CIFAR10, standard HN (RQ1b / RQ2)
+sbatch config_4.sh     # Split-CIFAR10, standalone (RQ1 / RQ3 / RQ4)
+```
+
+<br/>
+
+**Key CLI arguments**
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--task` | *required* | `permuted_mnist` · `split_mnist_sh` · `split_mnist_mh` · `split_cifar10` · `split_cifar100` |
+| `--model` | `HyperNetwork` | `HyperNetwork` or `TargetNetwork` |
+| `--methods` | `fopng adam` | Any of: `sgd adam ewc ogd ong fng fopng efopng` (+ `*_prefisher`, `efopng_ema`) |
+| `--seed` | `1000` | Random seed (canonical set: `42 111 811 1234 2137`) |
+| `--epochs` | `10` | Epochs per task |
+| `--lr` | `1e-3` | Learning rate |
+| `--first_task_lr` / `--first_task_opt` | `1e-3` / — | First-task LR and optimiser (see reproducibility note) |
+| `--lam` | `1e-3` | Damping (λI) on the projection / Fisher inverse |
+| `--alpha` | `0.3` | EMA coefficient (for `efopng_ema`) |
+| `--normalize` | off | **Projection-scoped normalisation** (QR + max-entry Fisher scaling) |
+| `--fisher_samples` | `1024` | Samples for diagonal Fisher estimation |
+| `--grads_per_task` / `--max_directions` | `40` / `80` | Gradient-memory size per task / hard cap |
+| `--hyper_hidden_dim` | `16` | Hypernetwork bottleneck width |
+| `--task_embedding_dim` / `--chunk_embedding_dim` | `4` / `10` | Task / chunk embedding sizes |
+| `--chunk_size` | `1000` | Target-weight chunk size |
+| `--regulizer` / `--no-regulizer` | on | von Oswald output regulariser (HN only) |
+| `--beta` | `0.1` | Regulariser strength |
+
+<br/>
+
+---
+
+## ◈ Reproducibility notes
+
+A few honest caveats that the thesis discusses and that anyone re-running this should know:
+
+- **First-task learning rate.** Garg et al.'s stated SGD setting (1e-5 on Split-MNIST) yields
+  only ~21% first-task accuracy in our reproduction. For internal comparability, **all**
+  methods initialise the first task with Adam at 1e-3; the projection machinery only engages
+  from task 2 onward.
+- **Dropout is disabled in the hypernetwork setting.** `functional_call` propagates training
+  mode into the generated target network, so dropout masks contaminate the gradient signal
+  across chunks. It is removed in all HN configurations.
+- **Seed exclusion is disclosed, not hidden.** Most experiments use
+  `{42, 111, 811, 1234, 2137}`. Split-MNIST HN uses `{42, 111, 314, 811, 1234}`: seed 2137
+  is excluded because projection-method initialisation fails on the `d_h=8` bottleneck — and
+  it is documented rather than silently swapped, since the same seed behaves normally for
+  every other method.
+
+<br/>
+
+---
+
+## ◈ Experiment tracking
+
+All runs log to **Weights & Biases** under `michalowski-jb-tilburg-university/HyperFisher`,
+grouped by task and by model setting. Each thesis experiment has a numeric ID; the exported
+CSVs (`401.csv`–`423.csv`, plus `701`–`703`) are the frozen snapshots used to generate the
+figures. The `plotting/` scripts (`rq1_*`, `rq3.py`, `rq5.py`, `trajectories.py`,
+`generate_1_2_5_6_12_13.py`, …) read those CSVs / the W&B API and emit both `.pdf` and `.png`.
+
+W&B summary layout used by the plotters:
+
+```python
+summary["best/results"]["acc"]["1".."5"]   # final per-task accuracy
+summary["best/results"]["bwt"]             # backward transfer
+summary["best/average_accuracy"]           # mean final accuracy
+```
 
 <br/>
 
@@ -238,15 +361,21 @@ Garg, I., Kolhe, N., Peng, A., & Gopalam, R. (2026).
 von Oswald, J., Henning, C., Grewe, B. F., & Sacramento, J. (2020).
   Continual learning with hypernetworks. ICLR.
 
+Farajtabar, M., Azizan, N., Mott, A., & Li, A. (2020).
+  Orthogonal gradient descent for continual learning. AISTATS.
+
 Kirkpatrick, J., et al. (2017).
   Overcoming catastrophic forgetting in neural networks. PNAS, 114(13), 3521–3526.
 
-Farajtabar, M., Azizan, N., Mott, A., & Li, A. (2020).
-  Orthogonal gradient descent for continual learning. AISTATS.
+Chang, O., Flokas, L., & Lipson, H. (2020).
+  Principled weight initialisation for hypernetworks. ICLR.
 
 Ha, D., Dai, A., & Le, Q. V. (2017).
   HyperNetworks. ICLR.
 ```
+
+> `FOPNG/`, `fop/`, and `hypercl/` (if present as submodules) are external reference
+> codebases included for replication — not part of this thesis's contribution.
 
 <br/>
 

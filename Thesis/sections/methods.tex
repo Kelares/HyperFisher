@@ -1,14 +1,3 @@
-% ─────────────────────────────────────────────────────────────────────────────
-% METHODOLOGY SECTION --- clean rewrite
-% Principles:
-%   - Operational focus: equations + implementation choices, not re-introduction
-%   - Related Work already introduced EWC, OGD, FOPNG, HN conceptually
-%   - Novel contributions (iFOPNG, normalization, dropout decision) get full
-%     treatment; baselines get equations + key parameters only
-%   - ONG and FNG filled in from Garg et al. (2026) formulations
-%   - Dropout paragraph cleaned of HTML rendering artifacts
-% ─────────────────────────────────────────────────────────────────────────────
-
 \section{Methods}
 \label{sec:methods}
 % ─────────────────────────────────────────────────────────────────────────────
@@ -70,7 +59,7 @@ in this thesis.
 \texttt{SGD} and \texttt{FNG} establish unconstrained lower bounds with no
 forgetting-protection mechanism; \texttt{OGD} through \texttt{iFOPNG} form
 the projection family that is the primary focus of this work.
-% Basic learning algorithm
+
 \subsubsection{Stochastic Gradient Descent}
 \texttt{SGD} applies vanilla gradient descent with no forgetting protection:
 \begin{equation}
@@ -80,7 +69,6 @@ the projection family that is the primary focus of this work.
 variant that maintains per-parameter momentum; both serve as unconstrained
 baselines.
 
-% Basic projection, Euclidean space
 \subsubsection{Orthogonal Gradient Descent}
 \label{sec:ogd}
 OGD \citep{farajtabar_orthogonal_2019} maintains a memory matrix
@@ -97,7 +85,6 @@ projected onto the orthogonal complement of $\operatorname{Col}(G)$:
 In all projection methods, $G$ is maintained as a fixed-budget basis of at most $M$ columns; 
 insertion, orthonormalisation, and overflow recompression are detailed in Section~\ref{sec:normalization}.
 
-% Riemannian step without projection
 \subsubsection{Natural Gradient and Fisher Natural Gradient}
 Natural gradient descent \citep{amari_natural_1998} replaces the Euclidean
 gradient step with one measured in the Riemannian geometry of the Fisher
@@ -117,7 +104,6 @@ FNG maintains no gradient subspace and provides no forgetting protection;
 it is included to isolate the contribution of Fisher preconditioning
 independently of projection.
 
-% OGD projection applied to the natural gradient step
 \subsubsection{Orthogonal Natural Gradient}
 ONG \citep{yadav_ong_2025} extends OGD by replacing the raw gradient with
 the natural gradient before projection.
@@ -135,10 +121,9 @@ constraint is still measured in Euclidean space: the kernel being
 inverted is $A = G^\top G + \lambda I$, identical to OGD.
 Following the diagonal Fisher approximation used throughout this thesis,
 we substitute the EKFAC inverse of \citet{yadav_ong_2025} with the
-diagonal empirical Fisher; results are not directly comparable to the % ITS ALREADY STATED SOMEWHERE
+diagonal empirical Fisher; results are not directly comparable to the 
 original implementation.
 
-% Both step and projection in Riemannian space
 \subsubsection{Fisher-Orthogonal Projected Natural Gradient Descent}
 \texttt{FOPNG} \citep{garg_fisher-orthogonal_2026} moves both the step
 and the projection into the Riemannian geometry of the Fisher metric.
@@ -163,7 +148,6 @@ numerical stability.
 This is the pre-Fisher form of \citet{garg_fisher-orthogonal_2026}, in
 which the stored basis carries its collection-time Fisher weighting.
 
-% Single substitution: F_new -> F_c
 \subsubsection{Inertial FOPNG}
 \label{sec:ifopng}
 
@@ -318,9 +302,6 @@ distinct sources of ill-conditioning:
         denominator to a range in which finite-precision arithmetic
         retains its significant digits and the fixed $\lambda$ acts as a
         meaningful regulariser rather than as numerical noise. 
-        % The normalisation is heuristic: it stabilises the inversion of $A$
-        % without providing algebraic guarantees on the resulting update % Hmm, maybe thats not needed.
-        direction.
 \end{enumerate}
 
 Together, these operations ensure that the method-specific projection
@@ -351,34 +332,3 @@ The \texttt{OGD}/\texttt{ONG} kernel is unaffected by metric-tensor
 scaling by construction.
 Subspace membership is invariant to positive scalar rescaling of basis
 vectors, so neither operation alters the geometry of the projection.
-
-% \paragraph{Principled rescaling and open problem.}
-% \label{sec:ng_limitation}
-% The proposed normalization --- QR orthonormalization of the gradient basis
-% combined with max-entry scaling of $F_c$ --- is heuristic in nature: it
-% discards the eigenvalue structure of the pullback metric and applies
-% isotropic rather than curvature-aware rescaling to the chunk embedding
-% directions.
-% The principled alternative is the natural gradient under the Riemannian
-% metric induced by the chunk-generating map:
-% \begin{equation}
-%     \Delta c_i = -\eta\,(J_i^\top J_i + \lambda I)^{-1}\,
-%                   \nabla_{c_i}\mathcal{L},
-%     \qquad
-%     J_i = \frac{\partial W_i}{\partial c_i} \in \mathbb{R}^{C_s \times d_c},
-% \end{equation}
-% which rescales each chunk embedding direction in proportion to how
-% strongly it moves the generated weights, and is tractable because
-% $d_c \ll C_s$.
-% This preconditioner was implemented and evaluated experimentally.
-% Applied to the raw gradient \emph{prior} to the projection step, it
-% consistently degraded continual learning performance --- BWT worsened by
-% approximately $0.33$ on Split-MNIST SH relative to the heuristic baseline.
-% We attribute this to a metric mismatch: the FOPNG projection operator is
-% calibrated for gradients in Euclidean parameter space, and preconditioning
-% only the chunk embedding component before projection produces a
-% geometrically inconsistent input to the kernel $G^\topFG$.
-% The principled resolution --- applying $(J_i^\top J_i + \lambda I)^{-1}$
-% to the projected update $v^*$ rather than to the raw gradient, so that the
-% projection sees Euclidean gradients and the Riemannian step follows --- is
-% left to future work.
