@@ -1,5 +1,5 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% METHODOLOGY SECTION — clean rewrite
+% METHODOLOGY SECTION --- clean rewrite
 % Principles:
 %   - Operational focus: equations + implementation choices, not re-introduction
 %   - Related Work already introduced EWC, OGD, FOPNG, HN conceptually
@@ -11,12 +11,6 @@
 
 \section{Methods}
 \label{sec:methods}
-
-Conceptual motivation and positioning relative to prior work are covered
-in Section~\ref{sec:related_work}; we restrict our attention here to
-the exact algorithmic instantiations evaluated.
-
-% ─────────────────────────────────────────────────────────────────────────────
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Continual Learning Protocol}
 \label{sec:cl_protocol}
@@ -46,39 +40,21 @@ learning to preserve old tasks achieves near-zero BWT alongside collapsed
 accuracy, while a method that overfits each new task sustains competitive
 accuracy at the cost of large negative BWT on earlier ones.
 
-\subsubsection{Multi-Head and Single-Head Evaluation}
-Following \citet{farquhar_towards_2018}, who demonstrated that multi-head
-evaluations can inflate apparent method performance, we report results under
-both protocols for MNIST-based benchmarks.
-
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Fisher Information Matrix and Regularization-Based Continual Learning}
 \label{sec:fisher_ewc}
 
-\subsubsection{Fisher Information Matrix}
-All Fisher-based methods in this thesis use the \emph{diagonal empirical
-approximation}
-\begin{equation}
-    \hat{F}_i \approx \frac{1}{N}\sum_{n=1}^{N}
-    \!\left(\frac{\partial \mathcal{L}^{(n)}}{\partial \theta_i}\right)^{\!2},
-\end{equation}
-estimated over $N$ held-out samples.
-The full FIM is intractable for our network sizes; the diagonal
-approximation is standard across all evaluated methods
-\citep{kirkpatrick_overcoming_2017,garg_fisher-orthogonal_2026}.
+All Fisher-based methods evaluated in this thesis use the diagonal empirical
+approximation $F$ defined in Equation~\eqref{eq:empirical_fisher}.
+The $F_{\mathrm{new}}$ and $F_{\mathrm{old}}$ used in
+projection methods denote the FIMs computed from the current task's data and
+accumulated from all prior tasks, respectively; both are instances of Equation~\eqref{eq:empirical_fisher}.
 
 \subsubsection{Elastic Weight Consolidation}
 \label{sec:ewc}
-EWC \citep{kirkpatrick_overcoming_2017} augments the task loss with a
-Fisher-weighted quadratic penalty:
-\begin{equation}
-    \mathcal{L}_{\mathrm{EWC}}(\theta) = \mathcal{L}_t(\theta)
-    + \frac{\lambda}{2}\sum_i \hat{F}_i\,(\theta_i - \theta_{i,t-1}^*)^2,
-\end{equation}
-where $\theta^*_{t-1}$ denotes the parameter snapshot after task $t{-}1$.
-EWC operates exclusively through parameter-space penalties and maintains
-no gradient subspace; it is included as a regularization baseline employing
-a different mechanism from projection.
+EWC (Section~\ref{sec:rw_regularization}, Equation~\ref{eq:ewc}) is included as
+a regularization baseline that operates purely through parameter-space
+penalties and maintains no gradient subspace.
 We use $\lambda = 10^{-3}$ for all hypernetwork configurations and
 reproduce the per-benchmark values from \citet{garg_fisher-orthogonal_2026}
 Table~1 for standalone evaluations.
@@ -94,33 +70,17 @@ in this thesis.
 \texttt{SGD} and \texttt{FNG} establish unconstrained lower bounds with no
 forgetting-protection mechanism; \texttt{OGD} through \texttt{iFOPNG} form
 the projection family that is the primary focus of this work.
-
+% Basic learning algorithm
 \subsubsection{Stochastic Gradient Descent}
 \texttt{SGD} applies vanilla gradient descent with no forgetting protection:
 \begin{equation}
     \Delta\theta_{\mathrm{SGD}} = -\eta\,\nabla_\theta\mathcal{L}_t.
 \end{equation}
 \texttt{Adam} \citep{kingma_adam_2015} is included as an adaptive-rate
-variant.
+variant that maintains per-parameter momentum; both serve as unconstrained
+baselines.
 
-\subsubsection{Natural Gradient and Fisher Natural Gradient}
-Natural gradient descent \citep{amari_natural_1998} preconditions the
-gradient with the inverse FIM, respecting the curvature of the statistical
-manifold:
-\begin{equation}
-    \Delta\theta_{\mathrm{nat}} = -\eta\,\hat{F}^{-1}\nabla_\theta\mathcal{L}.
-\end{equation}
-
-\texttt{FNG} \citep{garg_fisher-orthogonal_2026} applies a trust-region
-constraint to this Riemannian step:
-\begin{equation}
-    v^*_{\mathrm{FNG}}
-    = -\eta\,\frac{\hat{F}^{-1}g}{\sqrt{g^\top \hat{F}^{-1} g}}.
-\end{equation}
-FNG imposes no projection subspace and constitutes no continual learning
-mechanism; it is included to isolate the contribution of Fisher
-preconditioning from that of gradient projection.
-
+% Basic projection, Euclidean space
 \subsubsection{Orthogonal Gradient Descent}
 \label{sec:ogd}
 OGD \citep{farajtabar_orthogonal_2019} maintains a memory matrix
@@ -132,115 +92,123 @@ projected onto the orthogonal complement of $\operatorname{Col}(G)$:
     \qquad
     \Delta\theta_{\mathrm{OGD}} = -\eta\,\tilde{g}.
 \end{equation}
-OGD operates in Euclidean space, treating all parameter directions
-symmetrically.
 
 \paragraph{Gradient memory management.}
-In all projection methods, $G$ is maintained as a fixed-budget basis of at
-most $M$ columns.
-\citet{garg_fisher-orthogonal_2026} set $M = T \times K$ across all
-benchmarks, so compression never triggers in their experiments.
-We address this unexamined regime explicitly: incoming gradient batches are
-appended directly to $G$; when the column count exceeds $M$, the full basis
-is recompressed via truncated SVD and $G \leftarrow U_{:,\,1:M}$, retaining
-the $M$ directions of greatest variance in the accumulated gradient memory.
-When projection-scoped normalization is enabled, QR decomposition is
-additionally applied to each incoming batch at insertion time
-(Section~\ref{sec:normalization}).
+In all projection methods, $G$ is maintained as a fixed-budget basis of at most $M$ columns; 
+insertion, orthonormalisation, and overflow recompression are detailed in Section~\ref{sec:normalization}.
 
+% Riemannian step without projection
+\subsubsection{Natural Gradient and Fisher Natural Gradient}
+Natural gradient descent \citep{amari_natural_1998} replaces the Euclidean
+gradient step with one measured in the Riemannian geometry of the Fisher
+metric, so that equal step sizes correspond to equal changes in model
+predictions rather than equal changes in parameter values:
+\begin{equation}
+    \Delta\theta_{\mathrm{nat}} = -\eta\,F^{-1}_{\mathrm{new}}\nabla_\theta\mathcal{L}.
+\end{equation}
+\texttt{FNG} \citep{garg_fisher-orthogonal_2026} applies a trust-region
+constraint to this step, normalising by the Fisher norm of the gradient:
+\begin{equation}
+    v^*_{\mathrm{FNG}}
+    = -\eta\,\frac{F^{-1}_{\mathrm{new}} g}
+                  {\sqrt{g^\top F^{-1}_{\mathrm{new}} g}}.
+\end{equation}
+FNG maintains no gradient subspace and provides no forgetting protection;
+it is included to isolate the contribution of Fisher preconditioning
+independently of projection.
+
+% OGD projection applied to the natural gradient step
 \subsubsection{Orthogonal Natural Gradient}
-ONG \citep{yadav_ong_2025} applies OGD-style projection to the natural gradient rather than to the
-raw gradient, combining Fisher preconditioning with a Euclidean orthogonality
-constraint:
+ONG \citep{yadav_ong_2025} extends OGD by replacing the raw gradient with
+the natural gradient before projection.
+The natural gradient $F^{-1}_{\mathrm{new}}g$ is first computed, then
+projected onto the Euclidean orthogonal complement of $\operatorname{Col}(G)$:
 \begin{equation}
     \Delta\theta_{\mathrm{ONG}}
     = -\eta\!\left(
-        \hat{F}^{-1}g - G(G^\top G)^{-1}G^\top\hat{F}^{-1}g
-      \right).
+        F_{\mathrm{new}}^{-1}g
+        - G(G^\top G)^{-1}G^\top F_{\mathrm{new}}^{-1}g
+    \right).
 \end{equation}
-Unlike FOPNG, the projection is measured in Euclidean rather than Fisher metric space.
+The step direction is Fisher-preconditioned, but the orthogonality
+constraint is still measured in Euclidean space: the kernel being
+inverted is $A = G^\top G + \lambda I$, identical to OGD.
+Following the diagonal Fisher approximation used throughout this thesis,
+we substitute the EKFAC inverse of \citet{yadav_ong_2025} with the
+diagonal empirical Fisher; results are not directly comparable to the % ITS ALREADY STATED SOMEWHERE
+original implementation.
 
-%dully note:
-Following the diagonal Fisher approximation used throughout this thesis, we substitute the EKFAC inverse of \citet{yadav_ong_2025} with the diagonal empirical Fisher; 
-results are not directly comparable to the original implementation.
-
-
+% Both step and projection in Riemannian space
 \subsubsection{Fisher-Orthogonal Projected Natural Gradient Descent}
-\texttt{FOPNG} \citep{garg_fisher-orthogonal_2026} executes projection in
-the Riemannian metric defined by the Fisher:
+\texttt{FOPNG} \citep{garg_fisher-orthogonal_2026} moves both the step
+and the projection into the Riemannian geometry of the Fisher metric.
+Where ONG projects the natural gradient in Euclidean space, FOPNG measures
+orthogonality in Fisher space: a direction is orthogonal to the stored
+basis if it produces no change in model predictions along those directions,
+not merely no change in parameter values.
+The constrained trust-region update is:
 \begin{equation}
     v^*_{\mathrm{FOPNG}} = -\eta\,
-    \frac{\hat{F}^{-1}Pg}{\sqrt{(Pg)^\top\hat{F}^{-1}Pg}},
+    \frac{F^{-1}_{\mathrm{new}} Pg}{\sqrt{(Pg)^\top F^{-1}_{\mathrm{new}} Pg}},
     \qquad
-    P = I - \hat{F}_{\mathrm{old}}\,G\!\left(G^\top\hat{F}_{\mathrm{old}}\,
-        \hat{F}^{-1}\hat{F}_{\mathrm{old}}\,G
-        + \lambda I\right)^{\!-1}\!G^\top\hat{F}_{\mathrm{old}},
+    P = I - F_{\mathrm{old}}\, G\!\left(G^\top F_{\mathrm{old}}\,
+        F^{-1}_{\mathrm{new}} F_{\mathrm{old}}\, G
+        + \lambda I\right)^{\!-1}\! G^\top F_{\mathrm{old}},
     \label{eq:fopng}
 \end{equation}
-where $\hat{F} \equiv \hat{F}_{\mathrm{new}}$ is the current-task Fisher,
-$\hat{F}_{\mathrm{old}}$ is the Fisher under which the stored directions
-were collected, and $\lambda$ is added to the diagonal for numerical
-stability.
-This is the pre-Fisher form of the practical algorithm of
-\citet{garg_fisher-orthogonal_2026}, in which the stored basis carries its
-collection-time Fisher weighting; it is the variant implemented and
-evaluated throughout this thesis, and it makes the relationship to
-\texttt{iFOPNG} exact: the latter is obtained by the single substitution
-$\hat{F}_{\mathrm{new}} \to F_c$ in the preconditioner, the trust region,
-and the projection kernel.
-We reproduce the per-benchmark learning rates and $\lambda$ values from
-\citet{garg_fisher-orthogonal_2026} Table~1 for standalone configurations,
-and use a uniform $\mathrm{lr}{=}10^{-3}$, $\lambda{=}10^{-3}$ for all
-hypernetwork configurations.
+where $F_{\mathrm{new}}$ is the current-task empirical Fisher,
+$F_{\mathrm{old}}$ is the accumulated historical Fisher under which the
+stored directions were collected, and $\lambda I$ is a damping term for
+numerical stability.
+This is the pre-Fisher form of \citet{garg_fisher-orthogonal_2026}, in
+which the stored basis carries its collection-time Fisher weighting.
 
+% Single substitution: F_new -> F_c
 \subsubsection{Inertial FOPNG}
 \label{sec:ifopng}
 
-In FOPNG, the parameter update takes the form
-\begin{equation}
-    v = c\,\hat{F}_{\mathrm{new}}^{-1}(g - u),
-    \label{eq:fopng_update_form}
-\end{equation}
-where $\hat{F}_{\mathrm{new}}$ serves as the Riemannian metric: both the
-trust-region constraint $\|v\|_{\hat{F}_{\mathrm{new}}} = \eta$ and the
-projection objective $\|g - \hat{F}_{\mathrm{new}}^{-1}u\|^2_{\hat{F}_{\mathrm{new}}}$
-are measured in the current task's Fisher geometry.
-This is natural when no prior tasks exist, but creates an asymmetry once
-history accumulates: the constraint subspace $\mathrm{Col}(G)$ is built from
-gradient directions collected under $\hat{F}_{\mathrm{old}}$, yet the
-projection metric assigns zero curvature to parameters that were important
-in previous tasks but uninformative on the current one.
+In FOPNG the Riemannian metric governing both the trust-region constraint
+and the projection objective is $F_{\mathrm{new}}$ alone.
+This is natural on the first task but creates an asymmetry as history
+accumulates: the subspace $\operatorname{Col}(G)$ encodes directions
+important to prior tasks, yet the metric assigns zero curvature to
+parameters that were important previously but are uninformative on the
+current task, allowing the update to move freely through historically
+sensitive directions.
 
-\texttt{iFOPNG} is introduced in this thesis as a variant of FOPNG that
-resolves this asymmetry by adopting the \emph{combined metric}
+\texttt{iFOPNG} resolves this asymmetry by replacing $F_{\mathrm{new}}$
+with the \emph{combined metric}
 \begin{equation}
-    F_c \coloneqq\; \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}},
+    F_c \;\coloneqq\; F_{\mathrm{new}} + F_{\mathrm{old}},
     \label{eq:combined_fisher}
 \end{equation}
-where $\hat{F}_{\mathrm{old}}$ is maintained as the element-wise maximum of
-all per-task Fisher diagonals accumulated so far.
-Replacing \eqref{eq:fopng_update_form} with $v = c\,F_c^{-1}(g - u)$, the
-constrained trust-region update becomes
+where $F_{\mathrm{old}}$ is maintained as the element-wise maximum of all
+per-task Fisher diagonals accumulated so far.
+Substituting $F_c$ for $F_{\mathrm{new}}$ throughout
+Equation~\eqref{eq:fopng} yields:
 \begin{equation}
     v^* = -\eta\,
     \frac{F_c^{-1}Pg}{\sqrt{(Pg)^\top F_c^{-1}Pg}},
     \qquad
-    P = I - \hat{F}_{\mathrm{old}}\,G\,A^{-1}\,G^\top\hat{F}_{\mathrm{old}},
+    P = I - F_{\mathrm{old}}\,G\,A^{-1}\,G^\top F_{\mathrm{old}},
     \label{eq:ifopng}
 \end{equation}
-where $A = G^\top\hat{F}_{\mathrm{old}}\,F_c^{-1}\,\hat{F}_{\mathrm{old}}\,G$.
-A formal derivation is provided in Appendix~A.
+where $A = G^\top F_{\mathrm{old}}\,F_c^{-1}\,F_{\mathrm{old}}\,G
++ \lambda I$.
+This update is derived as the closed-form solution of the trust-region
+projection problem in Theorem~\ref{thm:ifopng}
+(Appendix~\ref{app:a}).
 
-The combined metric $F_c$ assigns each coordinate $i$ an effective mass
-$(\hat{F}_{\mathrm{new}})_i + (\hat{F}_{\mathrm{old}})_i$, suppressing the
-natural-gradient step size in directions important to any prior task.
-We call this property \emph{parameter inertia}: accumulated Fisher importance
-makes a coordinate harder to displace without any explicit penalty term.
-In direct contrast to EWC \citep{kirkpatrick_overcoming_2017}, which pulls
-parameters toward a stored reference point $\theta^*$, \texttt{iFOPNG}
-maintains no reference point: a parameter that mattered before is not pulled
-back, it is simply made harder to displace.
-% 
+The combined metric assigns each coordinate $i$ an effective curvature
+$(F_{\mathrm{new}})_i + (F_{\mathrm{old}})_i$, suppressing the step size
+in directions important to any task in the sequence.
+We call this \emph{parameter inertia}: a coordinate that accumulated high
+Fisher importance is not pulled back toward a stored reference point ---
+it is made harder to displace.
+This contrasts with EWC \citep{kirkpatrick_overcoming_2017}, which achieves
+retention through an explicit quadratic penalty anchored at $\theta^*$;
+\texttt{iFOPNG} achieves it geometrically, through the ambient metric alone.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Hypernetwork Architecture}
 \label{sec:hn_arch}
@@ -261,20 +229,21 @@ Section~\ref{sec:normalization}.
 The functional regularizer of \citet{oswald_continual_2020} is active for
 all hypernetwork configurations, with regularization strength $\beta$ treated
 as a tunable hyperparameter (see Appendix~\ref{app:hyperparameters}).
+
 \subsubsection{Target Network and Dropout}
 \label{sec:dropout}
 Standalone configurations reproduce the target network architecture of
 \citet{garg_fisher-orthogonal_2026} without modification, including two
 \texttt{Dropout}$(p{=}0.5)$ layers in the \texttt{SimpleCIFARCNN} classifier
 head.
-Dropout is removed from the target network in all hypernetwork configurations:
-\texttt{PyTorch}'s \texttt{functional\_call} propagates the parent module's
-\texttt{.training} mode to the target submodule, causing stochastic masking
-across all chunk-generation passes during training.
-The generative bottleneck $(\phi: d_t{+}d_c \to d_h \to C_s)$ and the
-functional regularizer $\mathcal{L}_\mathrm{reg}$ provide sufficient implicit
-regularization in its place.
-
+Dropout is removed from the target network in all hypernetwork configurations.
+In chunked generation, the hypernetwork executes $K$ sequential forward
+passes through the same target architecture before any gradient update;
+because all passes share the parent module's training state, stochastic
+dropout masks are resampled independently on every chunk pass, injecting
+uncontrolled noise into the gradient signal accumulated across chunks.
+Removing dropout eliminates this source of variance without modifying
+any other aspect of the target architecture
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Novel Algorithmic Contributions}
 \label{sec:novel}
@@ -285,7 +254,7 @@ regularization in its place.
 When a hypernetwork spawns $K$ sequential weight-chunks before a single
 projection step executes, the accumulated gradient vector and the diagonal
 Fisher entries grow in magnitude proportionally to $K$, inflating the
-condition number of the projection kernel $G^\top\hat{F}G$ and causing the
+condition number of the projection kernel $A$ and causing the
 matrix inversion in Equation~\eqref{eq:fopng} to fail catastrophically for
 any practically sized target network.
 
@@ -319,42 +288,74 @@ distinct sources of ill-conditioning:
         jointly divided by a single scale factor derived from the
         maximum entry of the method's ambient metric $F^*$:
         \begin{equation}
-            s = \max\bigl(\max_i(F^*)_i,\; 1\bigr),
+            s = \max\bigl(F^*,\; 1\bigr),
             \qquad
             \tilde{F} = F \,/\, s
-            \;\;\text{for } F \in \bigl\{\hat{F}_{\mathrm{old}},\,
-            \hat{F}_{\mathrm{new}},\, F^*\bigr\},
+            \;\;\text{for } F \in \bigl\{F_{\mathrm{old}},\,
+            F_{\mathrm{new}},\, F_c\bigr\},
             \qquad \tilde{\lambda} = \lambda \,/\, s,
             \label{eq:scaling}
         \end{equation}
-        where $F^* = \hat{F}_{\mathrm{new}}$ for \texttt{FNG}, \texttt{ONG},
+        where $F^* = F_{\mathrm{new}}$ for \texttt{FNG}, \texttt{ONG},
         and \texttt{FOPNG}, and $F^* = F_c$ for \texttt{iFOPNG}.
         The clamp to 1 prevents division below unity when the Fisher is
         near-zero.
-        Critically, the damping coefficient $\lambda$ is rescaled by the
-        same factor, so its ratio to the Fisher magnitude is preserved
-        across tasks regardless of how the Fisher scale drifts as more
-        tasks accumulate.
-        Because the projection kernel $A$, its pseudo-inverse, and the
-        trust-region denominator are all computed under the same rescaled
-        metric, the direction of $v^*$ is invariant to $s$; only the
-        condition number of $A$ is reduced, which is the sole purpose of
-        the operation.
+        The damping coefficient $\lambda$ is rescaled by the same factor,
+        so its ratio to the Fisher magnitude is held fixed as the absolute
+        Fisher scale drifts across tasks. This is necessary because a
+        single additive $\lambda$ cannot regularise the kernel by itself
+        once chunk accumulation has inflated its spectrum: with the
+        smallest and largest eigenvalues of $A$ separated by as much as ten
+        orders of magnitude (Section~\ref{sec:results_rq2}), any $\lambda$
+        large enough to lift the smallest eigenvalues away from zero
+        simultaneously swamps the informative mid-spectrum directions,
+        while any $\lambda$ small enough to leave those directions intact
+        is negligible against the largest eigenvalues and does nothing for
+        the conditioning. Because the condition number is invariant to a
+        positive scalar multiple of $A$, the rescaling does not reduce
+        $\kappa(A)$ directly; its purpose is to return the absolute
+        magnitudes of $A$, its damped inverse, and the trust-region
+        denominator to a range in which finite-precision arithmetic
+        retains its significant digits and the fixed $\lambda$ acts as a
+        meaningful regulariser rather than as numerical noise. 
+        % The normalisation is heuristic: it stabilises the inversion of $A$
+        % without providing algebraic guarantees on the resulting update % Hmm, maybe thats not needed.
+        direction.
 \end{enumerate}
 
-Together, these operations ensure $G^\top\tilde{F}G$ remains
-well-conditioned regardless of the number of chunks spawned per task.
-Gradient orthonormalization eliminates column-scale inflation in $G$;
-metric-tensor normalization bounds the Fisher entries to $[0, 1]$,
-preventing the kernel from becoming numerically singular.
+Together, these operations ensure that the method-specific projection
+kernel $A$ remains well-conditioned regardless of the number of chunks
+spawned per task.
+The kernel differs structurally across methods:
+\begin{equation}
+    A =
+    \begin{cases}
+        G^\top G + \lambda I
+            & \text{\texttt{OGD}, \texttt{ONG}} \\[4pt]
+        G^\top F_{\mathrm{old}}\,
+            F_{\mathrm{new}}^{-1}\,
+            F_{\mathrm{old}}\, G + \lambda I
+            & \text{\texttt{FOPNG}} \\[4pt]
+        G^\top F_{\mathrm{old}}\,
+            F_c^{-1}\,
+            F_{\mathrm{old}}\, G + \lambda I
+            & \text{\texttt{iFOPNG}}
+    \end{cases}
+    \label{eq:projection_kernel}
+\end{equation}
+Gradient orthonormalization eliminates column-scale inflation in $G$,
+which directly reduces the spectral range of $A$ for all three variants.
+Metric-tensor normalization bounds $\tilde{F}$ to $[0,\,1]$, preventing
+the Fisher-weighted variants from producing numerically singular $A$.
+The \texttt{OGD}/\texttt{ONG} kernel is unaffected by metric-tensor
+scaling by construction.
 Subspace membership is invariant to positive scalar rescaling of basis
 vectors, so neither operation alters the geometry of the projection.
 
-
 % \paragraph{Principled rescaling and open problem.}
 % \label{sec:ng_limitation}
-% The proposed normalization — QR orthonormalization of the gradient basis
-% combined with max-entry scaling of $F_c$ — is heuristic in nature: it
+% The proposed normalization --- QR orthonormalization of the gradient basis
+% combined with max-entry scaling of $F_c$ --- is heuristic in nature: it
 % discards the eigenvalue structure of the pullback metric and applies
 % isotropic rather than curvature-aware rescaling to the chunk embedding
 % directions.
@@ -371,13 +372,13 @@ vectors, so neither operation alters the geometry of the projection.
 % $d_c \ll C_s$.
 % This preconditioner was implemented and evaluated experimentally.
 % Applied to the raw gradient \emph{prior} to the projection step, it
-% consistently degraded continual learning performance — BWT worsened by
+% consistently degraded continual learning performance --- BWT worsened by
 % approximately $0.33$ on Split-MNIST SH relative to the heuristic baseline.
 % We attribute this to a metric mismatch: the FOPNG projection operator is
 % calibrated for gradients in Euclidean parameter space, and preconditioning
 % only the chunk embedding component before projection produces a
-% geometrically inconsistent input to the kernel $G^\top\hat{F}G$.
-% The principled resolution — applying $(J_i^\top J_i + \lambda I)^{-1}$
+% geometrically inconsistent input to the kernel $G^\topFG$.
+% The principled resolution --- applying $(J_i^\top J_i + \lambda I)^{-1}$
 % to the projected update $v^*$ rather than to the raw gradient, so that the
-% projection sees Euclidean gradients and the Riemannian step follows — is
+% projection sees Euclidean gradients and the Riemannian step follows --- is
 % left to future work.

@@ -69,8 +69,16 @@
 \def\finalyear{2026}
 \def\supervisor{dr. Giacomo Spiegler}
 \def\committee{Daniëlle van de Velde}
-\def\acknowledgments{The author thanks dr.\ Giacomo Spiegler for supervision and feedback throughout this project.}
-\def\wordcount{$\approx$8500}
+\def\acknowledgments{The author thanks dr.\ Giacomo Spiegler for supervision and feedback throughout this project.
+
+The algorithmic framework of this thesis builds directly on the
+Fisher-Orthogonal Projected Natural Gradient method of
+\citet{garg_fisher-orthogonal_2026}, whose derivations and design
+served as the primary technical foundation for \texttt{iFOPNG}.
+The hypernetwork architecture, weight-chunking scheme, and functional
+regularizer are due to \citet{oswald_continual_2020} and are adopted
+here.}
+\def\wordcount{$\approx$ 7861}
 
 \hypersetup{pdfauthor   = \yourname,
             pdftitle    = \thesistitle\ \subtitle,
@@ -103,16 +111,6 @@
 \input{sections/conclusions.tex}
 
 
-\section*{Acknowledgements}
-
-The algorithmic framework of this thesis builds directly on the
-Fisher-Orthogonal Projected Natural Gradient method of
-\citet{garg_fisher-orthogonal_2026}, whose derivations and design
-served as the primary technical foundation for \texttt{iFOPNG}.
-The hypernetwork architecture, weight-chunking scheme, and functional
-regularizer are due to \citet{oswald_continual_2020} and are adopted
-here without modification.
-
 %TC:ignore
 \newpage
 \bibliography{references}
@@ -120,6 +118,7 @@ here without modification.
 \clearpage
 \section{Appendix}
 \input{appendix/proof_ifopng.tex} % A
+\newpage
 
 \input{appendix/standalone_targetnetwork.tex} % B
 
@@ -128,7 +127,7 @@ here without modification.
 \input{appendix/additional_experiments.tex} % D
 
 \input{appendix/full_benchmark.tex} % E
-
+\newpage
 \input{appendix/hyper_parameters.tex} % F
 % TC:endignore
 

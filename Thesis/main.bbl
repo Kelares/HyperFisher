@@ -57,6 +57,34 @@ Bennani, M\BPBI A.%
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
+Chang%
+, Flokas%
+\BCBL {}\ \BBA {} Lipson%
+}{%
+Chang%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2020}}%
+}]{%
+chang_principled_2020}
+\APACinsertmetastar {%
+chang_principled_2020}%
+\begin{APACrefauthors}%
+Chang, O.%
+, Flokas, L.%
+\BCBL {}\ \BBA {} Lipson, H.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2020}{}{}.
+\newblock
+{\BBOQ}\APACrefatitle {Principled Weight Initialization for Hypernetworks} {Principled weight initialization for hypernetworks}.{\BBCQ}
+\newblock
+\BIn{} \APACrefbtitle {8th International Conference on Learning Representations (ICLR).} {8th international conference on learning representations (iclr).}
+\newblock
+\begin{APACrefURL} \url{https://openreview.net/forum?id=H1lma24tPB} \end{APACrefURL}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
 De~Lange%
 \ \protect \BOthers {.}}{%
 De~Lange%
@@ -150,38 +178,6 @@ Farquhar, S.%
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
-Fuente%
-\ \protect \BOthers {.}}{%
-Fuente%
-\ \protect \BOthers {.}}{%
-{\protect \APACyear {2025}}%
-}]{%
-fuente_prototype_2025}
-\APACinsertmetastar {%
-fuente_prototype_2025}%
-\begin{APACrefauthors}%
-Fuente, N\BPBI D\BPBI L.%
-, Pilligua, M.%
-, Vidal, D.%
-, Soutiff, A.%
-, Curreli, C.%
-, Cremers, D.%
-\BCBL {}\ \BBA {} Barsky, A.%
-\end{APACrefauthors}%
-\unskip\
-\newblock
-\APACrefYearMonthDay{2025}{}{}.
-\newblock
-\APACrefbtitle {Prototype Augmented Hypernetworks for Continual Learning} {Prototype augmented hypernetworks for continual learning}\ (\BNUM\ {arXiv}:2505.07450).
-\newblock
-\APACaddressPublisher{}{{arXiv}}.
-\newblock
-\begin{APACrefURL} [{2026-02-28}]\url{http://arxiv.org/abs/2505.07450} \end{APACrefURL}
-\newblock
-\begin{APACrefDOI} \doi{10.48550/arXiv.2505.07450} \end{APACrefDOI}
-\PrintBackRefs{\CurrentBib}
-
-\bibitem [\protect \citeauthoryear {%
 Garg%
 , Kolhe%
 , Peng%
@@ -267,38 +263,6 @@ Ha, D.%
 \begin{APACrefURL} [{2026-02-21}]\url{http://arxiv.org/abs/1609.09106} \end{APACrefURL}
 \newblock
 \begin{APACrefDOI} \doi{10.48550/arXiv.1609.09106} \end{APACrefDOI}
-\PrintBackRefs{\CurrentBib}
-
-\bibitem [\protect \citeauthoryear {%
-Hemati%
-, Lomonaco%
-, Bacciu%
-\BCBL {}\ \BBA {} Borth%
-}{%
-Hemati%
-\ \protect \BOthers {.}}{%
-{\protect \APACyear {2023}}%
-}]{%
-hemati_partial_2023}
-\APACinsertmetastar {%
-hemati_partial_2023}%
-\begin{APACrefauthors}%
-Hemati, H.%
-, Lomonaco, V.%
-, Bacciu, D.%
-\BCBL {}\ \BBA {} Borth, D.%
-\end{APACrefauthors}%
-\unskip\
-\newblock
-\APACrefYearMonthDay{2023}{}{}.
-\newblock
-\APACrefbtitle {Partial Hypernetworks for Continual Learning} {Partial hypernetworks for continual learning}\ (\BNUM\ {arXiv}:2306.10724).
-\newblock
-\APACaddressPublisher{}{{arXiv}}.
-\newblock
-\begin{APACrefURL} [{2026-02-28}]\url{http://arxiv.org/abs/2306.10724} \end{APACrefURL}
-\newblock
-\begin{APACrefDOI} \doi{10.48550/arXiv.2306.10724} \end{APACrefDOI}
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
@@ -458,6 +422,35 @@ Oswald, J\BPBI v.%
 \PrintBackRefs{\CurrentBib}
 
 \bibitem [\protect \citeauthoryear {%
+Ven%
+\ \BBA {} Tolias%
+}{%
+Ven%
+\ \BBA {} Tolias%
+}{%
+{\protect \APACyear {2019}}%
+}]{%
+ven_three_2019}
+\APACinsertmetastar {%
+ven_three_2019}%
+\begin{APACrefauthors}%
+Ven, G\BPBI M\BPBI v\BPBI d.%
+\BCBT {}\ \BBA {} Tolias, A\BPBI S.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2019}{}{}.
+\newblock
+\APACrefbtitle {Three scenarios for continual learning} {Three scenarios for continual learning}\ (\BNUM\ {arXiv}:1904.07734).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-06-17}]\url{http://arxiv.org/abs/1904.07734} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1904.07734} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
 Yadav%
 , Mendoza%
 \BCBL {}\ \BBA {} Korrapati%
@@ -485,6 +478,36 @@ Yadav, Y.%
 \begin{APACrefURL} [{2026-06-04}]\url{http://arxiv.org/abs/2508.17169} \end{APACrefURL}
 \newblock
 \begin{APACrefDOI} \doi{10.48550/arXiv.2508.17169} \end{APACrefDOI}
+\PrintBackRefs{\CurrentBib}
+
+\bibitem [\protect \citeauthoryear {%
+Zenke%
+, Poole%
+\BCBL {}\ \BBA {} Ganguli%
+}{%
+Zenke%
+\ \protect \BOthers {.}}{%
+{\protect \APACyear {2017}}%
+}]{%
+zenke_continual_2017}
+\APACinsertmetastar {%
+zenke_continual_2017}%
+\begin{APACrefauthors}%
+Zenke, F.%
+, Poole, B.%
+\BCBL {}\ \BBA {} Ganguli, S.%
+\end{APACrefauthors}%
+\unskip\
+\newblock
+\APACrefYearMonthDay{2017}{}{}.
+\newblock
+\APACrefbtitle {Continual Learning Through Synaptic Intelligence} {Continual learning through synaptic intelligence}\ (\BNUM\ {arXiv}:1703.04200).
+\newblock
+\APACaddressPublisher{}{{arXiv}}.
+\newblock
+\begin{APACrefURL} [{2026-06-17}]\url{http://arxiv.org/abs/1703.04200} \end{APACrefURL}
+\newblock
+\begin{APACrefDOI} \doi{10.48550/arXiv.1703.04200} \end{APACrefDOI}
 \PrintBackRefs{\CurrentBib}
 
 \end{thebibliography}

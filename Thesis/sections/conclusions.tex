@@ -35,14 +35,16 @@ vastly superior.
 This performance gap stems from an architectural
 conflict, not projection geometry.
 Under extreme compression ($d_h = 8$), Fisher-based
-projection methods suffer a severe \emph{plasticity}
-failure, exhausting the gradient budget and halting
-new task acquisition.
+projection methods suffer a severe \emph{retention}
+failure, experiencing substantial negative backward transfer
+as the constraint fails to protect prior knowledge.
 Because projection modifies raw gradients before the
 optimizer updates, it discards adaptive momentum.
 In hypernetworks, this momentum acts as a crucial
 structural regularizer; without it, the network commits
-prematurely to poorly-conditioned gradient directions.
+prematurely to poorly-conditioned gradient directions,
+destabilizing the generative manifold and causing
+catastrophic interference.
 
 Ultimately, the loss of adaptive momentum is
 the binding constraint.
@@ -50,7 +52,7 @@ Integrating gradient projection into hypernetworks
 will require projection-compatible adaptive optimizers,
 rather than post-hoc gradient modifications \citep{hu_hidden_2026}.
 
-\paragraph{Sub-RQ2 — Normalization is a necessary condition.}
+\paragraph{Sub-RQ2 --- Normalization Is a Necessary Condition.}
 Without explicit local rescaling, projection methods are numerically
 incompatible with chunked hypernetworks: matrix inversion in the projection
 kernel collapses completely, degrading performance below plain SGD.
@@ -61,26 +63,26 @@ future combination of gradient projection with chunked meta-learners,
 regardless of which projection algebra is employed.
 
 \paragraph{Sub-RQ3 --- Parameter Inertia via Combined Fisher Metric.}
-Replacing the task-specific Fisher metric with the combined inertial metric ($F_c$)
-systematically improves retention as task difficulty and output-level interference
-increase. On simple benchmarks, both methods are statistically indistinguishable.
-On harder standalone benchmarks like Split-CIFAR10, \texttt{iFOPNG} provides
-a clear, statistically significant advantage ($+13.8$~pp, $p < 0.05$). This
-substantial raw advantage carries over into the hypernetwork settings, yielding
-performance gaps of $+11.8$~pp and $+8.6$~pp. However, these specific hypernetwork
-improvements do not reach statistical significance due to elevated inter-seed
-variance. Ultimately, integrating parameter inertia yields a consistent retention
-advantage that scales directly with benchmark complexity. % THIS CAN STILL BE IMPROVED.
+Replacing the task-specific Fisher metric with the combined inertial metric
+($F_c$) improves retention in direction across every benchmark tested.
+The advantage is statistically significant on four of the five standalone
+benchmarks, including Permuted-MNIST, where it is negligible in size
+($+0.3$~pp) yet reliable on account of its consistency across seeds; the only
+standalone null is the near-ceiling Split-MNIST multi-head ($+0.7$~pp,
+$p = .325$). The advantage is largest on Split-CIFAR10 ($+14.1$~pp,
+$p = .024$), alongside a substantial gain on Split-MNIST single-head ($+11.8$~pp). The same positive direction carries into the three hypernetwork
+settings, though none reaches significance under the elevated inter-seed
+variance of that regime. Integrating parameter inertia therefore yields a
+positive retention advantage in every setting: statistically robust across the
+standalone benchmarks, and directionally consistent but underpowered in the
+hypernetwork settings.
 
-
-\paragraph{Sub-RQ4 — MAX accumulation is the clear practical choice.} 
-Addressing the trade-off between long-horizon retention and plasticity, the element-wise maximum (MAX) 
-operator proved systematically superior to an exponential moving average(EMA). While the absolute performance
-advantage is small ($\sim$$1.60$~pp) on a twenty-task sequence, it is statistically unambiguous across
-all seeds. Crucially, the hypothesized plasticity cost associated with the monotonic growth
-of the MAX operator did not materialize over the extended task sequence, likely because the
-chosen normalization scheme minimizes sensitivity to absolute scale. Therefore, MAX emerges as the definitive practical
-choice: it avoids plasticity degradation while remaining a simpler, hyperparameter-free, and marginally superior alternative.
+\paragraph{Sub-RQ4 --- MAX Accumulation Is the Clear Practical Choice.}
+On a twenty-task sequence the element-wise maximum operator was statistically
+superior to an exponential moving average (${\sim}1.60$~pp, $p < 0.001$),
+and the hypothesised plasticity cost of its monotonic growth did not
+materialise. MAX is therefore preferred: hyperparameter-free, simpler, and
+marginally better.
 
 \paragraph{Implications for the field.}
 The results establish a clear empirical boundary for the current generation
@@ -99,17 +101,18 @@ the next step: a projected adaptive optimizer that respects both the
 geometric constraints of the projection and the curvature structure that
 adaptive moment estimates capture.
 
-\paragraph{Future directions.}
-The most immediate extension is developing
-projection-compatible adaptive optimizers that maintain
-momentum across constrained updates \citep{hu_hidden_2026}.
-Additionally, the heuristic QR normalization, FIM max scaling scheme
-must be replaced with a principled reformulation
-that integrates chunk-Jacobian curvature directly
-into the projection algebra.
-Finally, future work should systematically evaluate
-these interactions on extended task sequences,
-where soft regularization penalties may degrade,
-and on larger target architectures,
-where the documented condition number blowup
-will require more robust mitigation.
+% \paragraph{Future directions.}
+% The most immediate extension is developing
+% projection-compatible adaptive optimizers that maintain
+% momentum across constrained updates \citep{hu_hidden_2026}.
+
+% Additionally, the heuristic QR normalization, FIM max scaling scheme
+% must be replaced with a principled reformulation
+% that integrates chunk-Jacobian curvature directly
+% into the projection algebra.
+% Finally, future work should systematically evaluate
+% these interactions on extended task sequences,
+% where soft regularization penalties may degrade,
+% and on larger target architectures,
+% where the documented condition number blowup
+% will require more robust mitigation.

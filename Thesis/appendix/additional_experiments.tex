@@ -5,10 +5,8 @@
 \section*{Appendix D: Additional Experiment Figures}
 \label{app:additional}
 
-This appendix collects seven figures that are referenced in the Results section
+This appendix collects six figures that are referenced in the Results section
 but omitted from the main text for space.
-Figure~\ref{fig:heatmap_c8} provides the per-task accuracy matrix for the
-Split-CIFAR10 hypernetwork experiment.
 Figure~\ref{fig:hn_cifar100} shows the full method comparison on the
 ten-task Split-CIFAR100 hypernetwork benchmark.
 Figure~\ref{fig:sgd_threshold} documents the SGD first-task convergence
@@ -23,46 +21,13 @@ Figure~\ref{fig:seed2137_failure} documents the seed-2137 initialization
 failure on the Split-MNIST hypernetwork benchmark that motivated the
 seed-replacement policy of Section~\ref{sec:hparam_provenance}.
 
-% ── D.1  Per-task accuracy matrix — Split-CIFAR10 HN ─────────────────────────
 
+% ── D.1  Split-CIFAR100 HN ────────────────────────────────────────────────────
+% ITS GOOD THAT I AM REPORTING THE SPLIT CIFAR100 FOR HN SOMEWHERE BUT I DID KINDA JUST EXCLUDE IT FROM RESULTS.
+% I SHOULD HAVE A GOOD JUSTIFICATION FOR THAT.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figures/hypernetwork-heatmaps_8-fig3_heatmaps.pdf}
-    \caption{%
-        \textbf{Per-task accuracy matrix --- Split-CIFAR10 hypernetwork,
-        seed-averaged (Sub-RQ1).}
-        Each matrix shows the accuracy on task $j$ (column) after completing
-        training through task $i$ (row).
-        Only the lower triangle is populated; the diagonal gives the
-        just-trained task's accuracy and off-diagonal entries measure
-        retention of earlier tasks.
-        Four methods are shown: \texttt{iFOPNG}, \texttt{FOPNG},
-        \texttt{EWC}, and \texttt{Adam}.
-        %
-        The T1 column is the primary retention indicator.
-        \texttt{iFOPNG}, \texttt{FOPNG}, and \texttt{EWC} hold T1 accuracy
-        stable at $0.78$, $0.80$, and $0.79$ respectively across all five
-        task transitions.
-        \texttt{Adam} retains T1 at only $0.65$ --- $0.13$~pp lower ---
-        indicating that the unconstrained adaptive optimizer forgets more of
-        the first task than any of the projection or regularization methods.
-        However, \texttt{Adam} achieves the highest forward transfer on the
-        final task: the T5 diagonal entry is $0.79$, compared to $0.77$
-        (\texttt{iFOPNG}), $0.76$ (\texttt{FOPNG}), and $0.78$
-        (\texttt{EWC}).
-        The average accuracy gap between \texttt{Adam} and projection methods
-        in the main text therefore reflects weaker forward transfer to later
-        tasks, not stronger forgetting of earlier ones --- a distinction
-        visible directly in this matrix.
-    }
-    \label{fig:heatmap_c8}
-\end{figure}
-
-% ── D.2  Split-CIFAR100 HN ────────────────────────────────────────────────────
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/hypernetwork-cifar100_11.png}
+    \includegraphics[width=\linewidth]{figures/hypernetwork-cifar100_11.pdf}
     \caption{%
         \textbf{Split-CIFAR100 hypernetwork --- 10 tasks, 50 epochs per task,
         \texttt{AdamW} first-task initialisation at $10^{-3}$.}
@@ -85,7 +50,7 @@ seed-replacement policy of Section~\ref{sec:hparam_provenance}.
     \label{fig:hn_cifar100}
 \end{figure}
 
-% ── D.3  SGD first-task convergence threshold ─────────────────────────────────
+% ── D.2  SGD first-task convergence threshold ─────────────────────────────────
 
 \begin{figure}[H]
     \centering
@@ -117,10 +82,10 @@ seed-replacement policy of Section~\ref{sec:hparam_provenance}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.80\linewidth]{figures/ogd-lr-sweep-simple_11.png}
+    \includegraphics[width=0.80\linewidth]{figures/ogd-lr-sweep-simple_11.pdf}
     \caption{%
         \textbf{\texttt{OGD} learning rate sweep --- Split-CIFAR100
-        hypernetwork (10 tasks, standard capacity), $n = 3$ seeds per rate.}
+        hypernetwork (10 tasks, standard capacity), $n = 5$ seeds per rate.}
         Left: final average accuracy.  Right: final backward transfer.
         Bars show seed mean; error bars show $\pm 1$ standard deviation;
         circles show individual seeds.
@@ -140,7 +105,7 @@ seed-replacement policy of Section~\ref{sec:hparam_provenance}.
     \label{fig:ogd_lr_sweep}
 \end{figure}
 
-% ── D.5  EMA vs MAX per-seed comparison ──────────────────────────────────────
+% ── D.4  EMA vs MAX per-seed comparison ──────────────────────────────────────
 % THIS SECTION ONLY EXPANDS BY ADDING THE FIGURE. ALMOST ALL OF THE CAPTION'S 
 % CONTENT ALREADY EXISTS IN RESULTS EMA VS MAX SECTION.
 \begin{figure}[H]
@@ -169,12 +134,12 @@ seed-replacement policy of Section~\ref{sec:hparam_provenance}.
     \label{fig:ema_vs_max}
 \end{figure}
 
-% ── D.6  Gradient memory compression ablation ────────────────────────────────
+% ── D.5  Gradient memory compression ablation ────────────────────────────────
 % MIGHT BE BECAUSE OF THE GRADIENTS BEING PRACTICALL ORTHOGONAL NO MATTER WHAT I DO.
 % STOP, COMPRESS, ROLL. DOESNT MATTER
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/compression-ablation_421-422-423.png}
+\includegraphics[width=\linewidth]{figures/compression-ablation_421-422-423.pdf}
 \caption{%
         \textbf{Gradient memory compression ablation ---
         20-task Permuted-MNIST, \texttt{iFOPNG} with MAX accumulation,
@@ -205,7 +170,7 @@ seed-replacement policy of Section~\ref{sec:hparam_provenance}.
 \end{figure}
 
 
-% ── D.7  Seed-2137 initialization failure — Split-MNIST HN ──────────────────
+% ── D.6  Seed-2137 initialization failure — Split-MNIST HN ──────────────────
 
 \begin{figure}[H]
 \centering

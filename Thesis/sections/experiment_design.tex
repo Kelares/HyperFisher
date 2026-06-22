@@ -15,6 +15,33 @@ projection methods against an unconstrained baseline, and \texttt{iFOPNG}
 against \texttt{FOPNG} respectively. Sub-RQ2 requires a controlled ablation
 over normalization conditions. Sub-RQ4 requires a long-horizon comparison of
 two Fisher accumulation operators on the same inertial combined-metric preconditioner.
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Benchmarks}
+\label{sec:benchmarks}
+
+Experiments are conducted on four standard continual learning benchmarks,
+following the selection of \citet{garg_fisher-orthogonal_2026} to enable
+direct numerical comparison.
+
+\textbf{Permuted-MNIST} \citep{kirkpatrick_overcoming_2017} applies a distinct
+fixed random pixel permutation per task to a shared digit-classification head,
+evaluated as a 5-task stream in the standalone suite (Sub-RQ3) and as a
+20-task long-horizon stream for the accumulation-operator comparison (Sub-RQ4).
+
+\textbf{Split-MNIST} splits the 10-digit dataset into 5 binary tasks of
+2 classes each; the multi-head protocol follows \citet{zenke_continual_2017}
+and the single-head variant follows \citet{ven_three_2019}, constituting the
+harder evaluation.
+
+\textbf{Split-CIFAR10} \citep{zenke_continual_2017} splits CIFAR-10 into
+5 two-class tasks under a multi-head protocol, providing genuine visual
+inter-task interference.
+
+\textbf{Split-CIFAR100} \citep{zenke_continual_2017} extends this to 10
+tasks of 10 classes each, testing scalability under a multi-head protocol.
+Hypernetwork configurations are evaluated on Split-MNIST, Split-CIFAR10,
+and Split-CIFAR100 with the architectural modifications described in
+Section~\ref{sec:hn_arch}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsubsection{Hyperparameter Provenance}
@@ -56,53 +83,56 @@ capped at $1{,}024$ samples to maintain computational tractability --- a standar
 approximation consistent with prior CIFAR-10 evaluations \citep{kirkpatrick_overcoming_2017}. 
 The gradient budget remains $K = 80$ per task, with memory compression handled via 
 QR-and-SVD (Section~\ref{sec:projection_methods}). First-task training uses 
-\texttt{AdamW} to seed the memory matrix $G$ and Fisher estimate $\hat{F}$ from a 
+\texttt{AdamW} to seed the memory matrix $G$ and Fisher estimate $F$ from a 
 clean geometric basis.
 
-\paragraph{Uniform learning rate control.}
-To isolate the projection constraint as the sole independent variable in the 
-hypernetwork experiments, all methods use a uniform learning rate of $10^{-3}$ 
-rather than method-specific rates. This prevents convergence-speed artifacts 
-from conflating the structural effects of the projection geometry.
+Because no prior work evaluates these projection methods inside a chunked
+hypernetwork, the hypernetwork results are not benchmarked against any
+external baseline and the absolute accuracies are not directly comparable to
+the standalone numbers or to those of \citet{garg_fisher-orthogonal_2026}.
+They are instead governed by three internally controlled choices: a uniform
+learning rate of $10^{-3}$ across all methods, the functional regularizer of
+\citet{oswald_continual_2020} active throughout, and a generator capacity
+selected from the architecture ablation in Appendix~\ref{app:hn_ablations}.
+The comparisons are therefore valid only within this fixed configuration,
+where the projection geometry is the sole independent variable.
 
-\paragraph{Early stopping.}
-Per-task training duration is governed by a single early-stopping rule
-shared verbatim by every method, baseline and projection alike.
-Training on a task terminates at the first of three conditions:
-the average training loss falls below $0.1$;
-ten consecutive epochs elapse without improving the best training loss
-observed on that task;
-or the benchmark's epoch cap (Appendix~\ref{app:hyperparameters}) is
-reached.
-A coupled scheduler reduces the learning rate after every three
-consecutive non-improving epochs, stepping through half-magnitude
-decrements ($10^{-2} \to 5 \times 10^{-3} \to 10^{-3} \to \dots$).
-Upon termination, the parameters of the best-loss epoch --- not the final
-epoch --- are restored and carried into the next task.
-The criterion consults only the training loss, so the stopping rule never
-observes held-out data; per-task duration is therefore adaptive while
-introducing no method-specific degree of freedom.
+\paragraph{Training duration and scheduling.}
+Per-task training terminates at the first of: loss falling below $0.1$;
+ten consecutive non-improving epochs; or the benchmark epoch cap
+(Appendix~\ref{app:hyperparameters}).
+A learning rate scheduler halves the magnitude after every three
+non-improving epochs; the best-loss parameter state is restored at
+termination.
 
 \paragraph{Random seeds.}
-All experiments draw from a fixed seed pool.
-Configurations evaluated on five seeds use $\{42, 111, 811, 1234, 2137\}$;
-compute-limited configurations use the three-seed subset
-$\{42, 811, 1234\}$.
-The seed count for every reported comparison is stated alongside the
-corresponding result.
-One deviation applies: on the Split-MNIST hypernetwork benchmark, seed $2137$ produced degenerate runs for every
-projection-based method while leaving the unconstrained baselines
-unaffected; it was therefore excluded and replaced by seed $314$,
-yielding the five-seed set $\{42, 111, 314, 811, 1234\}$ used uniformly
-across all methods on this benchmark.
+All experiments draw from a fixed pool of random seeds. 
+We allocate seeds as follows:
+\begin{itemize}
+    \item \textbf{Standard configurations ($n=5$):} $\{42, 111, 811, 1234, 2137\}$.
+    \item \textbf{Split-CIFAR10 hypernetwork ($n=6$):} Adds seed $314$ to the standard set.
+    \item \textbf{Split-MNIST hypernetwork ($n=5$):} Replaces seed $2137$ with $314$, yielding 
+    $\{42, 111, 314, 811, 1234\}$. This substitution is applied uniformly across all methods 
+    to ensure a fair comparison, as seed $2137$ caused a degenerate initialization exclusively
+     for projection-based methods while leaving unconstrained baselines unaffected.
+\end{itemize}
 
 \paragraph{Fisher accumulation default.}
 The EMA decay parameter $\alpha$ appears exclusively in the Sub-RQ4
 operator comparison ($\alpha = 0.5$); every other experiment accumulates
-$\hat{F}_{\mathrm{old}}$ with the element-wise \textsc{max} operator,
+$F_{\mathrm{old}}$ with the element-wise \textsc{max} operator,
 which introduces no additional hyperparameter.
 
-% 
+\paragraph{Statistical analysis.}
+Pairwise comparisons (Sub-RQ3: \texttt{iFOPNG} vs.\ \texttt{FOPNG};
+Sub-RQ4: MAX vs.\ EMA) use a two-tailed paired $t$-test over per-seed
+final average accuracy, with significance at $\alpha = .05$. Effect size is
+reported as Cohen's $d_z = \bar{D}/s_D$, the mean per-seed difference divided
+by its sample standard deviation, so large values reflect seed-to-seed
+consistency rather than raw magnitude. The full eight-method comparison is
+reported descriptively rather than tested.
+
+ 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsubsection{Sub-RQ1 --- Constructive Synergy or Architectural Conflict}
 \label{sec:design_rq1}
@@ -129,7 +159,7 @@ dominate, conditionally succeed based on compression, or systematically fail
 due to momentum stripping.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsubsection{Sub-RQ2 --- Projection-Scoped Normalization} % I SHOULD REWRITE THIS SO I EXPLAIN WHY A CONDITION IS A GOOD MEASURMENT TO EXPLAIN A inversion failures.
+\subsubsection{Sub-RQ2 --- Projection-Scoped Normalization}
 \label{sec:design_rq2}
 
 \paragraph{What we want to differentiate.}
@@ -145,20 +175,20 @@ Split-CIFAR10 hypernetwork (Benchmark~2), with all other hyperparameters
 held constant.
 Split-CIFAR10 is chosen over the CIFAR-100 and MNIST hypernetwork
 configurations specifically because its chunk size of 6\,000 yields
-$C = 198$ chunks per target network --- large enough to produce a
+$C = 197$ chunks per target network --- large enough to produce a
 measurable pathology, yet small enough that the condition number of $A$
 can be computed and logged at every projection step without becoming
 numerically intractable.
-Larger chunk counts (e.g.\ the CIFAR-100 configuration) would make the
-condition number measurement itself unreliable; smaller counts (e.g.\
-the MNIST suffocated regime) would not stress the pathology sufficiently.
+% Larger chunk counts (e.g.\ the CIFAR-100 configuration) would make the
+% condition number measurement itself unreliable; smaller counts (e.g.\
+% the MNIST suffocated regime) would not stress the pathology sufficiently.
 
 \begin{description}
     \item[Condition 1 --- No normalization (negative control).]
     Incoming gradient batches are appended to $G$ without orthonormalization;
     the Fisher diagonal is used at its raw scale.
-    With 198 chunks accumulated per forward pass, the gradient columns of % MAY BE REDUNDANT 
-    $G$ and the entries of $\hat{F}$ are expected to reach extreme
+    With 197 chunks accumulated per forward pass, the gradient columns of % MAY BE REDUNDANT 
+    $G$ and the entries of $F$ are expected to reach extreme
     magnitudes, inflating the condition number of the projection kernel and
     driving the matrix inversion to \texttt{NaN}.
     This condition is the negative control that demonstrates the pathology
@@ -177,8 +207,13 @@ the MNIST suffocated regime) would not stress the pathology sufficiently.
     This is the proposed scheme; all other hypernetwork experiments use it.
 \end{description}
 
-In addition to accuracy and BWT, the condition number $\kappa(A)$ of
-the projection kernel is logged before each inversion.
+In addition to accuracy and BWT, the condition number
+$\kappa(A) = \lambda_{\max}(A) / \lambda_{\min}(A)$ of the projection
+kernel is logged before each inversion as the primary diagnostic.
+A large $\kappa(A)$ indicates that $A$ is nearly singular: small
+perturbations in $A$ are amplified by a factor of $\kappa(A)$ in the
+computed $A^{-1}$, causing the projected gradient to collapse to zero
+or \texttt{NaN}.
 A condition number that diverges in Condition~1 but remains bounded in
 Condition~3 constitutes direct numerical evidence for the pathology and
 its resolution.
@@ -201,7 +236,7 @@ initialisation; the necessary correction is established empirically in
 Appendix~D (Figure~\ref{fig:sgd_threshold}).
 This replication-faithful design ensures that any observed difference
 between \texttt{iFOPNG} and \texttt{FOPNG} is attributable to the combined
-metric $F_c = \hat{F}_\mathrm{new} + \hat{F}_\mathrm{old}$ rather than
+metric $F_c = F_\mathrm{new} + F_\mathrm{old}$ rather than
 to differences in training conditions.
 
 Split-MNIST multi-head and the two hypernetwork configurations
@@ -213,15 +248,6 @@ Sub-RQ3.
 
 \subsubsection{Sub-RQ4 --- Fisher Accumulation Operator}
 \label{sec:design_rq4}
-
-\paragraph{What we want to differentiate.}
-The non-decaying maximum $F_{\mathrm{old}} \leftarrow
-\max(F_{\mathrm{old}}, F_{\mathrm{new}})$ guarantees that any parameter
-ever deemed important to a past task retains that importance permanently.
-This is protective for early tasks but monotonic by construction: the
-inertial metric boundary can only tighten, never relax, so in a
-sufficiently long sequence the accumulated metric may immobilise the
-parameters needed to learn later tasks.
 
 \paragraph{Experimental design.}
 \texttt{iFOPNG} is run under two accumulation operators, all other settings

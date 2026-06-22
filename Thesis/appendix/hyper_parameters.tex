@@ -1,82 +1,100 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% Appendix G: Hyperparameter Tables
+% Appendix F: Hyperparameter Tables
 % ─────────────────────────────────────────────────────────────────────────────
 
-\section*{Appendix G: Hyperparameter Tables}
+\section*{Appendix F: Hyperparameter Tables}
 \label{app:hyperparameters}
 
-All values are sourced directly from the W\&B run configs (CSV logs) unless
-marked $^?$ (inferred from thesis text or figure annotations).
-Entries marked $^\dagger$ are flagged in Section~\ref{sec:notes_confounds}.
-\texttt{max\_ep} is the maximum epochs per task; \texttt{ep/task} is the
-configured training epochs; \texttt{max\_dirs} is the gradient memory column
-budget.
-
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{G.1 \quad Standalone Target-Network Experiments}
+\subsection*{F.1 \quad Standalone Target-Network Experiments}
 \label{app:hyperparameters_standalone}
 
-All standalone experiments share the following fixed settings:
-\texttt{model = TargetNetwork}, \texttt{normalize = False},
-\texttt{regulizer = False}, \texttt{damping = 0.01}, \texttt{batch\_size = 10},
-$n = 5$ seeds.
-Learning rates are taken from \citet{garg_fisher-orthogonal_2026} Table~1
-and vary per method; they are reproduced in Table~\ref{tab:hp_lr} for
-reference.
-The first-task optimizer is SGD for all MNIST benchmarks and Adam for
-CIFAR benchmarks, at $\eta_{\mathrm{first}} = 10^{-3}$ throughout.
-For MNIST benchmarks this deviates from the published value of
-$\eta_{\mathrm{first}} = 10^{-5}$, which fails to converge
-(see Appendix~D, Figure~\ref{fig:sgd_threshold}).
-
+\renewcommand{\arraystretch}{0.74}
 \begin{table}[H]
 \centering
 \caption{%
-    \textbf{Benchmark-level training constants.}
-    Fisher samples marked \textit{full} use the entire training set
-    (60\,000 for Permuted-MNIST; 12\,000 for Split-MNIST).
+    Hyperparameters used for each method across all standalone
+    target-network benchmarks.
+    Learning rates for \textbf{Adam}, \textbf{SGD}, \textbf{FNG},
+    \textbf{OGD}, and \textbf{FOPNG} are taken from
+    \citet{garg_fisher-orthogonal_2026} Table~1;
+    \textbf{iFOPNG} uses identical values to \textbf{FOPNG}.
+    \textbf{ONG} learning rates were selected empirically, as
+    \textbf{ONG} is not evaluated in the original work.
+    \textbf{EWC} learning rates were selected empirically for
+    Permuted-MNIST and Split-CIFAR10; Split-MNIST and
+    Split-CIFAR100 follow \citet{garg_fisher-orthogonal_2026}.
+    The damping $\lambda$ is shared across \textbf{ONG},
+    \textbf{FNG}, \textbf{FOPNG}, and \textbf{iFOPNG};
+    \textbf{OGD} requires no damping.
+    $^\ddagger$CIFAR-100 EWC: \citet{garg_fisher-orthogonal_2026}
+    report $\lambda_{\mathrm{EWC}}=50$; this value produced
+    collapsed runs in our replication and $\lambda_{\mathrm{EWC}}=10$
+    is used instead.
 }
-\label{tab:hp_benchmark}
-\small
-\begin{tabular}{lccccc}
-\toprule
-Benchmark & Tasks & ep/task & Fisher samp. & EWC $\lambda$ & Proj.\ $\lambda$ \\
-\midrule
-Permuted-MNIST    & 5  & 5  & \textit{full} (60\,000) & 10     & $10^{-2}$  \\
-Split-MNIST MH    & 5  & 5  & \textit{full} (12\,000) & 400    & $5\!\times\!10^{-4}$ \\
-Split-MNIST SH    & 5  & 5  & \textit{full} (12\,000) & 400    & $5\!\times\!10^{-4}$ \\
-Split-CIFAR10 MH  & 5  & 5  & 1\,024                  & 50     & $10^{-3}$  \\
-Split-CIFAR100 MH & 10 & 10 & 1\,024                  & 10$^\ddagger$ & $10^{-3}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-\noindent$^\ddagger$CIFAR-100 MH: $\lambda = 50$ produced collapsed runs and
-is excluded; $\lambda = 10$ is used (see Figure~\ref{fig:standalone_cifar100}).
-
-\begin{table}[H]
-\centering
-\caption{%
-    \textbf{Per-method learning rates} taken from
-    \citet{garg_fisher-orthogonal_2026} Table~1.
-    \texttt{iFOPNG} uses the same values as \texttt{FOPNG}.
-}
-\label{tab:hp_lr}
-\small
+\label{tab:hparams_standalone}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lcccccccc}
 \toprule
-Benchmark & Adam & SGD & EWC & FNG & OGD & ONG & FOPNG & iFOPNG \\
+\textbf{Hyperparameter}
+  & \textbf{Adam}
+  & \textbf{SGD}
+  & \textbf{EWC}
+  & \textbf{FNG}
+  & \textbf{OGD}
+  & \textbf{ONG}
+  & \textbf{FOPNG}
+  & \textbf{iFOPNG} \\
 \midrule
-Permuted-MNIST    & $10^{-4}$ & $5\!\times\!10^{-3}$ & $10^{-4}$          & $10^{-3}$          & $5\!\times\!10^{-3}$ & $5\!\times\!10^{-3}$ & $10^{-4}$          & $10^{-4}$ \\
-Split-MNIST MH/SH & $10^{-5}$ & $5\!\times\!10^{-4}$ & $5\!\times\!10^{-4}$ & $10^{-3}$          & $5\!\times\!10^{-4}$ & $5\!\times\!10^{-4}$ & $10^{-5}$          & $10^{-5}$ \\
-Split-CIFAR10 MH  & $10^{-3}$ & $5\!\times\!10^{-2}$ & $10^{-3}$          & $10^{-2}$          & $5\!\times\!10^{-2}$ & $10^{-2}$          & $10^{-3}$          & $10^{-3}$ \\
-Split-CIFAR100 MH & $10^{-4}$ & $5\!\times\!10^{-3}$ & $10^{-2}$          & $5\!\times\!10^{-3}$ & $10^{-2}$          & $10^{-2}$          & $5\!\times\!10^{-3}$ & $5\!\times\!10^{-3}$ \\
+\multicolumn{9}{l}{\textit{Permuted-MNIST}} \\
+\midrule
+Learning rate ($\eta$)     & \texttt{1e-4} & \texttt{5e-3} & \texttt{1e-4} & \texttt{1e-3} & \texttt{5e-3}  & \texttt{5e-3}  & \texttt{1e-4}  & \texttt{1e-4}  \\
+$\lambda_{\mathrm{EWC}}$   & --   & --   & \texttt{10}   & --   & --    & --    & --    & --    \\
+$\lambda$ (damping)        & --   & --   & --   & \texttt{1e-3} & --    & \texttt{1e-3}  & \texttt{1e-2}  & \texttt{1e-2}  \\
+Grads per task             & --   & --   & --   & --   & \texttt{80}    & \texttt{80}    & \texttt{80}    & \texttt{80}    \\
+Max directions             & --   & --   & --   & --   & \texttt{400}   & \texttt{400}   & \texttt{400}   & \texttt{400}   \\
+Fisher batch size          & --   & --   & full & full & --    & full  & full  & full  \\
+Batch size                 & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}    & \texttt{10}    & \texttt{10}    & \texttt{10}    \\
+\# epochs / task           & \texttt{5}    & \texttt{5}    & \texttt{5}    & \texttt{5}    & \texttt{5}     & \texttt{5}     & \texttt{5}     & \texttt{5}     \\
+\midrule
+\multicolumn{9}{l}{\textit{Split-MNIST (MH and SH)}} \\
+\midrule
+Learning rate ($\eta$)     & \texttt{1e-5}  & \texttt{5e-4} & \texttt{5e-4} & \texttt{1e-3} & \texttt{5e-4}  & \texttt{5e-4}  & \texttt{1e-5}  & \texttt{1e-5}  \\
+$\lambda_{\mathrm{EWC}}$   & --    & --   & \texttt{400}  & --   & --    & --    & --    & --    \\
+$\lambda$ (damping)        & --    & --   & --   & \texttt{1e-3} & --    & \texttt{5e-4}  & \texttt{5e-4}  & \texttt{5e-4}  \\
+Grads per task             & --    & --   & --   & --   & \texttt{80}    & \texttt{80}    & \texttt{80}    & \texttt{80}    \\
+Max directions             & --    & --   & --   & --   & \texttt{400}   & \texttt{400}   & \texttt{400}   & \texttt{400}   \\
+Fisher batch size          & --    & --   & full & full & --    & full  & full  & full  \\
+Batch size                 & \texttt{10}    & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}    & \texttt{10}    & \texttt{10}    & \texttt{10}    \\
+\# epochs / task           & \texttt{5}     & \texttt{5}    & \texttt{5}    & \texttt{5}    & \texttt{5}     & \texttt{5}     & \texttt{5}     & \texttt{5}     \\
+\midrule
+\multicolumn{9}{l}{\textit{Split-CIFAR10}} \\
+\midrule
+Learning rate ($\eta$)     & \texttt{1e-3}  & \texttt{5e-2} & \texttt{1e-3} & \texttt{1e-2} & \texttt{5e-2}  & \texttt{1e-2}  & \texttt{1e-3}  & \texttt{1e-3}  \\
+$\lambda_{\mathrm{EWC}}$   & --    & --   & \texttt{50}   & --   & --    & --    & --    & --    \\
+$\lambda$ (damping)        & --    & --   & --   & \texttt{1e-3} & --    & \texttt{1e-3}  & \texttt{1e-3}  & \texttt{1e-3}  \\
+Grads per task             & --    & --   & --   & --   & \texttt{80}    & \texttt{80}    & \texttt{80}    & \texttt{80}    \\
+Max directions             & --    & --   & --   & --   & \texttt{400}   & \texttt{400}   & \texttt{400}   & \texttt{400}   \\
+Fisher batch size          & --    & --   & \texttt{1024} & \texttt{1024} & --    & \texttt{1024}  & \texttt{1024}  & \texttt{1024}  \\
+Batch size                 & \texttt{10}    & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}    & \texttt{10}    & \texttt{10}    & \texttt{10}    \\
+\# epochs / task           & \texttt{5}     & \texttt{5}    & \texttt{5}    & \texttt{5}    & \texttt{5}     & \texttt{5}     & \texttt{5}     & \texttt{5}     \\
+\midrule
+\multicolumn{9}{l}{\textit{Split-CIFAR100}} \\
+\midrule
+Learning rate ($\eta$)     & \texttt{1e-4}  & \texttt{5e-3} & \texttt{1e-2} & \texttt{5e-3} & \texttt{1e-2}  & \texttt{1e-2}  & \texttt{5e-3}  & \texttt{5e-3}  \\
+$\lambda_{\mathrm{EWC}}$   & --    & --   & \texttt{10}$^\ddagger$ & -- & -- & --  & --    & --    \\
+$\lambda$ (damping)        & --    & --   & --   & \texttt{1e-3} & --    & \texttt{1e-3}  & \texttt{1e-3}  & \texttt{1e-3}  \\
+Grads per task             & --    & --   & --   & --   & \texttt{80}    & \texttt{80}    & \texttt{80}    & \texttt{80}    \\
+Max directions             & --    & --   & --   & --   & \texttt{800}   & \texttt{800}   & \texttt{800}   & \texttt{800}   \\
+Fisher batch size          & --    & --   & \texttt{1024} & \texttt{1024} & --    & \texttt{1024}  & \texttt{1024}  & \texttt{1024}  \\
+Batch size                 & \texttt{10}    & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}    & \texttt{10}    & \texttt{10}    & \texttt{10}    \\
+\# epochs / task           & \texttt{10}    & \texttt{10}   & \texttt{10}   & \texttt{10}   & \texttt{10}    & \texttt{10}    & \texttt{10}    & \texttt{10}    \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{G.2 \quad Hypernetwork Experiments}
+\subsection*{F.2 \quad Hypernetwork Experiments}
 \label{app:hyperparameters_hn}
 
 All HN experiments: \texttt{model = HyperNetwork}, \texttt{regulizer = True},
@@ -88,9 +106,9 @@ $\beta = 0.1$ (\texttt{lam = 0.001}), $\eta = 10^{-3}$, $n = 5$ seeds.
     \textbf{Hypernetwork architecture and training parameters.}
     \texttt{c\_emb} = chunk embedding dim; \texttt{t\_emb} = task embedding dim;
     \texttt{max\_dir} = maximum gradient memory directions.
-    $^\dagger$Exp~411: results extracted from the 35 completed runs at
-    chunk\,=\,6\,000, $d_h$\,=\,32, \texttt{normalize\,=\,True};
-    remaining runs are exploratory pilots (see G.6).
+    $^\dagger$The CIFAR-100 HN results are extracted from the 35 completed
+    runs at chunk\,=\,6\,000, $d_h$\,=\,32, \texttt{normalize\,=\,True};
+    remaining runs are exploratory pilots.
 }
 \label{tab:hp_hn}
 \resizebox{\linewidth}{!}{%
@@ -99,109 +117,41 @@ $\beta = 0.1$ (\texttt{lam = 0.001}), $\eta = 10^{-3}$, $n = 5$ seeds.
 Role / Benchmark & Tasks & ep/task & max\_ep
   & First opt & $d_h$ & chunk & c\_emb & t\_emb & \makecell{grads\\/ task} & max\_dir \\
 \midrule
-CIFAR-10 HN (main, Exp~408)              & 5  & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 80  & 1\,000 \\
-CIFAR-100 HN (Exp~411)$^\dagger$         & 10 & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 200 & 800    \\
+CIFAR-10 HN              & 5  & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 80  & 1\,000 \\
+CIFAR-100 HN$^\dagger$   & 10 & 10 & 50 & AdamW & 32 & 6\,000 & 16 & 16 & 200 & 800    \\
 \midrule
-MNIST HN ($d_h{=}8$, suffocated, Exp~407) & 5 & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 100 & 5\,000 \\
+MNIST HN ($d_h{=}8$, suffocated) & 5 & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 80 & 5\,000 \\
 \midrule
-$d_h$ sweep --- $d_h = 4$               & 5  & 15 & 15 & AdamW & 4  & 64 & 32 & 32 & 80  & 5\,000 \\
-$d_h$ sweep --- $d_h = 8$               & 5  & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 100 & 5\,000 \\
-$d_h$ sweep --- $d_h = 16$              & 5  & 15 & 15 & AdamW & 16 & 64 & 32 & 32 & 80  & 5\,000 \\
+$d_h$ sweep --- $d_h = 4$  & 5  & 15 & 15 & AdamW & 4  & 64 & 32 & 32 & 80 & 5\,000 \\
+$d_h$ sweep --- $d_h = 8$  & 5  & 15 & 15 & AdamW & 8  & 64 & 32 & 32 & 80 & 5\,000 \\
+$d_h$ sweep --- $d_h = 16$ & 5  & 15 & 15 & AdamW & 16 & 64 & 32 & 32 & 80 & 5\,000 \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{G.3 \quad Normalization Ablation}
+\subsection*{F.3 \quad Normalization Ablation}
 \label{app:hyperparameters_norm}
 
-% All three conditions share the same architecture:
-% Split-CIFAR10, 5 tasks, \texttt{max\_ep = 50},
-% chunk\,=\,6\,000, $d_h$\,=\,32, batch\,=\,32,
-% AdamW first-task at $\eta = 10^{-3}$, \texttt{iFOPNG} only.
-
-\begin{table}[H]
-\centering
-\caption{%
-    \textbf{Normalization ablation conditions (Sub-RQ2).}
-    All conditions: Split-CIFAR10 HN, chunk\,=\,6\,000, $d_h$\,=\,32,
-    \texttt{iFOPNG} only, AdamW first-task at $\eta = 10^{-3}$.
-    Exp~410 (gradient-only) contains pilot runs at chunk\,=\,256,
-    $d_h$\,=\,64; only chunk\,=\,6\,000, $d_h$\,=\,32 runs are used.
-}
-\label{tab:hp_norm}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lccccccc}
-\toprule
-Condition & Exp & \texttt{normalize} & QR on $G$ & Max-scale $\hat{F}$
-  & Seeds & Accuracy & BWT \\
-\midrule
-No normalization   & 409 & \texttt{False} & \texttimes  & \texttimes  & 5 & 72.2\% & $-0.042$ \\
-Gradient-only      & 410 & \texttt{True}  & \checkmark  & \texttimes  & 3 & 68.9\% & $-0.060$ \\
-Full normalization & 408 & \texttt{True}  & \checkmark  & \checkmark  & 6 & 86.0\% & $-0.006$ \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
+All three conditions: Split-CIFAR10 HN, \texttt{iFOPNG} only,
+chunk\,=\,6\,000, $d_h$\,=\,32, $\eta = 10^{-3}$.
+Conditions differ only in which rescaling operations are active:
+no normalisation (\texttt{normalize\,=\,False}), gradient-only
+(QR on $G$, raw Fisher), and full normalisation (QR on $G$ plus
+maximum-entry Fisher scaling).
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection*{G.4 \quad Sub-RQ4 and Compression Ablation}
+\subsection*{F.4 \quad Sub-RQ4: Fisher Accumulation Operator}
 \label{app:hyperparameters_rq4}
 
-Both Sub-RQ4 conditions and all three compression ablation conditions use
-20-task Permuted-MNIST, \texttt{TargetNetwork}, \texttt{normalize = False},
-batch\,=\,10.
+Both operators use 20-task Permuted-MNIST, \texttt{TargetNetwork},
+\texttt{normalize = False}, $\eta = 10^{-4}$, $\lambda = 10^{-2}$,
+80 grads/task, full Fisher (60\,000 samples), batch\,=\,10, 5 epochs/task,
+$n = 5$ seeds $\{42, 111, 811, 1234, 2137\}$.
+MAX uses the element-wise maximum; EMA uses $\alpha = 0.5$.
 
-\begin{table}[H]
-\centering
-\caption{%
-    \textbf{Sub-RQ4 accumulation parameters} ($n = 5$ seeds,
-    seeds $\{42, 111, 811, 1234, 2137\}$, $\alpha = 0.5$ for EMA).
-}
-\label{tab:hp_rq4}
-\resizebox{0.90\linewidth}{!}{%
-\begin{tabular}{lccccccc}
-\toprule
-Operator & Tasks & ep/task & max\_ep & LR & $\lambda$ & \makecell{grads\\/ task} & \makecell{Fisher\\samp.} \\
-\midrule
-MAX (\texttt{iFOPNG})                      & 20 & 5 & 5 & $10^{-4}$ & $10^{-2}$ & 80 & 60\,000 \\
-EMA (\texttt{iFOPNG\_ema}, $\alpha = 0.5$) & 20 & 5 & 5 & $10^{-4}$ & $10^{-2}$ & 80 & 60\,000 \\
-\bottomrule
-\end{tabular}}
-\end{table}
+\subsection*{F.5 \quad Compression Ablation}
+\label{app:hyperparameters_compression}
 
-\begin{table}[H]
-\centering
-\caption{%
-    \textbf{Compression ablation parameters} ($n = 5$ seeds each,
-    seeds $\{42, 111, 811, 1234, 2137\}$).
-    $\lambda = 10^{-3}$ differs from the Sub-RQ4 baseline ($\lambda = 10^{-2}$);
-    the ablation is internally controlled but not directly comparable to
-    Sub-RQ4 on this hyperparameter.
-    $\alpha = 0.3$ for the internal F\_old EMA update in all three conditions,
-    differing from the Sub-RQ4 value of $\alpha = 0.5$; results are therefore
-    not directly comparable to Sub-RQ4 on this parameter either.
-}
-\label{tab:hp_compression}
-\resizebox{0.90\linewidth}{!}{%
-\begin{tabular}{lccccccc}
-\toprule
-Strategy & Tasks & ep/task & max\_ep & LR & $\lambda$ & \makecell{grads\\/ task} & max\_dirs \\
-\midrule
-SVD  (Exp~421) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 80 & 400 \\
-FIFO (Exp~422) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 80 & 400 \\
-STOP (Exp~423) & 20 & 5 & 5 & $10^{-4}$ & $10^{-3}$ & 80 & 400 \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-% ─────────────────────────────────────────────────────────────────────────────
-\subsection*{G.5 \quad SGD Convergence Threshold Diagnostic}
-\label{app:sgd_threshold}
-
-The SGD threshold diagnostic (Figure~\ref{fig:sgd_threshold}) sweeps
-$\eta \in \{10^{-5},\, 5\!\times\!10^{-5},\, 10^{-4},\, 2\!\times\!10^{-4},\,
-5\!\times\!10^{-4},\, 10^{-3},\, 5\!\times\!10^{-3},\, 10^{-2}\}$
-on Split-MNIST SH (\texttt{TargetNetwork}, 1 task, 5 epochs).
-Convergence threshold: $\eta = 10^{-4}$.
-All standalone experiments in this thesis use $\eta_{\mathrm{first}} = 10^{-3}$,
-deviating from the \citet{garg_fisher-orthogonal_2026} protocol.
+Same setup as F.4 except $\lambda = 10^{-3}$, $\alpha = 0.3$ (internal
+$F_{\mathrm{old}}$ EMA), and \texttt{max\_dirs}\,=\,400.
+The three strategies (SVD, FIFO, STOP) are otherwise identical.

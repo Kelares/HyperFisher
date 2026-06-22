@@ -1,5 +1,5 @@
 % ─────────────────────────────────────────────────────────────────────────────
-% Related Work — rewrite
+% Related Work --- rewrite
 %
 % Narrative flow (user-specified):
 %   1. CL problem definition, why it matters, taxonomy (foundational papers)
@@ -19,11 +19,6 @@
 \section{Related Work}
 \label{sec:related_work}
 
-This section builds the theoretical and empirical context for the thesis,
-tracing a path from foundational continual learning challenges through
-regularization and projection methods, to hypernetwork architectures and the
-structural gap at their intersection.
-
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Continual Learning and the Stability-Plasticity Dilemma}
 
@@ -35,10 +30,9 @@ The fundamental tension between these two objectives is formalized as the
 \emph{stability-plasticity dilemma} \citep{grossberg_how_1980}: an agent must
 remain plastic enough to absorb novel distributions yet stable enough to resist
 the erasure of established representations.
-When standard architectures trained by empirical risk minimization are exposed
-to sequential data, they suffer \emph{catastrophic forgetting}
-\citep{mccloskey_catastrophic_1989} --- abrupt and near-total loss of
-previously learned capabilities upon exposure to new task data.
+% Failure to maintain stability under this tension is the catastrophic
+% forgetting introduced in Section~\ref{sec:introduction}; the remainder of this
+% section surveys the algorithmic responses to it.
 
 The continual learning literature addresses this across three canonical
 scenarios \citep{de_lange_continual_2022}:
@@ -52,48 +46,90 @@ projection-based methods and hypernetwork architectures have been most
 thoroughly evaluated and in which structural comparisons between them are
 most tractable.
 
-% ─────────────────────────────────────────────────────────────────────────────
+% % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Evaluation Protocols: Multi-Head and Single-Head Designs}
 \label{sec:eval_protocols}
 
-Within the task-incremental setting, two evaluation protocols govern how the
-network's output layer is organized.
-In the \emph{multi-head} protocol, each task is assigned a dedicated output
-head selected at test time using the known task identity, eliminating
-output-level interference between tasks.
-In the \emph{single-head} protocol, all tasks share one output layer,
-requiring the backbone alone to resolve inter-task interference --- a
-substantially harder problem.
-\citet{farquhar_towards_2018} demonstrated that multi-head evaluations
-systematically inflate apparent method performance by removing a major
-source of forgetting, and argued that single-head evaluation is the more
-rigorous protocol.
+Task-incremental benchmarks are evaluated under one of two output-layer
+protocols. The \emph{multi-head} protocol gives each task a dedicated output
+head, selected by task identity at test time, which removes output-level
+interference between tasks; the \emph{single-head} protocol shares one output
+layer, forcing the backbone alone to resolve that interference.
+\citet{farquhar_towards_2018} showed that multi-head evaluation systematically
+inflates apparent method performance by eliminating a major source of
+forgetting, and argued that the single-head protocol is the more rigorous
+test. Split-MNIST is therefore evaluated under both: the multi-head variant
+reproduces the conditions of \citet{garg_fisher-orthogonal_2026} for direct
+numerical comparison, and the single-head variant follows
+\citet{farquhar_towards_2018} as the harder, more discriminating evaluation.
+The exact head configuration and the protocol assigned to each benchmark are
+given in Section~\ref{sec:benchmarks}.
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Fisher Information Matrix}
+\label{sec:fisher_rw}
 
-This thesis uses multi-head benchmarks for all Split-CIFAR experiments to
-match the evaluation conditions of \citet{garg_fisher-orthogonal_2026} and
-enable direct numerical comparison.
-For Split-MNIST, both protocols are evaluated: the multi-head variant
-replicates \citeauthor{garg_fisher-orthogonal_2026}'s conditions, while the
-single-head variant follows \citet{farquhar_towards_2018}'s recommendation.
-We replicate \citeauthor{garg_fisher-orthogonal_2026}'s task-incremental
-single-head protocol --- a shared two-neuron output head with task identity
-provided to the evaluation harness at test time --- subject to a necessary
-first-task learning rate correction detailed in Section~\ref{sec:hparam_provenance}.
+Several methods surveyed in this thesis quantify parameter importance through
+the \emph{Fisher Information Matrix} (FIM).
+For a parametric model $p_\theta(y \mid x)$ with parameters
+$\theta \in \mathbb{R}^P$, the FIM is the $P \times P$ matrix
+\begin{equation}
+    F(\theta)
+    = \mathbb{E}_{x \sim q(x)}\,
+      \mathbb{E}_{y \sim p_\theta(\cdot \mid x)}
+      \Bigl[
+        \nabla_\theta \log p_\theta(y \mid x)\,
+        \nabla_\theta \log p_\theta(y \mid x)^\top
+      \Bigr],
+    \label{eq:fim}
+\end{equation}
+where $q(x)$ is the data-generating distribution \citep{amari_natural_1998}.
+$F(\theta)$ defines a Riemannian metric on the parameter manifold: the
+Fisher inner product $\langle u, v\rangle_F = u^\top F(\theta)\,v$ measures
+distances in terms of the change in model predictions, not in terms of raw
+Euclidean parameter displacement.
+% This metric is invariant under smooth reparameterization, making
+% Fisher-norm constraints more principled than Euclidean-norm constraints
+% for models whose parameters are not isotropically scaled.
+
+The full FIM is intractable at the scale of neural networks.
+All methods evaluated in this thesis use the \emph{diagonal empirical
+approximation}, which replaces the outer-product expectation with an
+empirical average over $N$ observed data points:
+\begin{equation}
+    \hat{F}_i
+    \;\approx\;
+    \frac{1}{N}\sum_{n=1}^{N}
+    \left(\frac{\partial \mathcal{L}^{(n)}}{\partial \theta_i}\right)^{\!2},
+    \label{eq:empirical_fisher}
+\end{equation}
+yielding a non-negative scalar $\hat{F}_i$ for each parameter $\theta_i$.
+The resulting vector $\hat{F} \in \mathbb{R}^P_{\geq 0}$ is treated as a
+diagonal matrix in all subsequent quadratic forms.
+This approximation reduces storage from $\mathcal{O}(P^2)$ to
+$\mathcal{O}(P)$ and is the variant used by EWC
+\citep{kirkpatrick_overcoming_2017} and all Fisher-based projection methods
+evaluated in \citep{garg_fisher-orthogonal_2026}.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Regularization-Based Approaches}
+\label{sec:rw_regularization}
 
 The dominant paradigm for addressing catastrophic forgetting is
 \emph{parameter regularization}, of which Elastic Weight Consolidation (EWC)
 \citep{kirkpatrick_overcoming_2017} is the canonical representative.
-EWC estimates the structural importance of each weight using the diagonal
-of the empirical Fisher Information Matrix $\hat{F}$, and applies a soft
-quadratic penalty that resists changes to parameters important to prior tasks:
+EWC uses $F_i$ (Equation~\ref{eq:empirical_fisher}) as an importance
+weight for each parameter, and applies a soft quadratic penalty that resists
+changes to parameters deemed important to prior tasks:
 \begin{equation}
+\label{eq:ewc}
     \mathcal{L}_{\mathrm{EWC}}(\theta)
     = \mathcal{L}_t(\theta)
-    + \frac{\lambda}{2}\sum_i \hat{F}_i
-      \bigl(\theta_i - \theta_{i,t-1}^*\bigr)^2.
+    + \frac{\lambda}{2}\sum_i F_i
+      \bigl(\theta_i - \theta_{t-1,i}^*\bigr)^2,
 \end{equation}
+where $\theta \in \mathbb{R}^p$ are the model parameters,
+$\theta^*_{t-1}$ is their snapshot saved after task $t{-}1$,
+and $\lambda > 0$ governs overall regularization strength.
 EWC is computationally efficient and broadly applicable, and serves as the
 standard reference point against which new continual learning methods are
 measured.
@@ -103,38 +139,43 @@ protection of earlier task spaces, a failure mode that becomes increasingly
 pronounced as $T$ grows \citep{de_lange_continual_2022}.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsection{Gradient Projection Methods}  
+\subsection{Gradient Projection Methods}
+\label{sec:rw_projection}
 
 To enforce strict, non-negotiable protection for prior knowledge rather than
 relying on penalties that can be overcome by sufficiently large gradients,
 a second paradigm uses explicit \emph{gradient projection}.
 Orthogonal Gradient Descent (OGD) \citep{farajtabar_orthogonal_2019} maintains
-a memory matrix $G = [g_1 \mid \cdots \mid g_K]$ of historical task gradient
-directions and projects incoming gradients onto the orthogonal complement of
-$\operatorname{Col}(G)$ before each update:
+a memory matrix $G = [g_1 \mid \cdots \mid g_K] \in \mathbb{R}^{p \times K}$
+of historical task gradient directions and projects incoming gradients onto the
+orthogonal complement of $\operatorname{Col}(G)$ before each parameter update:
 \begin{equation}
     \tilde{g} = g - G(G^\top G)^{-1}G^\top g.
 \end{equation}
-This provides a hard guarantee: the update cannot increase the loss on
-previously seen tasks.
+This provides a hard guarantee: the projected update cannot increase the loss
+on any previously seen task.
 Generalization bounds established within the Neural Tangent Kernel regime
 confirm that OGD provides exact protection in linear and mildly nonlinear
 settings \citep{bennani_generalisation_2020}.
 
-The mathematical appeal of projection methods over EWC lies precisely in this
-hardness: where EWC applies a soft penalty that can be overwhelmed, projection
-methods impose a geometric constraint that is either satisfied or not.
-However, standard Euclidean projection treats the parameter space as flat and
-assigns equal importance to all directions.
+% The mathematical appeal of projection methods over EWC lies precisely in this
+% hardness: where EWC applies a soft penalty that can be overwhelmed by
+% sufficiently large task gradients, projection methods impose a geometric
+% constraint that is either satisfied or not.
+However, standard Euclidean projection treats the parameter space as flat,
+assigning equal importance to all directions regardless of the curvature of
+the loss surface.
+
 Fisher-Orthogonal Projected Natural Gradient Descent (FOPNG)
 \citep{garg_fisher-orthogonal_2026} addresses this by performing the
-projection in the Riemannian geometry defined by the Fisher metric, so that
-the orthogonality constraint respects the curvature of the loss surface.
+projection in the Riemannian geometry defined by $\hat{F}$, the diagonal
+empirical Fisher of the current task, so that the orthogonality constraint
+respects the local curvature of the loss surface.
 The related Fisher Natural Gradient (FNG) \citep{garg_fisher-orthogonal_2026}
-applies the natural gradient without projection, and Orthogonal Natural
-Gradient (ONG) \citep{yadav_ong_2025} combines natural gradient
-preconditioning with Euclidean projection --- sitting structurally between OGD
-and FOPNG.
+applies the natural gradient without any projection, and Orthogonal Natural
+Gradient (ONG) \citep{yadav_ong_2025} combines Fisher preconditioning with
+Euclidean projection, sitting structurally between OGD and FOPNG.
+Exact algorithmic instantiations are given in Section~\ref{sec:projection_methods}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Hypernetworks for Continual Learning}
@@ -146,35 +187,40 @@ vector $\theta_t = \mathcal{H}(e_t;\phi)$ of a target network,
 conditioned on a task embedding $e_t$.
 Each task receives a unique weight configuration generated on demand, rather
 than a dedicated output head, achieving implicit task separation through the
-generative bottleneck and impressive parameter compression ratios relative to
-storing separate networks per task.
+generative bottleneck.
+
 Generating the full $\theta_t$ in a single forward pass is computationally
 intractable for large target networks, so \citet{oswald_continual_2020}
-introduced \emph{weight chunking}: the generator iterates over a secondary
-chunk embedding $c_k$, producing $C_s$ target parameters per pass and
-assembling the full weight vector by concatenation.
-To prevent the hypernetwork from forgetting how to generate prior task
-configurations, a soft \emph{functional regularizer} is applied in the output
-space of the generator:
+introduced \emph{weight chunking}: the generator iterates over $C$ chunk
+embeddings $c_1,\dots,c_C$, producing a fixed-size block of target parameters
+per pass and concatenating them into the full weight vector $\theta_t$.
+To prevent the hypernetwork from forgetting how to generate the weights of
+earlier tasks, a soft \emph{functional regularizer} anchors the generator in
+its own output space.
+Let $\theta_s = \mathcal{H}(e_s;\phi)$ be the target-network weight vector the
+generator currently produces for task $s$ under the single, evolving parameter
+set $\phi$.
+On completion of task $s$, the generated vector is cached as a fixed reference
+$\theta^{\mathrm{ref}}_s$, detached from the computation graph.
+While task $t$ is trained, only $\phi$ is updated, and every reference
+$\{\theta^{\mathrm{ref}}_s\}_{s<t}$ stays fixed at the value it held when its
+task finished, under the penalty
 \begin{equation}
     \mathcal{L}_{\mathrm{reg}}
-    = \beta \sum_{s=1}^{t-1}
-      \bigl\|\mathcal{H}(\phi,e_s) - \theta_s^*\bigr\|_2^2,
+    = \frac{\beta}{t-1} \sum_{s=1}^{t-1}
+      \bigl\| \mathcal{H}(e_s;\phi) - \theta^{\mathrm{ref}}_s \bigr\|_2^2,
 \end{equation}
-where $\theta_s^*$ denotes the weight snapshot saved after task $s$.
-This penalty can be interpreted as EWC applied at the meta level: rather than
-anchoring individual network parameters, it anchors the generated weight
-configurations for each previously seen task, penalizing drift in the
-space where task-relevant quantities actually live.
-Recent extensions have refined the hypernetwork approach: Partial
-Hypernetworks \citep{hemati_partial_2023} reduce the computational overhead of
-full weight generation, and Prototype Augmented Hypernetworks
-\citep{fuente_prototype_2025} augment task embeddings with prototype
-representations to further stabilize sequential learning.
-
+with regularization strength $\beta > 0$.
+The penalty therefore measures, in the space of generated weights, how far the
+current generator has drifted from the exact target parameters it once produced
+for each past task.
+This can be interpreted as EWC applied at the meta level: rather than anchoring individual target
+parameters, it anchors the generated weight configurations for each previously
+seen task, penalising drift in the function space where task-relevant
+quantities actually live.
 % ──────────────────
 \subsection{Identified Gaps and Motivating Pathologies}
-% Section 3.6 (Identified Gaps): Cut the mechanical explanation completely. Edit to: "Furthermore, the architectural necessity of weight-chunking introduces a severe numerical pathology in the projection kernel (detailed in Section 4.5.1) that is unique to this intersection and lacks prior treatment in the literature."
+
 Whether hard geometric projection constraints are compatible with the
 soft functional regularization already employed by hypernetworks, or
 whether layering both simultaneously over-constrains the generator's
@@ -185,17 +231,14 @@ gradient accumulation pathology --- inflated condition numbers in
 the projection kernel --- that is unique to the hypernetwork and projection methods combination
 and has no prior treatment in the literature (Sub-RQ2).
 
-Existing projection methods enforce a rigid subspace boundary on
-historical gradient directions; whether replacing this boundary with a
-combined Fisher metric encoding both old and new task curvature yields
-consistent retention improvements across benchmarks has not been
-examined (Sub-RQ3).
+Existing Fisher-based projection methods define the projection geometry from a
+single-task Fisher metric, which does not weight parameters by their importance
+to past tasks; whether replacing it with a combined metric
+$F_c = F_{\mathrm{new}} + F_{\mathrm{old}}$ that anchors historically important
+coordinates, giving them inertia, yields consistent retention improvements
+across benchmarks has not been examined (Sub-RQ3).
 
 The historical Fisher estimate underlying Fisher-based projection
 depends on a choice of accumulation operator; whether a monotonic
 maximum or a decaying exponential moving average better preserves
 long-horizon retention has not been directly compared (Sub-RQ4).
-
-These four gaps jointly motivate the sub-research questions stated in
-Section~\ref{sec:introduction} and the experimental programme
-described in Section~\ref{sec:experimental_design}.

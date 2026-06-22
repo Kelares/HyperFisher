@@ -32,26 +32,20 @@ target network's complete parameter weights conditioned on task embeddings, as
 formalized by \citet{oswald_continual_2020}. Concurrently, within the field of
 geometric optimization, gradient projection methods, exemplified by the
 recently proposed Fisher-Orthogonal Projected Natural Gradient Descent (FOPNG)
-\citep{garg_fisher-orthogonal_2026}, explicitly constrain subsequent updates to 
-lie orthogonal to the subspace of parameter directions critical for previous tasks, 
-with the geometry of orthogonality ranging from Euclidean (OGD) to Fisher-Riemannian (FOPNG).
+\citep{garg_fisher-orthogonal_2026}, explicitly constrain subsequent updates to
+lie orthogonal to the subspace of parameter directions critical for previous tasks,
+with the geometry of orthogonality ranging from Euclidean (OGD) to
+Fisher-Riemannian (FOPNG).
 
 Despite the mathematical elegance of both hypernetworks and gradient projection
 methods, their structural intersection uncovers a critical and previously
-unexamined optimization pathology. Generating a target network's full weight 
-vector in a single forward pass would require an output layer whose width equals 
-the total number of target network parameters, which is computationally prohibitive for any non-trivial
-architecture. Chunked hypernetworks therefore partition generation into $K$
-sequential sub-passes, each emitting a fixed-size segment of the weight
-vector from the same shared generator; because every sub-pass executes
-before any gradient
-update, their contributions accumulate additively in the shared meta-model
-parameters, inflating the gradient magnitude proportionally to $K$. This
-gradient inflation propagates into the projection algebra: both the gradient
-columns stored in memory matrix $G$ and the diagonal Fisher estimate $\hat{F}$
-grow in scale with $K$, rendering the regularization term $\lambda I$ negligible
-relative to the inflated projection matrix $G^\top \hat{F} G$. The condition
-number of this matrix exceeds $10^{10}$, causing catastrophic inversion failures.
+unexamined optimization pathology. Generating a target network's full weight
+vector in one forward pass is computationally prohibitive, so chunked
+hypernetworks partition generation into $K$ sequential sub-passes from a shared
+generator. Because every sub-pass executes before any gradient update, the
+gradients and Fisher estimates accumulated across chunks inflate with $K$,
+rendering the projection matrix numerically uninvertible. The exact algebraic
+mechanism is given in Section~\ref{sec:normalization}.
 
 \subsection*{Research Objectives and Algorithmic Framework}
 
@@ -62,9 +56,9 @@ top of soft functional regularizers yields an optimized sequential learning syst
 
 To achieve this, we introduce \emph{projection-scoped normalization}
 (column-wise $\ell_2$ orthonormalization of $G$ combined with
-absolute-maximum scaling of $\hat{F}$) and \texttt{iFOPNG}, an
+absolute-maximum scaling of $\tilde{F}$) and \texttt{iFOPNG}, an
 inertial FOPNG variant using the combined metric
-$F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$.
+$F_c = {F}_{\mathrm{new}} + {F}_{\mathrm{old}}$.
 These contributions enable stable gradient projection in chunked
 hypernetworks, with direct applicability to on-device sequential
 learning where retaining adaptive momentum is critical.
@@ -97,12 +91,12 @@ This is decomposed into four sub-research questions (Sub-RQs):
     projection algebra suffice to prevent matrix inversion collapse?
 
     \item[\textbf{Sub-RQ3}] \textbf{(Parameter Inertia):} Does replacing
-    \texttt{FOPNG}'s task-specific metric $\hat{F}_{\mathrm{new}}$ with the
-    combined inertial metric $F_c = \hat{F}_{\mathrm{new}} + \hat{F}_{\mathrm{old}}$
+    \texttt{FOPNG}'s task-specific metric $F_{\mathrm{new}}$ with the
+    combined inertial metric $F_c = F_{\mathrm{new}} + F_{\mathrm{old}}$
     yield consistent retention improvements across benchmarks?
 
     \item[\textbf{Sub-RQ4}] \textbf{(Fisher Accumulation):} Does accumulating
-    $\hat{F}_{\mathrm{old}}$ via a non-decaying element-wise maximum operator
+    $F_{\mathrm{old}}$ via a non-decaying element-wise maximum operator
     maintain long-horizon retention more effectively than an exponential moving
     average, and does the monotonic growth of the maximum operator impose a
     measurable plasticity cost over extended task sequences?
@@ -112,8 +106,8 @@ This is decomposed into four sub-research questions (Sub-RQs):
 
 Projection-scoped normalization fully resolves the matrix inversion
 pathology, recovering stable projection performance across all seeds.
-The inertial combined metric $F_c = \hat{F}_{\mathrm{new}} +
-\hat{F}_{\mathrm{old}}$ consistently improves retention over
+The inertial combined metric $F_c = {F}_{\mathrm{new}} +
+{F}_{\mathrm{old}}$ consistently improves retention over
 \texttt{FOPNG}, with the advantage scaling monotonically with
 inter-task Fisher overlap.
 The MAX accumulation operator outperforms EMA on long task sequences
@@ -122,6 +116,3 @@ In the standard-capacity hypernetwork setting, \texttt{iFOPNG} surpasses
 plain \texttt{SGD} but falls short of \texttt{Adam}; under extreme
 compression the gap to \texttt{Adam} widens to $20$--$40$~pp and most
 projection methods drop below \texttt{SGD} entirely.
-
-
-% Explain the concept of chunking, but cut the variables (G, F^, A) and the exact condition number. Edit to state: Chunking requires K sequential forward passes, which additively inflates the raw gradients and Fisher estimates, rendering the projection matrix uninvertible

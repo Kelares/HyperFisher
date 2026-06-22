@@ -1,15 +1,12 @@
 \begin{abstract}
     This thesis addresses the fundamental incompatibility of applying gradient
     projection-based continual learning (CL) methods to hypernetwork architectures,
-    establishing a novel framework for stable subspace optimization.  Traditional
-    projection methods collapse due to a structural–numerical pathology where the
-    architectural necessity of weight-chunking, required to avoid an output parameter
-    explosion, forces the model to be produced in hundreds or thousands of sequential
-    chunks before a single projection step can execute.  This repetitive chunk-generation
-    loop accumulates an exceptionally large gradient volume within the memory matrix,
-    blowing up the condition number of the projection correlation matrix beyond $10^{10}$, % I can produce runs where the inversion just fails. From the test I made, for a simple hn with not too many chunks, I got the hn to just fail to learn with early stops.
-    causing catastrophic inversion failures that the standard regularization
-    parameter $\lambda$ cannot rescue.
+    establishing a novel framework for stable subspace optimization.  Traditional 
+    projection methods collapse under hypernetwork architectures: the architectural 
+    necessity of weight-chunking forces the model to accumulate an exceptionally large 
+    gradient volume before a single projection step can execute, blowing up the condition
+    number of the projection matrix and causing catastrophic inversion failures that 
+    standard regularisation cannot rescue.
     
     The primary research objective is to eliminate these numerical singularities and
     systematically evaluate whether combining hard geometric projections on top of
@@ -26,7 +23,7 @@
     , Split-CIFAR10 and Split-CIFAR100. The empirical findings reveal that projection normalization
     completely resolves matrix inversion collapse, and that \texttt{iFOPNG} consistently
     outperforms \texttt{FOPNG} across all benchmarks; in the standard-capacity hypernetwork
-    setting only \texttt{iFOPNG} surpasses plain \texttt{SGD}, while most other projection
+    setting only \texttt{iFOPNG} surpasses plain \texttt{SGD}, while most other projection % I am not sure this is correct 
     variants fall below it.  A standalone hypernetwork optimized
     with \texttt{Adam} and \citeauthor{oswald_continual_2020}'s functional regularizer
     consistently surpasses all projection variants, indicating that momentum, which
@@ -34,5 +31,3 @@
     weight spaces.
 \end{abstract}
 
-% Maybe I should cut the linear algebra and leave: Traditional projection methods collapse under hypernetwork architectures. The architectural necessity of weight-chunking forces the model to accumulate an exceptionally large gradient volume before a single projection step can execute, causing catastrophic numerical singularities that standard regularization cannot rescue
-% Maybe leave the algebra.
