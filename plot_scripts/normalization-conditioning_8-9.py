@@ -213,7 +213,7 @@ def _draw_panel(ax, runs, title, ymax, marker, exp_task_lengths, annotate_explos
                                 alpha=0.10, color="#555", zorder=2)
                             
     ax.set_xlabel("Task Epoch Windows (Early Stopping Indicated by Gaps)", fontsize=9)
-    ax.set_ylabel("log₁₀ cond(G⊤F̂G)", fontsize=9)
+    ax.set_ylabel("log₁₀ $\kappa(A)$", fontsize=9)
     ax.set_title(title, fontsize=10, fontweight="bold", pad=6)
     
     ax.set_xlim(1, 4 * TASK_MAX_STEPS + 5) 
@@ -235,13 +235,13 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(11, 5.5))
     fig.suptitle(
         "Sub-RQ2: Projection Matrix Conditioning — iFOPNG on Split-CIFAR10 HN\n"
-        "Full normalization (Exp 8) vs No normalization (Exp 9)",
+        "Full normalization vs No normalization",
         fontsize=10, fontweight="bold",
     )
-    _draw_panel(axes[0], runs_8, "With Normalization (Exp 8)", ymax, marker="o", 
+    _draw_panel(axes[0], runs_8, "With Normalization", ymax, marker="o", 
                 exp_task_lengths=dynamic_lengths.get(408, {}))
     
-    _draw_panel(axes[1], runs_9, "Without Normalization (Exp 9)", ymax, marker="o", 
+    _draw_panel(axes[1], runs_9, "Without Normalization", ymax, marker="o", 
                 exp_task_lengths=dynamic_lengths.get(409, {}), annotate_explosion=True)
 
     # Shared figure-level legend for marker and gap explanation
@@ -254,10 +254,19 @@ def main():
         # Line2D([0], [0], color="none",
             #    label="gap = early stopping"),
     ]
-    # FIX 1: Set ncol=1 so the single handle is perfectly centered.
-    # FIX 2: Anchor it slightly off the absolute bottom (0.02) to give it breathing room.
-    fig.legend(handles=shared_handles, fontsize=7.5, loc="lower center",
-               ncol=1, framealpha=0.9, bbox_to_anchor=(0.5, 0.02))
+    # FIX 1: Set ncol=1 so the single handle is horizontally stacked.
+    # FIX 2: Anchor it off the bottom.
+    # FIX 3: Shrink the invisible line space (handlelength) and text gap (handletextpad)
+    fig.legend(
+        handles=shared_handles, 
+        fontsize=7.5, 
+        loc="lower center",
+        ncol=1, 
+        framealpha=0.9, 
+        bbox_to_anchor=(0.518, 0.02),
+        handlelength=0.5,   # Removes the invisible blank space on the left
+        handletextpad=0.5   # Brings the text a bit closer to the marker
+    )
                
     plt.tight_layout(pad=1.5)
     plt.subplots_adjust(bottom=0.22)

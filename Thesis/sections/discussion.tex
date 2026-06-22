@@ -60,42 +60,39 @@ be investigated.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Sub-RQ2: Projection-Scoped Normalization Resolves the Pathology}
-
 The pathology is purely numerical rather than conceptual: the intersection
 of chunked hypernetworks and Fisher-weighted gradient projection is
 geometrically coherent but arithmetically fragile without explicit local
 rescaling.
-Although the ablation was conducted on \texttt{iFOPNG}, the conditioning
-problem is not specific to the combined metric $F_c$.
 The projection kernels of \texttt{FOPNG} and \texttt{iFOPNG} share the
 same algebraic structure --- $A = G^\top F_{\mathrm{old}}\,
-M^{-1}\, F_{\mathrm{old}}\, G + \lambda I$, where $M = F_{\mathrm{new}}$
-for \texttt{FOPNG} and $M = F_c$ for \texttt{iFOPNG} --- so the
-chunk-induced inflation of $F_{\mathrm{old}}$ degrades $\kappa(A)$
-identically in both cases.
-
-The normalization operates on the shared components $G$ and
-$F_{\mathrm{old}}$, and its effect on $\kappa(A)$ is therefore
-independent of which metric occupies the $M^{-1}$ slot.
+M^{-1}\, F_{\mathrm{old}}\, G + \lambda I$ --- so the chunk-induced
+inflation of $F_{\mathrm{old}}$ degrades $\kappa(A)$ identically in
+both cases, and the normalization fix generalises across both methods.
 \texttt{OGD} and \texttt{ONG} are structurally immune: their kernel
 $A = G^\top G + \lambda I$ contains no Fisher weighting, so
-gradient orthonormalization alone suffices and metric-tensor scaling
-is a no-op.
-This structural analysis implies that projection-scoped normalization
-is a necessary precondition for any method that embeds the Fisher metric
-inside the projection algebra --- not an iFOPNG-specific patch.
+gradient orthonormalization alone suffices.
+
+The gradient-only condition confirms that joint rescaling is necessary
+rather than merely sufficient: column-normalising $G$ alone worsens the
+scale disparity between the unit-norm gradient basis and the still
+chunk-inflated $F_{\mathrm{old}}$, yielding $65.9\%$ --- below the
+no-normalization baseline of $72.2\%$.
+A well-conditioned kernel requires the two components to be co-scaled
+within the same local algebra.
 
 Severity scales with chunk count $C$: gradient magnitudes accumulate
 as $C \cdot g_{\mathrm{unit}}$, Fisher entries as $C^2 \cdot
 F_{\mathrm{unit}}$, and the unnormalized kernel inflates by order $C^4$
 per task.
-At sufficient scale the collapse is categorical rather than gradational
---- runs crash or converge to random-chance accuracy rather than merely
-underperforming --- marking normalization as a structural stability
-prerequisite rather than a performance tuning.
-The elevated failure rate on Split-CIFAR100 hypernetwork, which has a
-larger chunk count than Split-CIFAR10, is consistent with this scaling
-argument even after full normalization is applied.
+The $72.2\%$ no-normalization result is a relatively benign failure
+specific to Split-CIFAR10's moderate chunk count; in larger
+configurations normalization absence produces categorical failure ---
+runs crash or converge to random-chance accuracy.
+The elevated failure rate on Split-CIFAR100 hypernetwork is consistent
+with this scaling argument even after full normalization is applied,
+suggesting that chunk-Jacobian-aware rescaling may be warranted at
+larger scales.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{Sub-RQ3: Parameter Inertia via the Combined Fisher Metric}
@@ -107,7 +104,7 @@ The gap is positive in every case; its statistical reliability, however, is
 governed by inter-seed consistency rather than by raw magnitude.
 The advantage is significant on four of the five standalone benchmarks:
 Permuted-MNIST ($+0.3$~pp, $p = .003$, $d_z = 2.85$), Split-MNIST single-head
-($+11.8$~pp, $p < 0.001$, $d_z = 10.76$), Split-CIFAR10 ($+14.1$~pp, $p = .024$),
+($+1.3$~pp, $p < 0.001$, $d_z = 10.76$), Split-CIFAR10 ($+14.1$~pp, $p = .024$),
 and Split-CIFAR100 ($+6.0$~pp, $p = .003$).
 Permuted-MNIST is instructive precisely because its magnitude is negligible:
 a $0.3$~pp gap is statistically reliable only because the per-seed difference is

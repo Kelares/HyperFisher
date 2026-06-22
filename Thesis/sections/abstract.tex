@@ -21,9 +21,9 @@
     $F_c = F_{\text{new}}+F_{\text{old}}$, inspired by the parameter-inertia concept
     of Elastic Weight Consolidation.  Methods are benchmarked on sequential Split and Permuted MNIST
     , Split-CIFAR10 and Split-CIFAR100. The empirical findings reveal that projection normalization
-    completely resolves matrix inversion collapse, and that \texttt{iFOPNG} consistently
+    resolves matrix inversion collapse in the tested configurations, and that \texttt{iFOPNG} consistently 
     outperforms \texttt{FOPNG} across all benchmarks; in the standard-capacity hypernetwork
-    setting only \texttt{iFOPNG} surpasses plain \texttt{SGD}, while most other projection % I am not sure this is correct 
+    setting only \texttt{iFOPNG} surpasses plain \texttt{SGD}, while most other projection 
     variants fall below it.  A standalone hypernetwork optimized
     with \texttt{Adam} and \citeauthor{oswald_continual_2020}'s functional regularizer
     consistently surpasses all projection variants, indicating that momentum, which

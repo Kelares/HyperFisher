@@ -20,7 +20,7 @@ def main():
     data = load_exp(RESULTS + "404.csv")
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
-    fig.suptitle("Exp 4 — Split-CIFAR10 MH Standalone  (5T×5ep, Adam first-task @ 10⁻³)",
+    fig.suptitle("Split-CIFAR10 MH Standalone",
                  fontsize=11, fontweight="bold")
 
     bar_panel(axes[0], data, "acc", "Avg. Accuracy", "Average Accuracy",
@@ -28,8 +28,9 @@ def main():
     bar_panel(axes[1], data, "bwt", "BWT", "Backward Transfer",
               ylim=(-0.40, 0.05))
 
-    plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "standalone-cifar10_4.png")
+    for ext in ["pdf", "png"]:
+        plt.tight_layout(pad=1.5)
+        plt.savefig(OUT + f"standalone-cifar10_4.{ext}")
     plt.close()
     print("Saved standalone-cifar10_4.png")
 

@@ -27,10 +27,14 @@ runs = api.runs(f"{ENTITY}/{PROJECT}", filters={
 })
 
 data = []
-
+temp = {"414": [], "415": []}
 for run in runs:
     exp_id = str(run.config.get("experiment_id"))
     seed = str(run.config.get("seed", "unknown"))
+    if seed not in temp[exp_id]:
+        temp[exp_id].append(seed)
+    else:
+        continue
     
     acc_type = "EMA" if exp_id == "414" else "MAX"
     method_name = "iFOPNG (EMA)" if exp_id == "414" else "iFOPNG (MAX)"
@@ -148,11 +152,12 @@ handles, labels = axes[0].get_legend_handles_labels()
 axes[0].legend(handles=handles, labels=labels, loc='lower left', fontsize=10)
 axes[1].legend(handles=handles, labels=labels, loc='lower left', fontsize=10)
 
-plt.suptitle("Config 14 & 15: EMA vs MAX Fisher Accumulation (Averaged Across Seeds)", y=1.05, fontsize=16)
+plt.suptitle("Sub-RQ4: EMA vs MAX Fisher Accumulation (Averaged Across Seeds)", y=1.05, fontsize=16)
 plt.tight_layout()
 
 # Save and Show
-output_file = "plots/ema-vs-max-trajectory_14-15.png"
-plt.savefig(output_file, dpi=300, bbox_inches="tight")
-print(f"Plot saved successfully as '{output_file}'!")
+for ext in ["pdf", "png"]:
+    output_file = f"plots/ema-vs-max-trajectory_14-15.{ext}"
+    plt.savefig(output_file, dpi=300, bbox_inches="tight")
+    print(f"Plot saved successfully as '{output_file}'!")
 plt.show()

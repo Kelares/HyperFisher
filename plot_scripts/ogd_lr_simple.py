@@ -70,7 +70,7 @@ def fetch():
 def plot(data):
     fig, (ax_acc, ax_bwt) = plt.subplots(1, 2, figsize=(7.5, 3.2))
     fig.suptitle(
-        r"\texttt{OGD} learning rate sweep --- Split-CIFAR100 HN (Exp~11)",
+        r"\texttt{OGD} learning rate sweep --- Split-CIFAR100 HN",
         fontsize=11, fontweight="bold", y=1.02,
     )
 
@@ -119,11 +119,19 @@ def plot(data):
             for j, v in zip(jit, vals):
                 ax.scatter(xi + j, v, color="white", s=18,
                            edgecolors="#333", linewidths=0.6, zorder=4)
-            ax.text(xi, mean + std + 0.005 * (1 if metric == "acc" else -1),
-                    f"{mean:.3f}",
-                    ha="center",
-                    va="bottom" if metric == "acc" else "top",
-                    fontsize=8.5, color="#222", zorder=4)
+            
+            # --- NEW ANNOTATION LOGIC ---
+            if mean >= 0:
+                # Upward pointing bar (Accuracy)
+                y_pos = mean + std + 0.015
+                va_align = 'bottom'
+            else:
+                # Downward pointing bar (BWT)
+                y_pos = mean - std - 0.015  # Subtract std and padding to go lower
+                va_align = 'top'
+
+            ax.text(xi, y_pos, f"{mean:.3f}",
+                    ha="center", va=va_align, fontsize=8.5, fontweight="bold", color=col, zorder=4)
 
     plt.tight_layout()
     for ext in ("pdf", "png"):

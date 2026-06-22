@@ -19,7 +19,16 @@ option foreclosed in privacy-regulated and on-device settings where past
 data cannot be stored. Continual learning methods that preserve prior
 competence without replay therefore address both the economic burden of
 repeated retraining and the deployment of adaptive models under
-data-retention constraints.
+data-retention constraints. The societal stakes are concrete: personal
+health monitoring devices must adapt to a patient's evolving physiology
+without transmitting historical biometric data to external servers;
+edge-deployed vision systems in vehicles or industrial equipment must
+absorb distribution shifts in-situ without the energy and latency cost of
+cloud retraining; and large-scale language systems must incorporate new
+knowledge without the carbon footprint of full retraining cycles.
+The normalization and inertial-metric contributions of this thesis lower
+a foundational barrier to deploying such systems under strict data-retention
+and compute constraints.
 
 Modern continual learning (CL) literature is conventionally structured into
 three core algorithmic families: replay-based strategies that leverage episodic
@@ -114,5 +123,5 @@ The MAX accumulation operator outperforms EMA on long task sequences
 and requires no additional hyperparameters.
 In the standard-capacity hypernetwork setting, \texttt{iFOPNG} surpasses
 plain \texttt{SGD} but falls short of \texttt{Adam}; under extreme
-compression the gap to \texttt{Adam} widens to $20$--$40$~pp and most
+compression the gap to \texttt{Adam} widens to $15$--$30$~pp and most
 projection methods drop below \texttt{SGD} entirely.

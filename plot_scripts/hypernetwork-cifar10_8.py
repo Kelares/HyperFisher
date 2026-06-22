@@ -28,9 +28,9 @@ from collections import defaultdict
 CSV_PATH       = "results/408.csv"
 OUT_DIR        = "plots/"
 TARGET_N_SEEDS = 5
-MIN_ACC        = 0.55          # below this → initialization failure, excluded
+MIN_ACC        = 0.25          # below this → initialization failure, excluded
 PREFERRED_SEEDS = [42, 111, 811, 1234, 2137]   # canonical seed set
-FALLBACK_SEEDS  = [314]                         # replacement seed if a preferred fails
+FALLBACK_SEEDS  = [0]                         # replacement seed if a preferred fails
 
 METHOD_COLORS = {
     "ifopng": "#1B6CA8", "fopng": "#5BA3D9", "ewc": "#2E8B57",
@@ -262,8 +262,7 @@ def main():
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     fig.suptitle(
-        "Exp 8 — Split-CIFAR10 HN Standard  "
-        r"(5T×50ep, AdamW first-task @ $10^{-3}$)",
+        "Split-CIFAR10 HN Standard ",
         fontsize=11, fontweight="bold",
     )
 
@@ -282,3 +281,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# THOSE ARE THE CANONICAL 408 RESULTS. AMEND EVERYTHING TO IT.

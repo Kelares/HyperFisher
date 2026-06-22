@@ -20,7 +20,7 @@ def main():
     data = load_exp(RESULTS + "406.csv", skip_fn=skip_exp6)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
-    fig.suptitle("Exp 6 — Split-CIFAR100 MH Standalone  (10T×10ep, SGD first-task @ 10⁻²)",
+    fig.suptitle("Split-CIFAR100 MH Standalone  (SGD first-task @ 10⁻²)",
                  fontsize=11, fontweight="bold")
 
     bar_panel(axes[0], data, "acc", "Avg. Accuracy", "Average Accuracy",
@@ -33,13 +33,13 @@ def main():
         from utils import METHOD_ORDER
         sorted_methods = sorted(data, key=lambda m: -(data[m]["acc_mean"] or 0))
         xi = sorted_methods.index("ewc")
-        axes[0].annotate(
-            "lam=10\n(lam=50 crashed)",
-            xy=(xi, data["ewc"]["acc_mean"]),
-            xytext=(xi + 0.6, data["ewc"]["acc_mean"] + 0.07),
-            fontsize=6.5, color=COLORS["ewc"],
-            arrowprops=dict(arrowstyle="->", color=COLORS["ewc"], lw=0.8),
-        )
+        # axes[0].annotate(
+        #     "lam=10\n(lam=50 crashed)",
+        #     xy=(xi, data["ewc"]["acc_mean"]),
+        #     xytext=(xi + 0.6, data["ewc"]["acc_mean"] + 0.07),
+        #     fontsize=6.5, color=COLORS["ewc"],
+        #     arrowprops=dict(arrowstyle="->", color=COLORS["ewc"], lw=0.8),
+        # )
 
     plt.tight_layout(pad=1.5)
     for ext in ["pdf", "png"]:

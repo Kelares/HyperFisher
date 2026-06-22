@@ -59,7 +59,7 @@ def main():
 
     fig, axes = plt.subplots(1, 2, figsize=(9, 4.5))
     fig.suptitle(
-        "dh Sweep — Split-MNIST SH HyperNetwork (Exps 12, [7], 13)",
+        "hidden dimmension Sweep — Split-MNIST HyperNetwork",
         fontsize=11, fontweight="bold",
     )
 
@@ -94,15 +94,16 @@ def main():
                                edgecolors="none", zorder=4)
 
         ax.set_xticks([0, 1, 2])
-        ax.set_xticklabels(["dh=4\n(Exp 12)", "dh=8\n(Exp 7)", "dh=16\n(Exp 13)"])
+        ax.set_xticklabels(["dh=4\n", "dh=8\n", "dh=16\n"])
         ax.set_ylabel(ylabel); ax.set_title(title_s, fontsize=10, fontweight="bold")
         ax.axhline(0, color="#333", lw=0.7, ls="--", alpha=0.5)
         ax.legend(fontsize=8)
-        if metric == "accs": ax.set_ylim(0.45, 1.05)
+        if metric == "accs": ax.set_ylim(0.40, 1.05)
         else:                ax.set_ylim(-0.55, 0.05)
-
-    plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "dh-sweep_7-12-13.png")
+    
+    for ext in ["pdf", "png"]:
+        plt.tight_layout(pad=1.5)
+        plt.savefig(OUT + f"dh-sweep_7-12-13.{ext}")
     plt.close()
     print("Saved dh-sweep_7-12-13.png")
 

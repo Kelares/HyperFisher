@@ -212,6 +212,6 @@ if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     print("Fetching from W&B...")
     trajs, summary_df = fetch_all([404, 408])
-    plot_trajectories(trajs, OUT + "hypernetwork-trajectory_4-8.pdf")
+    plot_trajectories(trajs, OUT + "")
     plot_barchart(summary_df, OUT + "hypernetwork-trajectory_4-8-bars.pdf")
     print("Done.")

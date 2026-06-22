@@ -27,7 +27,7 @@ def main():
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     fig.suptitle(
-        "Exp 11 — Split-CIFAR100 HN Standard  (10T×50ep, AdamW first-task @ 10⁻³)",
+        "Split-CIFAR100 HN Standard",
         fontsize=11, fontweight="bold",
     )
 
@@ -36,8 +36,9 @@ def main():
     bar_panel(axes[1], data, "bwt", "BWT", "Backward Transfer",
               ylim=(-0.20, 0.05))
 
-    plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "hypernetwork-cifar100_11.png")
+    for ext in ["pdf", "png"]:
+        plt.tight_layout(pad=1.5)
+        plt.savefig(OUT + f"hypernetwork-cifar100_11.{ext}")
     plt.close()
     print("Saved hypernetwork-cifar100_11.png")
 

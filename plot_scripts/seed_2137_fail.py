@@ -152,7 +152,7 @@ p_crash  = plt.Line2D([0],[0], marker=None, color="none",
 ax.legend(handles=[p_valid, p_failed, p_crash],
           loc="upper right", framealpha=0.85, edgecolor="#cccccc")
 
-ax.set_title("Seed-2137 initialization failure — Split-MNIST HN (Exp. 7)", pad=7)
+ax.set_title("Seed-2137 initialization failure — Split-MNIST HN", pad=7)
 
 plt.tight_layout()
 os.makedirs(OUT_DIR, exist_ok=True)

@@ -54,13 +54,15 @@ rather than post-hoc gradient modifications \citep{hu_hidden_2026}.
 
 \paragraph{Sub-RQ2 --- Normalization Is a Necessary Condition.}
 Without explicit local rescaling, projection methods are numerically
-incompatible with chunked hypernetworks: matrix inversion in the projection
-kernel collapses completely, degrading performance below plain SGD.
-QR orthonormalization of the gradient basis combined with absolute-maximum
-Fisher scaling resolves the pathology entirely.
-This normalization scheme is a necessary engineering precondition for any
-future combination of gradient projection with chunked meta-learners,
-regardless of which projection algebra is employed.
+incompatible with chunked hypernetworks: matrix inversion in the
+projection kernel degrades or collapses entirely depending on chunk
+count, pulling performance below plain SGD.
+QR orthonormalization of the gradient basis combined with
+absolute-maximum Fisher scaling resolves the pathology in the tested
+configurations.
+This normalization scheme is a necessary engineering precondition for
+any future combination of gradient projection with chunked
+meta-learners, regardless of which projection algebra is employed.
 
 \paragraph{Sub-RQ3 --- Parameter Inertia via Combined Fisher Metric.}
 Replacing the task-specific Fisher metric with the combined inertial metric
@@ -70,7 +72,7 @@ benchmarks, including Permuted-MNIST, where it is negligible in size
 ($+0.3$~pp) yet reliable on account of its consistency across seeds; the only
 standalone null is the near-ceiling Split-MNIST multi-head ($+0.7$~pp,
 $p = .325$). The advantage is largest on Split-CIFAR10 ($+14.1$~pp,
-$p = .024$), alongside a substantial gain on Split-MNIST single-head ($+11.8$~pp). The same positive direction carries into the three hypernetwork
+$p = .024$), alongside a substantial gain on Split-MNIST single-head ($+1.3$~pp). The same positive direction carries into the three hypernetwork
 settings, though none reaches significance under the elevated inter-seed
 variance of that regime. Integrating parameter inertia therefore yields a
 positive retention advantage in every setting: statistically robust across the
@@ -100,19 +102,3 @@ regularization-based approaches, and provide a principled foundation for
 the next step: a projected adaptive optimizer that respects both the
 geometric constraints of the projection and the curvature structure that
 adaptive moment estimates capture.
-
-% \paragraph{Future directions.}
-% The most immediate extension is developing
-% projection-compatible adaptive optimizers that maintain
-% momentum across constrained updates \citep{hu_hidden_2026}.
-
-% Additionally, the heuristic QR normalization, FIM max scaling scheme
-% must be replaced with a principled reformulation
-% that integrates chunk-Jacobian curvature directly
-% into the projection algebra.
-% Finally, future work should systematically evaluate
-% these interactions on extended task sequences,
-% where soft regularization penalties may degrade,
-% and on larger target architectures,
-% where the documented condition number blowup
-% will require more robust mitigation.

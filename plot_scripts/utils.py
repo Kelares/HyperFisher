@@ -180,6 +180,8 @@ def skip_exp6(m, c, s):
         return True
     if m == "ewc" and abs(lam - 10.0) < 1e-9:   # drop non-Garg EWC
         return True
+    if m == "ifopng_prefisher":
+        return True
     return False
 
 def skip_exp7(method, config, summary):

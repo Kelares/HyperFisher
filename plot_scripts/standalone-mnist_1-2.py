@@ -29,12 +29,13 @@ def main():
     bar_panel(axes[0,1], data1, "bwt", "BWT",
               "Exp 1 — Permuted-MNIST (5T) BWT", ylim=(-0.55, 0.05))
     bar_panel(axes[1,0], data2, "acc", "Avg. Accuracy",
-              "Exp 2 — Split-MNIST MH (5T)", ylim=(0.75, 1.02))
+              "Exp 2 — Split-MNIST MH", ylim=(0.75, 1.02))
     bar_panel(axes[1,1], data2, "bwt", "BWT",
-              "Exp 2 — Split-MNIST MH (5T) BWT", ylim=(-0.35, 0.05))
+              "Exp 2 — Split-MNIST MH BWT", ylim=(-0.35, 0.05))
 
-    plt.tight_layout(pad=1.5)
-    plt.savefig(OUT + "standalone-mnist_1-2.png")
+    for ext in ["pdf", "png"]:
+        plt.tight_layout(pad=1.5)
+        plt.savefig(OUT + f"standalone-mnist_1-2.{ext}")
     plt.close()
     print("Saved standalone-mnist_1-2.png")
 

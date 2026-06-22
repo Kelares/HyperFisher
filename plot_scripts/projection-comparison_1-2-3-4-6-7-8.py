@@ -107,10 +107,12 @@ def main():
         ("Perm-MNIST",    _load_pair(RESULTS + "401.csv"),                    "standalone"),
         ("MNIST MH",      _load_pair(RESULTS + "402.csv"),                    "standalone"),
         ("MNIST SH",      _load_pair(RESULTS + "403.csv"),                    "standalone"),  # ← NEW
-        ("CIFAR-10 MH",   _load_pair(RESULTS + "404.csv"),                    "standalone"),
-        ("CIFAR-100 MH",  _load_pair(RESULTS + "406.csv", skip_fn=skip_exp6), "standalone"),
+        ("CIFAR-10",      _load_pair(RESULTS + "404.csv"),                    "standalone"),
+        ("CIFAR-100",     _load_pair(RESULTS + "406.csv", skip_fn=skip_exp6), "standalone"),
         ("MNIST HN",      _load_pair(RESULTS + "407.csv", skip_fn=skip_exp7), "HN"),
         ("CIFAR-10 HN",   _load_pair(RESULTS + "408.csv"),                    "HN"),
+        ("CIFAR-100 HN",  _load_pair(RESULTS + "411.csv"),                    "HN"),
+
     ]
 
     COL_IF = COLORS["ifopng"]
@@ -168,7 +170,7 @@ def main():
             transform=ax.get_xaxis_transform())
 
     # ── x-tick labels ─────────────────────────────────────────────────────
-    tick_labels = [f"{label}\n{_n_label(data)}"
+    tick_labels = [f"{label}"
                    for label, data, _ in benchmarks]
     ax.set_xticks(x)
     ax.set_xticklabels(tick_labels, fontsize=8.5)
@@ -189,9 +191,8 @@ def main():
     # Replace ax.text with fig.text, below x-axis labels
     fig.text(
         0.01, 0,
-        "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05  "
-        "† df=2 (n=3), low power    "
-        "Paired t-test (equal n); Welch independent (unequal n); two-sided",
+        "*** p<0.001  ** p<0.01  * p<0.05  ns p≥0.05 "
+        "Paired t-test (equal n);",
         ha="left", va="top", fontsize=6.5, color="#666",
         transform=fig.transFigure
     )

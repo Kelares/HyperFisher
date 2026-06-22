@@ -159,7 +159,7 @@ def plot_trajectories(data: dict):
 
     fig, (ax_acc, ax_bwt) = plt.subplots(1, 2, figsize=(10.5, 4.2))
     fig.suptitle(
-        r"Split-MNIST Single-Head --- Standalone Target Network (Exp~403)",
+        r"Split-MNIST Single-Head --- Standalone Target Network",
         fontsize=12, fontweight="bold", y=1.02,
     )
 

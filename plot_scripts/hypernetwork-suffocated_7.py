@@ -21,7 +21,7 @@ def main():
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     fig.suptitle(
-        "Exp 7 — Split-MNIST HyperNetwork Suffocated  (dh=8, 5T×15ep, AdamW first-task)",
+        "Split-MNIST HyperNetwork Suffocated  (dh=8)",
         fontsize=11, fontweight="bold",
     )
 

@@ -62,12 +62,19 @@ def main():
             ax.bar(xi, mean, yerr=std, color=col, width=0.55, capsize=4,
                    zorder=3, alpha=0.88,
                    error_kw={"linewidth": 1.2, "ecolor": "#333", "capthick": 1.2})
-            # jit = np.linspace(-0.1, 0.1, len(vals))
-            # for j, v in zip(jit, vals):
-            #     ax.scatter(xi + j, v, color="white", s=16, zorder=4,
-            #                edgecolors="#333", linewidths=0.7)
-            ax.text(xi, mean + std + 0.01, f"{mean:.3f}",
-                    ha="center", fontsize=8, fontweight="bold", color=col)
+            
+            # --- NEW ANNOTATION LOGIC ---
+            if mean >= 0:
+                # Upward pointing bar (Accuracy)
+                y_pos = mean + std + 0.015
+                va_align = 'bottom'
+            else:
+                # Downward pointing bar (BWT)
+                y_pos = mean - std - 0.015  # Subtract std and padding to go lower
+                va_align = 'top'
+
+            ax.text(xi, y_pos, f"{mean:.3f}",
+                    ha="center", va=va_align, fontsize=8, fontweight="bold", color=col)
 
         ax.axhline(0, color="#333", lw=0.7, ls="--", alpha=0.5)
         if metric == "acc":
@@ -84,6 +91,5 @@ def main():
         plt.savefig(OUT + f"normalization-ablation_8-9-10.{ext}")
     plt.close()
     print("Saved normalization-ablation_8-9-10.png")
-
 if __name__ == "__main__":
     main()
