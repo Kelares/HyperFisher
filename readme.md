@@ -55,10 +55,6 @@ projection methods rely on, and fixing that distortion is one of the two technic
 contributions here. The other is a new projection variant, **iFOPNG**, that builds
 parameter *inertia* directly into the metric rather than into a penalty term.
 
-> ⚠️ **A note on framing.** An earlier version of this README reported a single
-> preliminary run in which FOPNG reached ~97% on Split-MNIST. That number was an early,
-> cherry-picked artefact and **does not survive a proper multi-seed, multiple-comparison-corrected
-> evaluation.** The results section below reflects the finished thesis, not that prototype.
 
 <br/>
 
